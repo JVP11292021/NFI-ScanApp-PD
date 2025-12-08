@@ -22,6 +22,7 @@
 #include <stdexcept>
 #include <array>
 #include <vector>
+#include <PickingSystem.h>
 
 class FirstApp {
 public:
@@ -90,6 +91,34 @@ public:
 
 			auto aspect = this->renderer.getAspectRatio();
 			camera.setPerspectiveProjection(glm::radians(50.f), aspect, .1f, 25.f);
+
+			static int prevMouseState = GLFW_RELEASE;
+			int mouseState = glfwGetMouseButton(this->win.getGLFWwindow(), GLFW_MOUSE_BUTTON_LEFT);
+			if (mouseState == GLFW_PRESS && prevMouseState == GLFW_RELEASE) {
+
+				double mouseX, mouseY;
+				glfwGetCursorPos(this->win.getGLFWwindow(), &mouseX, &mouseY);
+
+				printf("Mouse Position: %f, %f\n", mouseX, mouseY);
+				Ray ray = PickingSystem::buildRay((float)mouseX, (float)mouseY, WIDTH, HEIGHT, camera);
+
+				// 4. Build the model matrix for the large model
+				auto& room = this->objects.begin()->second; // example: get your large model
+				glm::mat4 modelMatrix(1.0f);
+				modelMatrix = glm::translate(modelMatrix, room.transform.translation);
+				modelMatrix = glm::rotate(modelMatrix, room.transform.rotation.y, glm::vec3(0, 1, 0));
+				modelMatrix = glm::rotate(modelMatrix, room.transform.rotation.x, glm::vec3(1, 0, 0));
+				modelMatrix = glm::rotate(modelMatrix, room.transform.rotation.z, glm::vec3(0, 0, 1));
+				modelMatrix = glm::scale(modelMatrix, room.transform.scale);
+
+				// 5. Call intersection function (to implement next)
+				PickResult result = pickingSystem.intersectModel(ray, room.model, modelMatrix);
+
+				if (result.hit) {
+					std::cout << "Hit at: " << result.position.x << ", " << result.position.y << ", " << result.position.z << "\n";
+				}
+			}
+			prevMouseState = mouseState;
 
 			if (auto commandBuffer = this->renderer.beginFrame()) {
 				std::int32_t frameIndex = this->renderer.getFrameIndex();
@@ -198,6 +227,7 @@ private:
 
 	std::unique_ptr<vle::DescriptorPool> globalPool{};
 	vle::ObjectMap objects;
+	PickingSystem pickingSystem{};
 };
 
 int main() {
