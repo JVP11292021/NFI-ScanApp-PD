@@ -1,6 +1,6 @@
-workspace "VleEngine"
+workspace "RenderCore"
 	architecture "x64"
-	startproject "Renderer"
+	startproject "TestApp"
 
 	configurations {
 		"Debug",
@@ -18,7 +18,7 @@ else
 end
 
 project "EngineUtils"
-	location "EngineUtils"
+	location "Engine/Engine/EngineUtils"
 	kind "staticlib"
 	language "C++"
 	cppdialect "C++17"
@@ -84,7 +84,7 @@ project "EngineUtils"
 		runtime "Release"
 
 project "EngineBackend"
-	location "EngineBackend"
+	location "Engine/Engine/EngineBackend"
 	kind "staticlib"
 	language "C++"
 	cppdialect "C++17"
@@ -159,9 +159,9 @@ project "EngineBackend"
 		optimize "on"
 		runtime "Release"
 
-project "Renderer"
-	location "Renderer"
-	kind "ConsoleApp"
+project "EngineSystems"
+	location "Engine/Engine/Systems"
+	kind "staticlib"
 	language "C++"
 	cppdialect "C++17"
 	staticruntime "on"
@@ -229,5 +229,239 @@ project "Renderer"
 
 	filter "configurations:Dist"
 		defines "APP_VLE_DIST"
+		optimize "on"
+		runtime "Release"
+
+project "RayTracing"
+	location "RayTracing"
+	kind "staticlib"
+	language "C++"
+	cppdialect "C++17"
+	staticruntime "on"
+
+	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+
+	files {
+		"%{prj.name}/**.h",
+		"%{prj.name}/**.hpp",
+		"%{prj.name}/**.inl",
+		"%{prj.name}/**.cpp",
+	}
+
+	includedirs {
+		"Libraries/include",
+		"EngineBackend",
+		"EngineUtils",
+		"EngineSystems"
+	}
+
+	libdirs {
+		"Libraries/lib",
+	}
+
+	links {
+		"EngineBackend",
+		"EngineUtils",
+		"EngineSystems"
+	}
+
+	dependson { 
+		"EngineBackend", 
+		"EngineUtils",
+		"EngineSystems"
+	}
+
+	if vulkan_sdk ~= nil then
+        includedirs {
+            vulkan_sdk .. "/Include"
+        }
+
+        libdirs {
+            vulkan_sdk .. "/Lib"
+        }
+
+        links {
+            "vulkan-1.lib"
+        }
+
+        defines {
+            "USE_VULKAN"
+        }
+    end
+
+	filter "system:windows"
+		systemversion "latest"
+
+	filter "configurations:Debug"
+		defines "APP_DEBUG"
+		symbols "on"
+		runtime "Debug"
+
+	filter "configurations:Release"
+		defines "APP_RELEASE"
+		optimize "on"
+		runtime "Release"
+
+	filter "configurations:Dist"
+		defines "APP_DIST"
+		optimize "on"
+		runtime "Release"
+
+project "GSplats"
+	location "GSplats"
+	kind "staticlib"
+	language "C++"
+	cppdialect "C++17"
+	staticruntime "on"
+
+	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+
+	files {
+		"%{prj.name}/**.h",
+		"%{prj.name}/**.hpp",
+		"%{prj.name}/**.inl",
+		"%{prj.name}/**.cpp",
+	}
+
+	includedirs {
+		"Libraries/include",
+		"EngineBackend",
+		"EngineUtils",
+		"EngineSystems"
+	}
+
+	libdirs {
+		"Libraries/lib",
+	}
+
+	links {
+		"EngineBackend",
+		"EngineUtils",
+		"EngineSystems"
+	}
+
+	dependson { 
+		"EngineBackend", 
+		"EngineUtils",
+		"EngineSystems"
+	}
+
+	if vulkan_sdk ~= nil then
+        includedirs {
+            vulkan_sdk .. "/Include"
+        }
+
+        libdirs {
+            vulkan_sdk .. "/Lib"
+        }
+
+        links {
+            "vulkan-1.lib"
+        }
+
+        defines {
+            "USE_VULKAN"
+        }
+    end
+
+	filter "system:windows"
+		systemversion "latest"
+
+	filter "configurations:Debug"
+		defines "APP_DEBUG"
+		symbols "on"
+		runtime "Debug"
+
+	filter "configurations:Release"
+		defines "APP_RELEASE"
+		optimize "on"
+		runtime "Release"
+
+	filter "configurations:Dist"
+		defines "APP_DIST"
+		optimize "on"
+		runtime "Release"
+
+project "TestApp"
+	location "TestApp"
+	kind "ConsoleApp"
+	language "C++"
+	cppdialect "C++17"
+	staticruntime "on"
+
+	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+
+	files {
+		"%{prj.name}/**.h",
+		"%{prj.name}/**.hpp",
+		"%{prj.name}/**.inl",
+		"%{prj.name}/**.cpp",
+	}
+
+	includedirs {
+		"Libraries/include",
+		"EngineBackend",
+		"EngineUtils",
+		"EngineSystems",
+		"RayTracing",
+		"GSplats",
+	}
+
+	libdirs {
+		"Libraries/lib",
+	}
+
+	links {
+		"EngineBackend",
+		"EngineUtils",
+		"EngineSystems",
+		"RayTracing",
+		"GSplats",
+	}
+
+	dependson { 
+		"EngineBackend", 
+		"EngineUtils",
+		"EngineSystems",
+		"RayTracing",
+		"GSplats",
+	}
+
+	if vulkan_sdk ~= nil then
+        includedirs {
+            vulkan_sdk .. "/Include"
+        }
+
+        libdirs {
+            vulkan_sdk .. "/Lib"
+        }
+
+        links {
+            "vulkan-1.lib"
+        }
+
+        defines {
+            "USE_VULKAN"
+        }
+    end
+
+	filter "system:windows"
+		systemversion "latest"
+
+	filter "configurations:Debug"
+		defines "APP_DEBUG"
+		symbols "on"
+		runtime "Debug"
+
+	filter "configurations:Release"
+		defines "APP_RELEASE"
+		optimize "on"
+		runtime "Release"
+
+	filter "configurations:Dist"
+		defines "APP_DIST"
 		optimize "on"
 		runtime "Release"

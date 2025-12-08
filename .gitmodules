@@ -1,0 +1,3 @@
+[submodule "Core/Engine"]
+	path = Core/Engine
+	url = https://github.com/JVP11292021/VulkanLiteEngine.git
