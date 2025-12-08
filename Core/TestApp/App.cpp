@@ -3,7 +3,7 @@
 #include <Ray.hpp>
 
 #include <Renderer.hpp>
-#include <RenderSystem.hpp>
+#include <ObjectRenderSystem.hpp>
 #include <PointLightSystem.hpp>
 
 #include <Device.hpp>
@@ -66,7 +66,7 @@ public:
 				.build(globalDescriptorSets[i]);
 		}
 
-		vle::sys::SimpleRenderSystem simpleRenderSystem{ this->device, this->renderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout() };
+		vle::sys::ObjectRenderSystem objectRenderSystem{ this->device, this->renderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout() };
 		vle::sys::PointLightSystem pointLigthSystem{ this->device, this->renderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout() };
 		vle::Camera camera{};
 
@@ -113,7 +113,7 @@ public:
 
 				// Render Phase
 				this->renderer.beginSwapChainRenderPass(commandBuffer);
-				simpleRenderSystem.renderGameObjects(frameInfo);
+				objectRenderSystem.render(frameInfo);
 				pointLigthSystem.render(frameInfo);
 				this->renderer.endSwapChainRenderPass(commandBuffer);
 				this->renderer.endFrame();
