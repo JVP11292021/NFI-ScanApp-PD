@@ -28,11 +28,11 @@ project "EngineUtils"
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 
 	files {
-		"%{prj.name}/**.h",
-		"%{prj.name}/**.hpp",
-		"%{prj.name}/**.inl",
-		"%{prj.name}/**.cpp",
-		"%{prj.name}/**.c",
+		"Engine/Engine/%{prj.name}/**.h",
+		"Engine/Engine/%{prj.name}/**.hpp",
+		"Engine/Engine/%{prj.name}/**.inl",
+		"Engine/Engine/%{prj.name}/**.cpp",
+		"Engine/Engine/%{prj.name}/**.c",
 	}
 
 	includedirs {
@@ -94,12 +94,13 @@ project "EngineBackend"
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 
 	files {
-		"%{prj.name}/**.h",
-		"%{prj.name}/**.hpp",
-		"%{prj.name}/**.inl",
-		"%{prj.name}/**.cpp",
-		"%{prj.name}/**.c",
+		"Engine/Engine/%{prj.name}/**.h",
+		"Engine/Engine/%{prj.name}/**.hpp",
+		"Engine/Engine/%{prj.name}/**.inl",
+		"Engine/Engine/%{prj.name}/**.cpp",
+		"Engine/Engine/%{prj.name}/**.c",
 	}
+
 
 	includedirs {
 		"Libraries/include",
@@ -170,10 +171,11 @@ project "EngineSystems"
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 
 	files {
-		"%{prj.name}/**.h",
-		"%{prj.name}/**.hpp",
-		"%{prj.name}/**.inl",
-		"%{prj.name}/**.cpp",
+		"Engine/Engine/Systems/**.h",
+		"Engine/Engine/Systems/**.hpp",
+		"Engine/Engine/Systems/**.inl",
+		"Engine/Engine/Systems/**.cpp",
+		"Engine/Engine/Systems/**.c",
 	}
 
 	includedirs {
