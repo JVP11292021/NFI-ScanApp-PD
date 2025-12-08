@@ -104,7 +104,7 @@ project "EngineBackend"
 
 	includedirs {
 		"Libraries/include",
-		"EngineUtils"
+		"Engine/Engine/EngineUtils"
 	}
 
 	libdirs {
@@ -180,8 +180,8 @@ project "EngineSystems"
 
 	includedirs {
 		"Libraries/include",
-		"EngineBackend",
-		"EngineUtils"
+		"Engine/Engine/EngineBackend",
+		"Engine/Engine/EngineUtils"
 	}
 
 	libdirs {
