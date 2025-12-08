@@ -253,9 +253,9 @@ project "RayTracing"
 
 	includedirs {
 		"Libraries/include",
-		"EngineBackend",
-		"EngineUtils",
-		"EngineSystems"
+		"Engine/Engine/EngineBackend",
+		"Engine/Engine/EngineUtils",
+		"Engine/Engine/Systems"
 	}
 
 	libdirs {
@@ -329,9 +329,9 @@ project "GSplats"
 
 	includedirs {
 		"Libraries/include",
-		"EngineBackend",
-		"EngineUtils",
-		"EngineSystems"
+		"Engine/Engine/EngineBackend",
+		"Engine/Engine/EngineUtils",
+		"Engine/Engine/Systems"
 	}
 
 	libdirs {
@@ -405,9 +405,9 @@ project "TestApp"
 
 	includedirs {
 		"Libraries/include",
-		"EngineBackend",
-		"EngineUtils",
-		"EngineSystems",
+		"Engine/Engine/EngineBackend",
+		"Engine/Engine/EngineUtils",
+		"Engine/Engine/Systems",
 		"RayTracing",
 		"GSplats",
 	}
