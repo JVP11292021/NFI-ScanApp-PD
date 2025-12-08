@@ -66,8 +66,8 @@ public:
 				.build(globalDescriptorSets[i]);
 		}
 
-		SimpleRenderSystem simpleRenderSystem{ this->device, this->renderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout() };
-		PointLightSystem pointLigthSystem{ this->device, this->renderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout() };
+		vle::sys::SimpleRenderSystem simpleRenderSystem{ this->device, this->renderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout() };
+		vle::sys::PointLightSystem pointLigthSystem{ this->device, this->renderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout() };
 		vle::Camera camera{};
 
 		auto viewerObject = vle::Object::create();
@@ -194,7 +194,7 @@ private:
 private:
 	vle::EngineWindow win{ WIDTH, HEIGHT, "Hello Vulkan" };
 	vle::EngineDevice device{ win };
-	Renderer renderer{ win, device };
+	vle::sys::Renderer renderer{ win, device };
 
 	std::unique_ptr<vle::DescriptorPool> globalPool{};
 	vle::ObjectMap objects;
