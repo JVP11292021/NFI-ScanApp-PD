@@ -131,7 +131,7 @@ private:
 		const int rows = 1;        // number of objects on Y axis
 		const int cols = 8;        // number of objects on X axis
 
-		const float startX = -1.0f;
+		const float startX = -2.0f;
 		const float startY = 0.5f;
 		const float zPos = 2.5f;
 
@@ -156,13 +156,13 @@ private:
 			}
 		}
 
-		std::shared_ptr<vle::ShaderModel> quadModel =
-			vle::ShaderModel::createModelFromFile(this->device, "models/quad.obj");
-		auto obj = vle::Object::create();
-		obj.model = quadModel;
-		obj.transform.translation = { 0.f, .5f, 0.f };
-		obj.transform.scale = { 3.f, 1.0f, 3.f };
-		this->objects.emplace(obj.getId(), std::move(obj));
+		//std::shared_ptr<vle::ShaderModel> quadModel =
+		//	vle::ShaderModel::createModelFromFile(this->device, "models/quad.obj");
+		//auto obj = vle::Object::create();
+		//obj.model = quadModel;
+		//obj.transform.translation = { 0.f, .5f, 0.f };
+		//obj.transform.scale = { 3.f, 1.0f, 3.f };
+		//this->objects.emplace(obj.getId(), std::move(obj));
 
 		std::vector<glm::vec3> lightColors{
 			 {1.f, .1f, .1f},
@@ -184,6 +184,11 @@ private:
 			this->objects.emplace(pointLight.getId(), std::move(pointLight));
 		}
 
+		std::shared_ptr<vle::ShaderModel> roomModel = vle::ShaderModel::createModelFromFile(this->device, "models/room1.obj");
+		auto room = vle::Object::create();
+		room.model = roomModel;		
+		room.transform.translation = { 0.f, .5f, 0.f };
+		this->objects.emplace(room.getId(), std::move(room));
 	}
 
 private:
