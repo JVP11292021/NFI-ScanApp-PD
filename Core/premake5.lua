@@ -265,7 +265,7 @@ project "RayTracing"
 	links {
 		"EngineBackend",
 		"EngineUtils",
-		"EngineSystems"
+		"EngineSystems",
 	}
 
 	dependson { 
@@ -386,6 +386,83 @@ project "GSplats"
 		optimize "on"
 		runtime "Release"
 
+project "SfM"
+	location "SfM"
+	kind "staticlib"
+	language "C++"
+	cppdialect "C++17"
+	staticruntime "on"
+
+	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+
+	files {
+		"%{prj.name}/**.h",
+		"%{prj.name}/**.hpp",
+		"%{prj.name}/**.inl",
+		"%{prj.name}/**.cpp",
+	}
+
+	includedirs {
+		"Libraries/include",
+		"Engine/Engine/EngineBackend",
+		"Engine/Engine/EngineUtils",
+		"Engine/Engine/Systems",
+	}
+
+	libdirs {
+		"Libraries/lib",
+	}
+
+	links {
+		"EngineBackend",
+		"EngineUtils",
+		"EngineSystems",
+		"opencv_world4120d.lib",
+	}
+
+	dependson { 
+		"EngineBackend", 
+		"EngineUtils",
+		"EngineSystems"
+	}
+
+	if vulkan_sdk ~= nil then
+        includedirs {
+            vulkan_sdk .. "/Include"
+        }
+
+        libdirs {
+            vulkan_sdk .. "/Lib"
+        }
+
+        links {
+            "vulkan-1.lib"
+        }
+
+        defines {
+            "USE_VULKAN"
+        }
+    end
+
+	filter "system:windows"
+		systemversion "latest"
+
+	filter "configurations:Debug"
+		defines "APP_DEBUG"
+		symbols "on"
+		runtime "Debug"
+
+	filter "configurations:Release"
+		defines "APP_RELEASE"
+		optimize "on"
+		runtime "Release"
+
+	filter "configurations:Dist"
+		defines "APP_DIST"
+		optimize "on"
+		runtime "Release"
+
 project "TestApp"
 	location "TestApp"
 	kind "ConsoleApp"
@@ -410,6 +487,7 @@ project "TestApp"
 		"Engine/Engine/Systems",
 		"RayTracing",
 		"GSplats",
+		"SfM"
 	}
 
 	libdirs {
@@ -422,6 +500,8 @@ project "TestApp"
 		"EngineSystems",
 		"RayTracing",
 		"GSplats",
+		"SfM",
+		"opencv_world4120d.lib",
 	}
 
 	dependson { 

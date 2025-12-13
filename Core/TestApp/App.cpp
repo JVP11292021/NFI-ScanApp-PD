@@ -2,6 +2,10 @@
 
 #include <Ray.hpp>
 
+#include <SfM.hpp>
+#include <CvUtils.hpp>
+#include <CameraSystem.hpp>
+
 #include <Renderer.hpp>
 #include <ObjectRenderSystem.hpp>
 #include <PointLightSystem.hpp>
@@ -22,6 +26,35 @@
 #include <stdexcept>
 #include <array>
 #include <vector>
+
+class CameraAdapter {
+public:
+	explicit CameraAdapter(CameraSystem& advancedCamera)
+		: camera_(advancedCamera) {
+	}
+
+	const glm::mat4& getView() {
+		view_ = camera_.getViewMatrix();
+		//view_ = cvToEngineRotation() * view_;
+		inverseView_ = glm::inverse(view_);
+		return view_;
+	}
+
+	const glm::mat4& getProjection() {
+		projection_ = camera_.getProjMatrix();
+		return projection_;
+	}
+
+	const glm::mat4& getInverseView() {
+		return inverseView_;
+	}
+
+private:
+	CameraSystem& camera_;
+	glm::mat4 view_{ 1.0f };
+	glm::mat4 projection_{ 1.0f };
+	glm::mat4 inverseView_{ 1.0f };
+};
 
 class FirstApp {
 public:
@@ -68,10 +101,15 @@ public:
 
 		vle::sys::ObjectRenderSystem objectRenderSystem{ this->device, this->renderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout() };
 		vle::sys::PointLightSystem pointLigthSystem{ this->device, this->renderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout() };
-		vle::Camera camera{};
+		//vle::Camera camera{};
+		CameraSystem cam{
+			glm::vec3(0.f, 0.f, 2.5f),
+			glm::vec3(0.f, 0.f, 1.f)
+		};
+		CameraAdapter camAdapter{ cam };
 
-		auto viewerObject = vle::Object::create();
-		vle::KeyboardMovementController cameraController{};
+		//auto viewerObject = vle::Object::create();
+		//vle::KeyboardMovementController cameraController{};
 
 		auto currentTime = std::chrono::high_resolution_clock::now();
 
@@ -85,11 +123,19 @@ public:
 			constexpr auto MAX_FRAME_TIME_ELAPSED = 10000.f;
 			frameTimeElapsed = glm::min(frameTimeElapsed, MAX_FRAME_TIME_ELAPSED);
 
-			cameraController.moveInPlainXZ(this->win.getGLFWwindow(), frameTimeElapsed, viewerObject);
-			camera.setViewYXZ(viewerObject.transform.translation, viewerObject.transform.rotation);
+			//cameraController.moveInPlainXZ(this->win.getGLFWwindow(), frameTimeElapsed, viewerObject);
+			//camera.setViewYXZ(viewerObject.transform.translation, viewerObject.transform.rotation);
+			if (glfwGetKey(win.getGLFWwindow(), GLFW_KEY_W) == GLFW_PRESS)
+				cam.processKeyboard(FORWARD, frameTimeElapsed);
+			if (glfwGetKey(win.getGLFWwindow(), GLFW_KEY_S) == GLFW_PRESS)
+				cam.processKeyboard(BACKWARD, frameTimeElapsed);
+			if (glfwGetKey(win.getGLFWwindow(), GLFW_KEY_A) == GLFW_PRESS)
+				cam.processKeyboard(LEFT, frameTimeElapsed);
+			if (glfwGetKey(win.getGLFWwindow(), GLFW_KEY_D) == GLFW_PRESS)
+				cam.processKeyboard(RIGHT, frameTimeElapsed);
 
 			auto aspect = this->renderer.getAspectRatio();
-			camera.setPerspectiveProjection(glm::radians(50.f), aspect, .1f, 25.f);
+			//camera.setPerspectiveProjection(glm::radians(50.f), aspect, .1f, 25.f);
 
 			if (auto commandBuffer = this->renderer.beginFrame()) {
 				std::int32_t frameIndex = this->renderer.getFrameIndex();
@@ -97,16 +143,16 @@ public:
 					frameIndex,
 					frameTimeElapsed,
 					commandBuffer,
-					camera,
+					//camera,
 					globalDescriptorSets[frameIndex],
 					this->objects
 				};
 
 				// Update Phase
 				vle::GlobalUbo ubo{};
-				ubo.projection = camera.getProjection();
-				ubo.view = camera.getView();
-				ubo.inverseView = camera.getImverseView();
+				ubo.projection = camAdapter.getProjection();
+				ubo.view = camAdapter.getView();
+				ubo.inverseView = camAdapter.getInverseView();
 				pointLigthSystem.update(frameInfo, ubo);
 				uboBuffers[frameIndex]->writeToBuffer(&ubo);
 				uboBuffers[frameIndex]->flush();
