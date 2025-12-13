@@ -6,7 +6,7 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
 
-
+SFM_NS_B
 
 CameraSystem::CameraSystem(const glm::vec3& position,
     const glm::vec3& world_up,
@@ -217,3 +217,5 @@ std::ostream& operator<<(std::ostream& os, const CameraSystemIntrinsics& intr) {
     intr.print(os);
     return os;
 }
+
+SFM_NS_E

@@ -1,8 +1,12 @@
 #ifndef SFM_CAMERA_SYSTEM_H
 #define SFM_CAMERA_SYSTEM_H
 
+#include "ns.hpp"
+
 #include <iostream>
 #include <glm/glm.hpp>
+
+SFM_NS_B
 
 enum CameraSystemMovement
 {
@@ -135,5 +139,6 @@ private:
     float zoom_;
 };
 
+SFM_NS_E
 
 #endif // SFM_CAMERA_SYSTEM_H
