@@ -230,7 +230,7 @@ public:
 
     bool getMapPointsVec(std::vector<Point3DColor>& glm_points);
     bool getMapCamerasWithPointsVec(MapCameras& map_cameras);
-    void getMapPointsAndCameras(std::vector<Point3DColor>& glm_points, MapCameras& map_cameras, int& last_version);
+    void getMapPointsAndCameras(std::vector<Point3DColor>& glm_points, MapCameras& map_cameras, std::int32_t& last_version);
 
     cv::Mat getImage(std::int32_t cam_id, bool full_size = false) const;
     CameraInfo getCameraInfo(std::int32_t cam_id) const;

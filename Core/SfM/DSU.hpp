@@ -69,7 +69,7 @@ public:
         }
     }
 
-    inline std::int32_t count() const { return count; }
+    inline std::int32_t getCount() const { return count; }
 
 private:
     std::int32_t getId(ElemType e) {

@@ -29,7 +29,7 @@
 
 class CameraAdapter {
 public:
-	explicit CameraAdapter(CameraSystem& advancedCamera)
+	explicit CameraAdapter(sfm::CameraSystem& advancedCamera)
 		: camera_(advancedCamera) {
 	}
 
@@ -50,7 +50,7 @@ public:
 	}
 
 private:
-	CameraSystem& camera_;
+	sfm::CameraSystem& camera_;
 	glm::mat4 view_{ 1.0f };
 	glm::mat4 projection_{ 1.0f };
 	glm::mat4 inverseView_{ 1.0f };
@@ -102,7 +102,7 @@ public:
 		vle::sys::ObjectRenderSystem objectRenderSystem{ this->device, this->renderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout() };
 		vle::sys::PointLightSystem pointLigthSystem{ this->device, this->renderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout() };
 		//vle::Camera camera{};
-		CameraSystem cam{
+		sfm::CameraSystem cam{
 			glm::vec3(0.f, 0.f, 2.5f),
 			glm::vec3(0.f, 0.f, 1.f)
 		};
@@ -126,13 +126,13 @@ public:
 			//cameraController.moveInPlainXZ(this->win.getGLFWwindow(), frameTimeElapsed, viewerObject);
 			//camera.setViewYXZ(viewerObject.transform.translation, viewerObject.transform.rotation);
 			if (glfwGetKey(win.getGLFWwindow(), GLFW_KEY_W) == GLFW_PRESS)
-				cam.processKeyboard(FORWARD, frameTimeElapsed);
+				cam.processKeyboard(sfm::FORWARD, frameTimeElapsed);
 			if (glfwGetKey(win.getGLFWwindow(), GLFW_KEY_S) == GLFW_PRESS)
-				cam.processKeyboard(BACKWARD, frameTimeElapsed);
+				cam.processKeyboard(sfm::BACKWARD, frameTimeElapsed);
 			if (glfwGetKey(win.getGLFWwindow(), GLFW_KEY_A) == GLFW_PRESS)
-				cam.processKeyboard(LEFT, frameTimeElapsed);
+				cam.processKeyboard(sfm::LEFT, frameTimeElapsed);
 			if (glfwGetKey(win.getGLFWwindow(), GLFW_KEY_D) == GLFW_PRESS)
-				cam.processKeyboard(RIGHT, frameTimeElapsed);
+				cam.processKeyboard(sfm::RIGHT, frameTimeElapsed);
 
 			auto aspect = this->renderer.getAspectRatio();
 			//camera.setPerspectiveProjection(glm::radians(50.f), aspect, .1f, 25.f);
