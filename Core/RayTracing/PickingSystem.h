@@ -28,10 +28,12 @@ public:
 
 	static Ray buildRay(float pointX, float pointY, int windowWidth, int windowHeight, const vle::Camera &camera);
 
-	PickResult intersectModel(const Ray& ray, const std::shared_ptr<vle::ShaderModel>& model, const glm::mat4& modelMatrix);
+	PickResult intersectModel(const Ray &ray, const std::shared_ptr<vle::ShaderModel>& model, const glm::mat4& modelMatrix);
 
 private:
-	static bool intersectTriangle(const Ray& ray, const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2, float& outDistance, glm::vec3& outPosition);
+	static bool intersectTriangle(const Ray &ray, const glm::vec3 &v0, const glm::vec3 &v1, const glm::vec3 &v2, float &outDistance, glm::vec3 &outPosition);
+
+	static bool gaussianIntersect(const Ray &ray, const glm::vec3 &mean, const glm::mat3 &covariance, const glm::mat4 &modelMatrix, float &outDistance, glm::vec3 &outPosition);
 };
 
 #endif // RT_PICKING_SYSTEM_H

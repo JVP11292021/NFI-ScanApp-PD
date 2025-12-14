@@ -227,7 +227,7 @@ private:
 
 	std::unique_ptr<vle::DescriptorPool> globalPool{};
 	vle::ObjectMap objects;
-	PickingSystem pickingSystem{};
+	PickingSystem pickingSystem;
 };
 
 int main() {
