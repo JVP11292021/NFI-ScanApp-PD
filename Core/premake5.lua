@@ -422,6 +422,23 @@ project "SfM"
 		"EngineBackend",
 		"EngineUtils",
 		"EngineSystems",
+		"colmap_controllers.lib",
+		"colmap_estimators.lib",
+        "colmap_util.lib",
+        "colmap_feature.lib",
+        "colmap_feature_types.lib",
+        "colmap_sfm.lib",
+		"colmap_sensor.lib",
+		"colmap_scene.lib",
+		"colmap_math.lib",
+		"colmap_optim.lib",
+		"colmap_geometry.lib",
+		"colmap_mvs.lib",
+		"colmap_image.lib",
+		"colmap_retrieval.lib",
+		"colmap_vlfeat.lib",
+        "ceres.lib",
+        "glog.lib",
 	}
 
 	dependson { 
@@ -450,6 +467,8 @@ project "SfM"
 
 	filter "system:windows"
 		systemversion "latest"
+		defines { "_CRT_SECURE_NO_WARNINGS", "GLOG_NO_ABBREVIATED_SEVERITIES" }
+		buildoptions { "/permissive-" }  -- <-- important
 
 	filter "configurations:Debug"
 		defines "APP_DEBUG"
@@ -539,6 +558,8 @@ project "TestApp"
 
 	filter "system:windows"
 		systemversion "latest"
+		defines { "_CRT_SECURE_NO_WARNINGS", "GLOG_NO_ABBREVIATED_SEVERITIES" }
+		buildoptions { "/permissive-" }  -- <-- important
 
     filter "configurations:Debug"
         defines "APP_DEBUG"

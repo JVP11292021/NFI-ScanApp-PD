@@ -264,7 +264,9 @@ private:
 	vle::ObjectMap objects;
 };
 
-int main() {
+#include <Test.hpp>
+
+int main(int argc, char** argv) {
 	FirstApp app;
 	try {
 		app.run();
