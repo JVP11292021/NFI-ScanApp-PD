@@ -51,6 +51,7 @@ std::vector<cv::Mat> loadImagesFromFolder(const std::string& folderPath, bool gr
 
 // Adapter to visualize SfM points in Vulkan
 void renderSfMPoints(const std::vector<sfm::WorldPoint3D>& points, vle::ObjectMap& objects) {
+
 	for (const auto& p : points) {
 		auto obj = vle::Object::create();
 		obj.transform.translation = { float(p.xyz.x), float(p.xyz.y), float(p.xyz.z) };
@@ -218,21 +219,25 @@ public:
 			glm::vec3(0.f, 0.f, 1.f)
 		};
 		CameraAdapter camAdapter{ cam };
-		std::vector<cv::Mat> intrinsicsCv{};
-		for (size_t i = 0; i < images.size(); ++i)
-			intrinsicsCv.push_back(intrinsicsToCvMat(cam.getCameraIntrinsics()));
+		//std::vector<cv::Mat> intrinsicsCv{};
+		//for (size_t i = 0; i < images.size(); ++i)
+		//	intrinsicsCv.push_back(intrinsicsToCvMat(cam.getCameraIntrinsics()));
 
-		std::cout << "images size: " << images.size() << ", cam instrinsics: " << intrinsicsCv.size() << "\n";
-		sfm::SfM3D sfm(intrinsicsCv);
-		sfm.addImages(images);
-		sfm.extractFeatures();
+		//std::cout << "images size: " << images.size() << ", cam instrinsics: " << intrinsicsCv.size() << "\n";
+		//sfm::SfM3D sfm(intrinsicsCv);
+		//sfm.addImages(images);
+		//sfm.extractFeatures();
 
-		std::cout << "feature size: " << sfm.features().size() << "\n";
-		sfm.matchFeatures();
-		std::cout << "Matches size: " << sfm.matches().size() << "\n";
-		sfm.reconstruct(); // <-
-		std::cout << "World points size: " << sfm.points().size() << "\n";
-		renderSfMPoints(sfm.points(), objects);
+		//std::cout << "feature size: " << sfm.features().size() << "\n";
+		//sfm.matchFeatures(); // <-
+		//std::cout << "Image pairs: " << sfm.matches().size() << "\n";
+		//for (const auto& m : sfm.matches()) {
+		//	std::cout << "Pair (" << m.img1 << "," << m.img2
+		//		<< ") matches: " << m.matches.size() << "\n";
+		//}
+		//sfm.reconstruct(); // <-
+		//std::cout << "World points size: " << sfm.points().size() << "\n";
+		//renderSfMPoints(sfm.points(), objects);
 
 		//auto viewerObject = vle::Object::create();
 		//vle::KeyboardMovementController cameraController{};
@@ -336,31 +341,31 @@ private:
 		//obj.transform.scale = { 3.f, 1.0f, 3.f };
 		//this->objects.emplace(obj.getId(), std::move(obj));
 
-		//std::vector<glm::vec3> lightColors{
-		//	 {1.f, .1f, .1f},
-		//	 {.1f, .1f, 1.f},
-		//	 {.1f, 1.f, .1f},
-		//	 {1.f, 1.f, .1f},
-		//	 {.1f, 1.f, 1.f},
-		//	 {1.f, 1.f, 1.f}  //
-		//};
+		std::vector<glm::vec3> lightColors{
+			 {1.f, .1f, .1f},
+			 {.1f, .1f, 1.f},
+			 {.1f, 1.f, .1f},
+			 {1.f, 1.f, .1f},
+			 {.1f, 1.f, 1.f},
+			 {1.f, 1.f, 1.f}  //
+		};
 
-		//for (std::int32_t i = 0; i < lightColors.size(); i++) {
-		//	auto pointLight = vle::Object::createPointLight(1.f);
-		//	pointLight.color = lightColors[i];
-		//	auto rotHeight = glm::rotate(
-		//		glm::mat4(1.f),
-		//		(i * glm::two_pi<float>()) / lightColors.size(),
-		//		{ 0.f, 1.f, 0.f });
-		//	pointLight.transform.translation = glm::vec3(rotHeight * glm::vec4(-1.f, -1.f, -1.f, 1.f));
-		//	this->objects.emplace(pointLight.getId(), std::move(pointLight));
-		//}
+		for (std::int32_t i = 0; i < lightColors.size(); i++) {
+			auto pointLight = vle::Object::createPointLight(1.f);
+			pointLight.color = lightColors[i];
+			auto rotHeight = glm::rotate(
+				glm::mat4(1.f),
+				(i * glm::two_pi<float>()) / lightColors.size(),
+				{ 0.f, 1.f, 0.f });
+			pointLight.transform.translation = glm::vec3(rotHeight * glm::vec4(-1.f, -1.f, -1.f, 1.f));
+			this->objects.emplace(pointLight.getId(), std::move(pointLight));
+		}
 
-		//std::shared_ptr<vle::ShaderModel> roomModel = vle::ShaderModel::createModelFromFile(this->device, "models/room1.obj");
-		//auto room = vle::Object::create();
-		//room.model = roomModel;		
-		//room.transform.translation = { 0.f, .5f, 0.f };
-		//this->objects.emplace(room.getId(), std::move(room));
+		std::shared_ptr<vle::ShaderModel> roomModel = vle::ShaderModel::createModelFromFile(this->device, "models/test_sfm.obj");
+		auto room = vle::Object::create();
+		room.model = roomModel;		
+		room.transform.translation = { 0.f, .5f, 0.f };
+		this->objects.emplace(room.getId(), std::move(room));
 	}
 
 private:

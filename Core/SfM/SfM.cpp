@@ -27,8 +27,15 @@ void SfM3D::addImages(const std::vector<cv::Mat>& images) {
 void SfM3D::extractFeatures() {
     cv::Ptr<cv::SIFT> sift = cv::SIFT::create();
     for (size_t i = 0; i < images_.size(); ++i) {
+        cv::Mat img8u;
+        if (images_[i].type() != CV_8U && images_[i].type() != CV_8UC3) {
+            images_[i].convertTo(img8u, CV_8U, 255.0); // if image is 0..1 float
+        }
+        else {
+            img8u = images_[i];
+        }
         sift->detectAndCompute(
-            images_[i],
+            img8u,
             cv::noArray(),
             features_[i].keypoints,
             features_[i].descriptors
@@ -37,27 +44,43 @@ void SfM3D::extractFeatures() {
 }
 
 void SfM3D::matchFeatures() {
+    matches_.clear();
     cv::BFMatcher matcher(cv::NORM_L2);
 
     for (int i = 0; i < (int)images_.size(); ++i) {
-        if (features_[i].descriptors.empty())
+        if (features_[i].descriptors.empty() || features_[i].descriptors.rows < 2)
             continue;
 
         for (int j = i + 1; j < (int)images_.size(); ++j) {
-            if (features_[j].descriptors.empty())
+            if (features_[j].descriptors.empty() || features_[j].descriptors.rows < 2)
                 continue;
 
             Matches m;
             m.img1 = i;
             m.img2 = j;
 
-            matcher.match(
-                features_[i].descriptors,
-                features_[j].descriptors,
-                m.matches
-            );
+            std::cout << "Started image matching [" << i << "][" << j << "]\n";
+            std::vector<std::vector<cv::DMatch>> knn;
+            matcher.knnMatch(features_[i].descriptors, features_[j].descriptors, knn, 2);
 
-            matches_.push_back(std::move(m));
+            int h = 0;
+            for (const auto& k : knn) {
+                h++;
+                if (k.size() == 2 && k[0].distance < 0.75f * k[1].distance) {
+                    std::cout << "Hit an internal match [" << i << "][" << j << "], current size: " << h << "\n";
+                    m.matches.push_back(k[0]);
+                }
+            }
+
+            if (m.matches.size() >= 30) {  // only keep strong pairs
+                std::cout << "Adding strong pair [" << i << "][" << j << "] matches: " << m.matches.size() << "\n";
+                std::cout << "Descriptor types: " << features_[i].descriptors.type() << ", "
+                    << features_[j].descriptors.type() << "\n";
+                std::cout << "Descriptor sizes: " << features_[i].descriptors.rows << "x" << features_[i].descriptors.cols
+                    << ", " << features_[j].descriptors.rows << "x" << features_[j].descriptors.cols << "\n";
+                std::cout << "Added a strong image pair match [" << i << "][" << j << "]\n";
+                matches_.push_back(std::move(m));
+            }
         }
     }
 }
@@ -74,6 +97,7 @@ void SfM3D::buildTracks() {
 
 void SfM3D::reconstruct() {
     buildTracks();
+    std::cout << "Track count: " << tracks_.getComponentIds().size() << "\n";
     bootstrap();
 
     while (true) {
@@ -196,7 +220,22 @@ void SfM3D::triangulateTracks(int img1, int img2) {
     cv::Mat P2 = cameras_[img2].K * Rt;
 
     for (int tid : track_ids) {
+        // Prevent duplicate triangulation
+        bool already = false;
+        for (const auto& p : map_) {
+            if (p.track_id == tid) {
+                already = true;
+                break;
+            }
+        }
+        if (already)
+            continue;
+
         auto obs = tracks_.getElementsById(tid);
+
+        // Bootstrap: only use exactly 2-view tracks
+        if (obs.size() != 2)
+            continue;
 
         int kp1 = -1, kp2 = -1;
         for (auto& o : obs) {
@@ -218,13 +257,17 @@ void SfM3D::triangulateTracks(int img1, int img2) {
             X
         );
 
-        X /= X.at<float>(3);
+        float w = X.at<float>(3);
+        if (std::abs(w) < 1e-6)
+            continue;
+
+        X /= w;
 
         WorldPoint3D wp;
         wp.xyz = cv::Point3d(
-            X.at<float>(0),
-            X.at<float>(1),
-            X.at<float>(2)
+            static_cast<double>(X.at<float>(0)),
+            static_cast<double>(X.at<float>(1)),
+            static_cast<double>(X.at<float>(2))
         );
         wp.track_id = tid;
 
