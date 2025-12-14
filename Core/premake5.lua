@@ -113,6 +113,7 @@ project "EngineBackend"
 
 	links {
 		"glfw3_mt.lib",
+		"assimp-vc143-mtd.lib",
 		"EngineUtils"
 	}
 
@@ -146,11 +147,13 @@ project "EngineBackend"
 		systemversion "latest"
 
 	filter "configurations:Debug"
+	    links { "assimp-vc143-mtd.lib" }
 		defines "VLE_DEBUG"
 		symbols "on"
 		runtime "Debug"
 
 	filter "configurations:Release"
+	    links { "assimp-vc143-mt.lib" }
 		defines "VLE_RELEASE"
 		optimize "on"
 		runtime "Release"
@@ -418,7 +421,6 @@ project "SfM"
 		"EngineBackend",
 		"EngineUtils",
 		"EngineSystems",
-		"opencv_world4120d.lib",
 	}
 
 	dependson { 
