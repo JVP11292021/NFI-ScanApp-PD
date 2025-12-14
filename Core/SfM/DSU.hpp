@@ -45,28 +45,22 @@ public:
         return (this->find(e1) == this->find(e2)) ? 1 : 0;
     }
 
-    std::vector<std::int32_t> getComponentIds() const {
+    std::vector<std::int32_t> getComponentIds() {
         std::vector<std::int32_t> comp_ids;
         for (std::int32_t i = 0; i < tr.size(); ++i) {
-            if (tr[i] == -1) comp_ids.push_back(i);
+            if (findById(i) == i)
+                comp_ids.push_back(i);
         }
         return comp_ids;
     }
 
-    std::vector<ElemType> getElementsById(std::int32_t id) {
+    std::vector<ElemType> getElementsById(std::int32_t root) {
         std::vector<ElemType> comp_elems;
         for (std::int32_t i = 0; i < tr.size(); ++i) {
-            if (id == FindById(i)) {
-                comp_elems.push_back(GetEl(i));
-            }
+            if (findById(i) == root)
+                comp_elems.push_back(elems[i]);
         }
         return comp_elems;
-    }
-
-    void printVec(std::ostream& os = std::cout) const {
-        for (std::int32_t i = 0; i < tr.size(); ++i) {
-            os << i << " (" << elems[i] << "): " << tr[i] << ",  depth = " << depth[i] << std::endl;
-        }
     }
 
     inline std::int32_t getCount() const { return count; }
@@ -88,13 +82,13 @@ private:
         }
     }
     
-    inline ElemType getEl(std::int32_t id) { return elems[id]; }
+    inline ElemType getEl(std::int32_t id) const { return elems[id]; }
     
     std::int32_t findById(std::int32_t id) {
-        while (tr[id] != -1) {
-            id = tr[id];
-        }
-        return id;
+        if (tr[id] == -1)
+            return id;
+        tr[id] = findById(tr[id]);
+        return tr[id];
     }
 
 private:

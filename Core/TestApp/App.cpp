@@ -21,11 +21,115 @@
 #include <Descriptors.hpp>
 #include <eutils.hpp>
 
+#include <filesystem>
 #include <chrono>
 #include <memory>
 #include <stdexcept>
 #include <array>
 #include <vector>
+
+std::vector<cv::Mat> loadImagesFromFolder(const std::string& folderPath, bool grayscale = true) {
+	std::vector<std::filesystem::path> imagePaths;
+	for (const auto& entry : std::filesystem::directory_iterator(folderPath)) {
+		if (!entry.is_regular_file()) continue;
+		std::string ext = entry.path().extension().string();
+		if (ext != ".png" && ext != ".jpg" && ext != ".jpeg") continue;
+		imagePaths.push_back(entry.path());
+	}
+
+	// Sort paths by filename
+	std::sort(imagePaths.begin(), imagePaths.end());
+
+	std::vector<cv::Mat> images;
+	for (auto& path : imagePaths) {
+		cv::Mat img = grayscale ? cv::imread(path.string(), cv::IMREAD_GRAYSCALE)
+			: cv::imread(path.string(), cv::IMREAD_COLOR);
+		if (!img.empty()) images.push_back(img);
+	}
+	return images;
+}
+
+// Adapter to visualize SfM points in Vulkan
+void renderSfMPoints(const std::vector<sfm::WorldPoint3D>& points, vle::ObjectMap& objects) {
+	for (const auto& p : points) {
+		auto obj = vle::Object::create();
+		obj.transform.translation = { float(p.xyz.x), float(p.xyz.y), float(p.xyz.z) };
+		obj.transform.scale = { 0.05f, 0.05f, 0.05f };
+		obj.color = { 1.0f, 0.0f, 0.0f }; // Red points
+		objects.emplace(obj.getId(), std::move(obj));
+	}
+}
+
+cv::Mat intrinsicsToCvMat(const sfm::CameraSystemIntrinsics& intr) {
+	cv::Mat K = cv::Mat::eye(3, 3, CV_64F);
+	K.at<double>(0, 0) = intr.fx;
+	K.at<double>(1, 1) = intr.fy;
+	K.at<double>(0, 1) = intr.s;  // skew
+	K.at<double>(0, 2) = intr.cx;
+	K.at<double>(1, 2) = intr.cy;
+	return K;
+}
+
+std::ostream& operator<<(std::ostream& os, const cv::KeyPoint& kp) {
+    os << "{pt=(" << kp.pt.x << ", " << kp.pt.y << "), size=" << kp.size
+        << ", angle=" << kp.angle << ", response=" << kp.response
+        << ", octave=" << kp.octave << ", class_id=" << kp.class_id << "}";
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const sfm::Features& f) {
+    os << "Features { keypoints: [";
+    for (size_t i = 0; i < f.keypoints.size(); ++i) {
+        os << f.keypoints[i];
+        if (i + 1 < f.keypoints.size()) os << ", ";
+    }
+    os << "], descriptors: " << f.descriptors.rows << "x" << f.descriptors.cols << " }";
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const sfm::CameraPose& p) {
+    os << "CameraPose { R =\n" << p.R << ", t =\n" << p.t
+        << ", registered=" << std::boolalpha << p.registered << " }";
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const sfm::Camera& c) {
+    os << "Camera { K =\n" << c.K << ", pose = " << c.pose << " }";
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const sfm::WorldPoint3D& wp) {
+    os << "WorldPoint3D { xyz = (" << wp.xyz.x << ", " << wp.xyz.y << ", " << wp.xyz.z
+        << "), track_id = " << wp.track_id << " }";
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const std::vector<sfm::WorldPoint3D>& points) {
+    os << "WorldPoints [\n";
+    for (size_t i = 0; i < points.size(); ++i) {
+        os << "  " << points[i];
+        if (i + 1 < points.size()) os << ",";
+        os << "\n";
+    }
+    os << "]";
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const cv::DMatch& m) {
+    os << "{queryIdx=" << m.queryIdx << ", trainIdx=" << m.trainIdx
+        << ", imgIdx=" << m.imgIdx << ", distance=" << m.distance << "}";
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const sfm::Matches& m) {
+    os << "Matches { img1=" << m.img1 << ", img2=" << m.img2 << ", matches=[";
+    for (size_t i = 0; i < m.matches.size(); ++i) {
+        os << m.matches[i];
+        if (i + 1 < m.matches.size()) os << ", ";
+    }
+    os << "] }";
+    return os;
+}
 
 class CameraAdapter {
 public:
@@ -76,6 +180,12 @@ public:
 	void operator=(const FirstApp&) = delete;
 
 	void run() {
+		std::string folder = "dataset";
+		auto images = loadImagesFromFolder(folder);
+		if (images.empty()) {
+			throw std::runtime_error("No images found in folder: ");
+		}
+
 		std::vector<std::unique_ptr<vle::Buffer>> uboBuffers(vle::EngineSwapChain::MAX_FRAMES_IN_FLIGHT);
 		for (std::int32_t i = 0; i < uboBuffers.size(); i++) {
 			uboBuffers[i] = std::make_unique<vle::Buffer>(
@@ -102,11 +212,27 @@ public:
 		vle::sys::ObjectRenderSystem objectRenderSystem{ this->device, this->renderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout() };
 		vle::sys::PointLightSystem pointLigthSystem{ this->device, this->renderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout() };
 		//vle::Camera camera{};
+
 		sfm::CameraSystem cam{
 			glm::vec3(0.f, 0.f, 2.5f),
 			glm::vec3(0.f, 0.f, 1.f)
 		};
 		CameraAdapter camAdapter{ cam };
+		std::vector<cv::Mat> intrinsicsCv{};
+		for (size_t i = 0; i < images.size(); ++i)
+			intrinsicsCv.push_back(intrinsicsToCvMat(cam.getCameraIntrinsics()));
+
+		std::cout << "images size: " << images.size() << ", cam instrinsics: " << intrinsicsCv.size() << "\n";
+		sfm::SfM3D sfm(intrinsicsCv);
+		sfm.addImages(images);
+		sfm.extractFeatures();
+
+		std::cout << "feature size: " << sfm.features().size() << "\n";
+		sfm.matchFeatures();
+		std::cout << "Matches size: " << sfm.matches().size() << "\n";
+		sfm.reconstruct(); // <-
+		std::cout << "World points size: " << sfm.points().size() << "\n";
+		renderSfMPoints(sfm.points(), objects);
 
 		//auto viewerObject = vle::Object::create();
 		//vle::KeyboardMovementController cameraController{};
@@ -175,7 +301,7 @@ private:
 			vle::ShaderModel::createModelFromFile(this->device, "models/smooth_vase.obj");
 
 		const int rows = 1;        // number of objects on Y axis
-		const int cols = 8;        // number of objects on X axis
+		const int cols = 1;        // number of objects on X axis
 
 		const float startX = -2.0f;
 		const float startY = 0.5f;
@@ -210,31 +336,31 @@ private:
 		//obj.transform.scale = { 3.f, 1.0f, 3.f };
 		//this->objects.emplace(obj.getId(), std::move(obj));
 
-		std::vector<glm::vec3> lightColors{
-			 {1.f, .1f, .1f},
-			 {.1f, .1f, 1.f},
-			 {.1f, 1.f, .1f},
-			 {1.f, 1.f, .1f},
-			 {.1f, 1.f, 1.f},
-			 {1.f, 1.f, 1.f}  //
-		};
+		//std::vector<glm::vec3> lightColors{
+		//	 {1.f, .1f, .1f},
+		//	 {.1f, .1f, 1.f},
+		//	 {.1f, 1.f, .1f},
+		//	 {1.f, 1.f, .1f},
+		//	 {.1f, 1.f, 1.f},
+		//	 {1.f, 1.f, 1.f}  //
+		//};
 
-		for (std::int32_t i = 0; i < lightColors.size(); i++) {
-			auto pointLight = vle::Object::createPointLight(1.f);
-			pointLight.color = lightColors[i];
-			auto rotHeight = glm::rotate(
-				glm::mat4(1.f),
-				(i * glm::two_pi<float>()) / lightColors.size(),
-				{ 0.f, 1.f, 0.f });
-			pointLight.transform.translation = glm::vec3(rotHeight * glm::vec4(-1.f, -1.f, -1.f, 1.f));
-			this->objects.emplace(pointLight.getId(), std::move(pointLight));
-		}
+		//for (std::int32_t i = 0; i < lightColors.size(); i++) {
+		//	auto pointLight = vle::Object::createPointLight(1.f);
+		//	pointLight.color = lightColors[i];
+		//	auto rotHeight = glm::rotate(
+		//		glm::mat4(1.f),
+		//		(i * glm::two_pi<float>()) / lightColors.size(),
+		//		{ 0.f, 1.f, 0.f });
+		//	pointLight.transform.translation = glm::vec3(rotHeight * glm::vec4(-1.f, -1.f, -1.f, 1.f));
+		//	this->objects.emplace(pointLight.getId(), std::move(pointLight));
+		//}
 
-		std::shared_ptr<vle::ShaderModel> roomModel = vle::ShaderModel::createModelFromFile(this->device, "models/room1.obj");
-		auto room = vle::Object::create();
-		room.model = roomModel;		
-		room.transform.translation = { 0.f, .5f, 0.f };
-		this->objects.emplace(room.getId(), std::move(room));
+		//std::shared_ptr<vle::ShaderModel> roomModel = vle::ShaderModel::createModelFromFile(this->device, "models/room1.obj");
+		//auto room = vle::Object::create();
+		//room.model = roomModel;		
+		//room.transform.translation = { 0.f, .5f, 0.f };
+		//this->objects.emplace(room.getId(), std::move(room));
 	}
 
 private:
