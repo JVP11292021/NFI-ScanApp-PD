@@ -190,36 +190,36 @@ public:
 private:
 
 	void loadObjects() {
-		std::shared_ptr<vle::ShaderModel> model =
-			vle::ShaderModel::createModelFromFile(this->device, "models/smooth_vase.obj");
+		//std::shared_ptr<vle::ShaderModel> model =
+		//	vle::ShaderModel::createModelFromFile(this->device, "models/smooth_vase.obj");
 
-		const int rows = 1;        // number of objects on Y axis
-		const int cols = 1;        // number of objects on X axis
+		//const int rows = 1;        // number of objects on Y axis
+		//const int cols = 1;        // number of objects on X axis
 
-		const float startX = -2.0f;
-		const float startY = 0.5f;
-		const float zPos = 2.5f;
+		//const float startX = -2.0f;
+		//const float startY = 0.5f;
+		//const float zPos = 2.5f;
 
-		const float spacingX = 0.6f;
-		const float spacingY = 0.6f;
+		//const float spacingX = 0.6f;
+		//const float spacingY = 0.6f;
 
-		for (int y = 0; y < rows; y++) {
-			for (int x = 0; x < cols; x++) {
+		//for (int y = 0; y < rows; y++) {
+		//	for (int x = 0; x < cols; x++) {
 
-				auto obj = vle::Object::create();
-				obj.model = model;
+		//		auto obj = vle::Object::create();
+		//		obj.model = model;
 
-				obj.transform.translation = {
-					startX + x * spacingX,
-					startY + y * spacingY,
-					zPos
-				};
+		//		obj.transform.translation = {
+		//			startX + x * spacingX,
+		//			startY + y * spacingY,
+		//			zPos
+		//		};
 
-				obj.transform.scale = { 3.f, 1.5f, 3.f };
+		//		obj.transform.scale = { 3.f, 1.5f, 3.f };
 
-				this->objects.emplace(obj.getId(), std::move(obj));
-			}
-		}
+		//		this->objects.emplace(obj.getId(), std::move(obj));
+		//	}
+		//}
 
 		//std::shared_ptr<vle::ShaderModel> quadModel =
 		//	vle::ShaderModel::createModelFromFile(this->device, "models/quad.obj");
@@ -229,31 +229,30 @@ private:
 		//obj.transform.scale = { 3.f, 1.0f, 3.f };
 		//this->objects.emplace(obj.getId(), std::move(obj));
 
-		std::vector<glm::vec3> lightColors{
-			 {1.f, .1f, .1f},
-			 {.1f, .1f, 1.f},
-			 {.1f, 1.f, .1f},
-			 {1.f, 1.f, .1f},
-			 {.1f, 1.f, 1.f},
-			 {1.f, 1.f, 1.f}  //
-		};
+		//std::vector<glm::vec3> lightColors{
+		//	 {1.f, .1f, .1f},
+		//	 {.1f, .1f, 1.f},
+		//	 {.1f, 1.f, .1f},
+		//	 {1.f, 1.f, .1f},
+		//	 {.1f, 1.f, 1.f},
+		//	 {1.f, 1.f, 1.f}  //
+		//};
+		//for (std::int32_t i = 0; i < lightColors.size(); i++) {
+		//	auto pointLight = vle::Object::createPointLight(1.f);
+		//	pointLight.color = lightColors[i];
+		//	auto rotHeight = glm::rotate(
+		//		glm::mat4(1.f),
+		//		(i * glm::two_pi<float>()) / lightColors.size(),
+		//		{ 0.f, 1.f, 0.f });
+		//	pointLight.transform.translation = glm::vec3(rotHeight * glm::vec4(-1.f, -1.f, -1.f, 1.f));
+		//	this->objects.emplace(pointLight.getId(), std::move(pointLight));
+		//}
 
-		for (std::int32_t i = 0; i < lightColors.size(); i++) {
-			auto pointLight = vle::Object::createPointLight(1.f);
-			pointLight.color = lightColors[i];
-			auto rotHeight = glm::rotate(
-				glm::mat4(1.f),
-				(i * glm::two_pi<float>()) / lightColors.size(),
-				{ 0.f, 1.f, 0.f });
-			pointLight.transform.translation = glm::vec3(rotHeight * glm::vec4(-1.f, -1.f, -1.f, 1.f));
-			this->objects.emplace(pointLight.getId(), std::move(pointLight));
-		}
-
-		//std::shared_ptr<vle::ShaderModel> roomModel = vle::ShaderModel::createModelFromFile(this->device, "models/test_sfm.obj");
-		//auto room = vle::Object::create();
-		//room.model = roomModel;		
-		//room.transform.translation = { 0.f, .5f, 0.f };
-		//this->objects.emplace(room.getId(), std::move(room));
+		std::shared_ptr<vle::ShaderModel> roomModel = vle::ShaderModel::createModelFromFile(this->device, "models/simple_scene.ply");
+		auto room = vle::Object::create();
+		room.model = roomModel;		
+		room.transform.translation = { 0.f, .5f, 0.f };
+		this->objects.emplace(room.getId(), std::move(room));
 	}
 
 private:

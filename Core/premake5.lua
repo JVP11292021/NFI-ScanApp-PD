@@ -8,6 +8,7 @@ workspace "RenderCore"
 		"Dist"
 	}
 
+local assimp_bin_dir = "Libraries/bin"
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 local vulkan_sdk = os.getenv("VULKAN_SDK")
 if vulkan_sdk == nil then
@@ -514,6 +515,10 @@ project "TestApp"
 		"GSplats",
 	}
 
+	debugenvs {
+        "PATH=" .. assimp_bin_dir .. ";$(PATH)"
+    }
+
 	if vulkan_sdk ~= nil then
         includedirs {
             vulkan_sdk .. "/Include"
@@ -535,15 +540,17 @@ project "TestApp"
 	filter "system:windows"
 		systemversion "latest"
 
-	filter "configurations:Debug"
-		defines "APP_DEBUG"
-		symbols "on"
-		runtime "Debug"
+    filter "configurations:Debug"
+        defines "APP_DEBUG"
+        symbols "on"
+        runtime "Debug"
+        links { "assimp-vc143-mtd.lib" }
 
-	filter "configurations:Release"
-		defines "APP_RELEASE"
-		optimize "on"
-		runtime "Release"
+    filter "configurations:Release"
+        defines "APP_RELEASE"
+        optimize "on"
+        runtime "Release"
+        links { "assimp-vc143-mt.lib" }
 
 	filter "configurations:Dist"
 		defines "APP_DIST"
