@@ -412,10 +412,12 @@ project "minmap"
 		"Engine/Engine/EngineBackend",
 		"Engine/Engine/EngineUtils",
 		"Engine/Engine/Systems",
+		"C:/repo/vcpkg/installed/x64-windows/include"
 	}
 
 	libdirs {
 		"Libraries/lib",
+		"C:/repo/vcpkg/installed/x64-windows/lib"
 	}
 
 	links {
@@ -435,9 +437,7 @@ project "minmap"
 		"colmap_retrieval.lib",
 		"colmap_vlfeat.lib",
         "ceres.lib",
-        "glog.lib",
-		"boost_program_options-vc145-mt-x64-1_89.lib",
-		"boost_container-vc145-mt-x64-1_89.lib"
+        "glog.lib"
 	}
 
 	dependson { 

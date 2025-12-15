@@ -34,13 +34,6 @@ bool VerifySiftGPUParams(bool use_gpu);
 bool VerifyCameraParams(const std::string& camera_model,
     const std::string& params);
 
-//void RunGuidedGeometricVerifierImpl(
-//    const colmap::Reconstruction& reconstruction,
-//    const std::string& database_path,
-//    const colmap::ExistingMatchedPairingOptions& pairing_options,
-//    const colmap::TwoViewGeometryOptions& geometry_options,
-//    int num_threads);
-
 int RunFeatureExtractor(int argc, char** argv);
 int RunFeatureImporter(int argc, char** argv);
 int RunExhaustiveMatcher(int argc, char** argv);
@@ -49,8 +42,6 @@ int RunSequentialMatcher(int argc, char** argv);
 int RunSpatialMatcher(int argc, char** argv);
 int RunTransitiveMatcher(int argc, char** argv);
 int RunVocabTreeMatcher(int argc, char** argv);
-int RunGeometricVerifier(int argc, char** argv);
-int RunGuidedGeometricVerifier(int argc, char** argv);
 
 MM_NS_E
 

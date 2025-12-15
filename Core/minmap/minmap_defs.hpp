@@ -9,4 +9,14 @@
 #define MM_NS_B namespace minmap {
 #define MM_NS_E }
 
+MM_NS_B
+
+#if defined(COLMAP_CUDA_ENABLED) || !defined(COLMAP_GUI_ENABLED)
+const bool kUseOpenGL = false;
+#else
+const bool kUseOpenGL = true;
+#endif
+
+MM_NS_E
+
 #endif // MINMAP_DEFS_H

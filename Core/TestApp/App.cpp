@@ -237,8 +237,6 @@ private:
 	vle::ObjectMap objects;
 };
 
-#include <Test.hpp>
-
 int main(int argc, char** argv) {
 	FirstApp app;
 	try {

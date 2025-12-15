@@ -17,7 +17,7 @@ MM_NS_B
 bool VerifyCameraParams(const std::string& camera_model,
     const std::string& params) {
     if (!colmap::ExistsCameraModelWithName(camera_model)) {
-        //LOG(ERROR) << "Camera model does not exist";
+        LOG(ERROR) << "Camera model does not exist";
         return false;
     }
 
@@ -26,9 +26,21 @@ bool VerifyCameraParams(const std::string& camera_model,
 
     if (camera_params.size() > 0 &&
         !CameraModelVerifyParams(camera_model_id, camera_params)) {
-        //LOG(ERROR) << "Invalid camera parameters";
+        LOG(ERROR) << "Invalid camera parameters";
         return false;
     }
+    return true;
+}
+
+bool VerifySiftGPUParams(const bool use_gpu) {
+#if !defined(COLMAP_GPU_ENABLED)
+    if (use_gpu) {
+        LOG(ERROR)
+            << "Cannot use Sift GPU without CUDA or OpenGL support; "
+            "set SiftExtraction.use_gpu or SiftMatching.use_gpu to false.";
+        return false;
+    }
+#endif
     return true;
 }
 
@@ -70,21 +82,30 @@ int RunFeatureExtractor(int argc, char** argv) {
     options.AddDefaultOption("descriptor_normalization",
         &descriptor_normalization,
         "{'l1_root', 'l2'}");
-    options.AddFeatureExtractionOptions();
+    options.AddExtractionOptions();
     options.Parse(argc, argv);
 
     colmap::ImageReaderOptions reader_options = *options.image_reader;
     reader_options.image_path = *options.image_path;
-    reader_options.as_rgb = options.feature_extraction->RequiresRGB();
 
     if (camera_mode >= 0) {
         UpdateImageReaderOptionsFromCameraMode(reader_options,
             (CameraMode)camera_mode);
     }
 
-    colmap::StringToUpper(&descriptor_normalization);
-    options.feature_extraction->sift->normalization =
-        colmap::SiftExtractionOptions::NormalizationFromString(descriptor_normalization);
+    colmap::StringToLower(&descriptor_normalization);
+    if (descriptor_normalization == "l1_root") {
+        options.sift_extraction->normalization =
+            colmap::SiftExtractionOptions::Normalization::L1_ROOT;
+    }
+    else if (descriptor_normalization == "l2") {
+        options.sift_extraction->normalization =
+            colmap::SiftExtractionOptions::Normalization::L2;
+    }
+    else {
+        LOG(ERROR) << "Invalid `descriptor_normalization`";
+        return EXIT_FAILURE;
+    }
 
     if (!image_list_path.empty()) {
         reader_options.image_names = colmap::ReadTextFileLines(image_list_path);
@@ -94,7 +115,7 @@ int RunFeatureExtractor(int argc, char** argv) {
     }
 
     if (!colmap::ExistsCameraModelWithName(reader_options.camera_model)) {
-        //LOG(ERROR) << "Camera model does not exist";
+        LOG(ERROR) << "Camera model does not exist";
     }
 
     if (!VerifyCameraParams(reader_options.camera_model,
@@ -102,15 +123,14 @@ int RunFeatureExtractor(int argc, char** argv) {
         return EXIT_FAILURE;
     }
 
-    //std::unique_ptr<QApplication> app;
-    //if (options.feature_extraction->use_gpu && kUseOpenGL) {
-    //    app.reset(new QApplication(argc, argv));
-    //}
+    if (!VerifySiftGPUParams(options.sift_extraction->use_gpu)) {
+        return EXIT_FAILURE;
+    }
 
-    auto feature_extractor = colmap::CreateFeatureExtractorController(
-        *options.database_path, reader_options, *options.feature_extraction);
+    auto feature_extractor = CreateFeatureExtractorController(
+        *options.database_path, reader_options, *options.sift_extraction);
 
-    if (options.feature_extraction->use_gpu && colmap::kUseOpenGL) {
+    if (options.sift_extraction->use_gpu && kUseOpenGL) {
         colmap::RunThreadWithOpenGLContext(feature_extractor.get());
     }
     else {
@@ -132,7 +152,7 @@ int RunFeatureImporter(int argc, char** argv) {
     options.AddDefaultOption("camera_mode", &camera_mode);
     options.AddRequiredOption("import_path", &import_path);
     options.AddDefaultOption("image_list_path", &image_list_path);
-    options.AddFeatureExtractionOptions();
+    options.AddExtractionOptions();
     options.Parse(argc, argv);
 
     colmap::ImageReaderOptions reader_options = *options.image_reader;
@@ -155,7 +175,7 @@ int RunFeatureImporter(int argc, char** argv) {
         return EXIT_FAILURE;
     }
 
-    auto feature_importer = CreateFeatureImporterController(
+    auto feature_importer = colmap::CreateFeatureImporterController(
         *options.database_path, reader_options, import_path);
     feature_importer->Start();
     feature_importer->Wait();
@@ -166,15 +186,19 @@ int RunFeatureImporter(int argc, char** argv) {
 int RunExhaustiveMatcher(int argc, char** argv) {
     colmap::OptionManager options;
     options.AddDatabaseOptions();
-    options.AddExhaustivePairingOptions();
+    options.AddExhaustiveMatchingOptions();
     options.Parse(argc, argv);
 
-    auto matcher = colmap::CreateExhaustiveFeatureMatcher(*options.exhaustive_pairing,
-        *options.feature_matching,
+    if (!VerifySiftGPUParams(options.sift_matching->use_gpu)) {
+        return EXIT_FAILURE;
+    }
+
+    auto matcher = colmap::CreateExhaustiveFeatureMatcher(*options.exhaustive_matching,
+        *options.sift_matching,
         *options.two_view_geometry,
         *options.database_path);
 
-    if (options.feature_matching->use_gpu && kUseOpenGL) {
+    if (options.sift_matching->use_gpu && kUseOpenGL) {
         colmap::RunThreadWithOpenGLContext(matcher.get());
     }
     else {
@@ -194,35 +218,38 @@ int RunMatchesImporter(int argc, char** argv) {
     options.AddRequiredOption("match_list_path", &match_list_path);
     options.AddDefaultOption(
         "match_type", &match_type, "{'pairs', 'raw', 'inliers'}");
-    options.AddFeatureMatchingOptions();
-    options.AddTwoViewGeometryOptions();
+    options.AddMatchingOptions();
     options.Parse(argc, argv);
+
+    if (!VerifySiftGPUParams(options.sift_matching->use_gpu)) {
+        return EXIT_FAILURE;
+    }
 
     std::unique_ptr<colmap::Thread> matcher;
     if (match_type == "pairs") {
-        colmap::ImportedPairingOptions pairing_options;
-        pairing_options.match_list_path = match_list_path;
-        matcher = colmap::CreateImagePairsFeatureMatcher(pairing_options,
-            *options.feature_matching,
+        colmap::ImagePairsMatchingOptions matcher_options;
+        matcher_options.match_list_path = match_list_path;
+        matcher = CreateImagePairsFeatureMatcher(matcher_options,
+            *options.sift_matching,
             *options.two_view_geometry,
             *options.database_path);
     }
     else if (match_type == "raw" || match_type == "inliers") {
-        colmap::FeaturePairsMatchingOptions pairing_options;
-        pairing_options.match_list_path = match_list_path;
-        pairing_options.verify_matches = match_type == "raw";
-        matcher = colmap::CreateFeaturePairsFeatureMatcher(pairing_options,
-            *options.feature_matching,
+        colmap::FeaturePairsMatchingOptions matcher_options;
+        matcher_options.match_list_path = match_list_path;
+        matcher_options.verify_matches = match_type == "raw";
+        matcher = CreateFeaturePairsFeatureMatcher(matcher_options,
+            *options.sift_matching,
             *options.two_view_geometry,
             *options.database_path);
     }
     else {
-        //LOG(ERROR) << "Invalid `match_type`";
+        LOG(ERROR) << "Invalid `match_type`";
         return EXIT_FAILURE;
     }
 
-    if (options.feature_matching->use_gpu && kUseOpenGL) {
-        colmap::RunThreadWithOpenGLContext(matcher.get());
+    if (options.sift_matching->use_gpu && kUseOpenGL) {
+        RunThreadWithOpenGLContext(matcher.get());
     }
     else {
         matcher->Start();
@@ -235,15 +262,19 @@ int RunMatchesImporter(int argc, char** argv) {
 int RunSequentialMatcher(int argc, char** argv) {
     colmap::OptionManager options;
     options.AddDatabaseOptions();
-    options.AddSequentialPairingOptions();
+    options.AddSequentialMatchingOptions();
     options.Parse(argc, argv);
 
-    auto matcher = colmap::CreateSequentialFeatureMatcher(*options.sequential_pairing,
-        *options.feature_matching,
+    if (!VerifySiftGPUParams(options.sift_matching->use_gpu)) {
+        return EXIT_FAILURE;
+    }
+
+    auto matcher = colmap::CreateSequentialFeatureMatcher(*options.sequential_matching,
+        *options.sift_matching,
         *options.two_view_geometry,
         *options.database_path);
 
-    if (options.feature_matching->use_gpu && kUseOpenGL) {
+    if (options.sift_matching->use_gpu && kUseOpenGL) {
         colmap::RunThreadWithOpenGLContext(matcher.get());
     }
     else {
@@ -257,17 +288,19 @@ int RunSequentialMatcher(int argc, char** argv) {
 int RunSpatialMatcher(int argc, char** argv) {
     colmap::OptionManager options;
     options.AddDatabaseOptions();
-    options.AddSpatialPairingOptions();
-    if (!options.Parse(argc, argv)) {
+    options.AddSpatialMatchingOptions();
+    options.Parse(argc, argv);
+
+    if (!VerifySiftGPUParams(options.sift_matching->use_gpu)) {
         return EXIT_FAILURE;
     }
 
-    auto matcher = colmap::CreateSpatialFeatureMatcher(*options.spatial_pairing,
-        *options.feature_matching,
+    auto matcher = colmap::CreateSpatialFeatureMatcher(*options.spatial_matching,
+        *options.sift_matching,
         *options.two_view_geometry,
         *options.database_path);
 
-    if (options.feature_matching->use_gpu && kUseOpenGL) {
+    if (options.sift_matching->use_gpu && kUseOpenGL) {
         colmap::RunThreadWithOpenGLContext(matcher.get());
     }
     else {
@@ -281,22 +314,19 @@ int RunSpatialMatcher(int argc, char** argv) {
 int RunTransitiveMatcher(int argc, char** argv) {
     colmap::OptionManager options;
     options.AddDatabaseOptions();
-    options.AddTransitivePairingOptions();
-    if (!options.Parse(argc, argv)) {
+    options.AddTransitiveMatchingOptions();
+    options.Parse(argc, argv);
+
+    if (!VerifySiftGPUParams(options.sift_matching->use_gpu)) {
         return EXIT_FAILURE;
     }
 
-    std::unique_ptr<QApplication> app;
-    if (options.feature_matching->use_gpu && kUseOpenGL) {
-        app.reset(new QApplication(argc, argv));
-    }
-
-    auto matcher = colmap::CreateTransitiveFeatureMatcher(*options.transitive_pairing,
-        *options.feature_matching,
+    auto matcher = colmap::CreateTransitiveFeatureMatcher(*options.transitive_matching,
+        *options.sift_matching,
         *options.two_view_geometry,
         *options.database_path);
 
-    if (options.feature_matching->use_gpu && kUseOpenGL) {
+    if (options.sift_matching->use_gpu && kUseOpenGL) {
         colmap::RunThreadWithOpenGLContext(matcher.get());
     }
     else {
@@ -310,15 +340,19 @@ int RunTransitiveMatcher(int argc, char** argv) {
 int RunVocabTreeMatcher(int argc, char** argv) {
     colmap::OptionManager options;
     options.AddDatabaseOptions();
-    options.AddVocabTreePairingOptions();
+    options.AddVocabTreeMatchingOptions();
     options.Parse(argc, argv);
 
-    auto matcher = colmap::CreateVocabTreeFeatureMatcher(*options.vocab_tree_pairing,
-        *options.feature_matching,
+    if (!VerifySiftGPUParams(options.sift_matching->use_gpu)) {
+        return EXIT_FAILURE;
+    }
+
+    auto matcher = colmap::CreateVocabTreeFeatureMatcher(*options.vocab_tree_matching,
+        *options.sift_matching,
         *options.two_view_geometry,
         *options.database_path);
 
-    if (options.feature_matching->use_gpu && kUseOpenGL) {
+    if (options.sift_matching->use_gpu && kUseOpenGL) {
         colmap::RunThreadWithOpenGLContext(matcher.get());
     }
     else {
