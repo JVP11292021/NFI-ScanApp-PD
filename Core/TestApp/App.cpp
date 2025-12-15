@@ -189,6 +189,13 @@ private:
 		room.model = roomModel;		
 		room.transform.translation = { 0.f, .5f, 0.f };
 		this->objects.emplace(room.getId(), std::move(room));
+
+		std::shared_ptr<vle::ShaderModel> cyborgModel = vle::ShaderModel::createModelFromFile(this->device, "models/cyborg.obj");
+		auto cyborg = vle::Object::create();
+		cyborg.model = cyborgModel;
+		cyborg.transform.rotation = { 0.f, 1.f, 0.f };
+		cyborg.transform.translation = { 0.f, .5f, 0.f };
+		this->objects.emplace(cyborg.getId(), std::move(cyborg));
 	}
 
 private:
