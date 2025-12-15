@@ -390,8 +390,8 @@ project "GSplats"
 		optimize "on"
 		runtime "Release"
 
-project "SfM"
-	location "SfM"
+project "minmap"
+	location "minmap"
 	kind "staticlib"
 	language "C++"
 	cppdialect "C++17"
@@ -436,6 +436,8 @@ project "SfM"
 		"colmap_vlfeat.lib",
         "ceres.lib",
         "glog.lib",
+		"boost_program_options-vc145-mt-x64-1_89.lib",
+		"boost_container-vc145-mt-x64-1_89.lib"
 	}
 
 	dependson { 
@@ -506,7 +508,7 @@ project "TestApp"
 		"Engine/Engine/Systems",
 		"RayTracing",
 		"GSplats",
-		"SfM"
+		"minmap"
 	}
 
 	libdirs {
@@ -519,7 +521,7 @@ project "TestApp"
 		"EngineSystems",
 		"RayTracing",
 		"GSplats",
-		"SfM",
+		"minmap",
 		"opencv_world4120d.lib",
 	}
 
