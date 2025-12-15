@@ -17,6 +17,8 @@ public:
 	~MarkerManager();
 	void updateMarkerRotations(const glm::vec3& cameraPosition, vle::ObjectMap& objects);
 	void loadMarkersFromTxt(const std::string& filePath, vle::EngineDevice& device, vle::ObjectMap& objects);
+	void createMarker();
+	void destroyMarker();
 
 private:
 	std::vector<vle::id_t> markerIds;

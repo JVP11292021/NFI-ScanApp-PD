@@ -6,6 +6,7 @@
 #include <MarkerManager.h>
 #include <Renderer.hpp>
 #include <ObjectRenderSystem.hpp>
+#include <PointCloudRenderSystem.hpp>
 #include <PointLightSystem.hpp>
 
 #include <Device.hpp>
@@ -29,7 +30,6 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-//#include <iostream>
 
 class CameraAdapter {
 public:
@@ -105,6 +105,7 @@ public:
 
 		vle::sys::ObjectRenderSystem objectRenderSystem{ this->device, this->renderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout() };
 		vle::sys::PointLightSystem pointLigthSystem{ this->device, this->renderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout() };
+		vle::sys::PointCloudRenderSystem pointCloudRenderSystem{ this->device, this->renderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout() };
 		//vle::Camera camera{};
 
 		vle::sys::CameraSystem cam{
@@ -112,7 +113,7 @@ public:
 			glm::vec3(0.f, 0.f, 1.f)
 		};
 		CameraAdapter camAdapter{ cam };
-		cam.setRotation(-0.5f, -3.14f, 0.f);
+		//cam.setRotation(-0.5f, 3.14f, 0.f);
 
 		auto currentTime = std::chrono::high_resolution_clock::now();
 
@@ -192,7 +193,8 @@ public:
 					commandBuffer,
 					//camera,
 					globalDescriptorSets[frameIndex],
-					this->objects
+					this->objects,
+					this->points
 				};
 
 				// Update Phase
@@ -208,6 +210,7 @@ public:
 				this->renderer.beginSwapChainRenderPass(commandBuffer);
 				objectRenderSystem.render(frameInfo);
 				pointLigthSystem.render(frameInfo);
+				pointCloudRenderSystem.render(frameInfo);
 				this->renderer.endSwapChainRenderPass(commandBuffer);
 				this->renderer.endFrame();
 			}
@@ -223,7 +226,7 @@ private:
 
 		//const int rows = 1;        // number of objects on Y axis
 		//const int cols = 1;        // number of objects on X axis
-
+		 
 		//const float startX = -2.0f;
 		//const float startY = 0.5f;
 		//const float zPos = 2.5f;
@@ -277,11 +280,16 @@ private:
 		}
 		this->markerManager.loadMarkersFromTxt("models/markers.txt", this->device, this->objects);
 
-		//std::shared_ptr<vle::ShaderModel> roomModel = vle::ShaderModel::createModelFromFile(this->device, "models/simple_scene.ply");
-		//auto room = vle::Object::create();
-		//room.model = roomModel;		
-		//room.transform.translation = { 0.f, .5f, 0.f };
-		//this->objects.emplace(room.getId(), std::move(room));
+		std::shared_ptr<vle::ShaderModel> roomModel = vle::ShaderModel::createModelFromFile(this->device, "models/simple_scene.ply");
+		auto room = vle::Object::create();
+		room.model = roomModel;		
+		room.transform.translation = { 0.f, .5f, 0.f };
+		room.transform.rotation = {
+			0.0f,
+			0.0f,
+			glm::radians(90.0f)
+		};
+		this->points.emplace(room.getId(), std::move(room));
 	}
 
 private:
@@ -291,6 +299,7 @@ private:
 
 	std::unique_ptr<vle::DescriptorPool> globalPool{};
 	vle::ObjectMap objects;
+	vle::ObjectMap points;
 	PickingSystem pickingSystem;
 	MarkerManager markerManager;
 };
