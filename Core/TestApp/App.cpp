@@ -2,6 +2,8 @@
 
 #include <Ray.hpp>
 
+#include <CameraSystem.hpp>
+
 #include <Renderer.hpp>
 #include <ObjectRenderSystem.hpp>
 #include <PointLightSystem.hpp>
@@ -17,6 +19,7 @@
 #include <Descriptors.hpp>
 #include <eutils.hpp>
 
+#include <filesystem>
 #include <chrono>
 #include <memory>
 #include <stdexcept>
@@ -27,6 +30,35 @@
 #include <sstream>
 #include <string>
 //#include <iostream>
+
+class CameraAdapter {
+public:
+	explicit CameraAdapter(vle::sys::CameraSystem& advancedCamera)
+		: camera_(advancedCamera) {
+	}
+
+	const glm::mat4& getView() {
+		view_ = camera_.getViewMatrix();
+		//view_ = cvToEngineRotation() * view_;
+		inverseView_ = glm::inverse(view_);
+		return view_;
+	}
+
+	const glm::mat4& getProjection() {
+		projection_ = camera_.getProjMatrix();
+		return projection_;
+	}
+
+	const glm::mat4& getInverseView() {
+		return inverseView_;
+	}
+
+private:
+	vle::sys::CameraSystem& camera_;
+	glm::mat4 view_{ 1.0f };
+	glm::mat4 projection_{ 1.0f };
+	glm::mat4 inverseView_{ 1.0f };
+};
 
 class FirstApp {
 public:
@@ -73,10 +105,35 @@ public:
 
 		vle::sys::ObjectRenderSystem objectRenderSystem{ this->device, this->renderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout() };
 		vle::sys::PointLightSystem pointLigthSystem{ this->device, this->renderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout() };
-		vle::Camera camera{};
+		//vle::Camera camera{};
 
-		auto viewerObject = vle::Object::create();
-		vle::KeyboardMovementController cameraController{};
+		vle::sys::CameraSystem cam{
+			glm::vec3(0.f, 0.f, 2.5f),
+			glm::vec3(0.f, 0.f, 1.f)
+		};
+		CameraAdapter camAdapter{ cam };
+		//std::vector<cv::Mat> intrinsicsCv{};
+		//for (size_t i = 0; i < images.size(); ++i)
+		//	intrinsicsCv.push_back(intrinsicsToCvMat(cam.getCameraIntrinsics()));
+
+		//std::cout << "images size: " << images.size() << ", cam instrinsics: " << intrinsicsCv.size() << "\n";
+		//sfm::SfM3D sfm(intrinsicsCv);
+		//sfm.addImages(images);
+		//sfm.extractFeatures();
+
+		//std::cout << "feature size: " << sfm.features().size() << "\n";
+		//sfm.matchFeatures(); // <-
+		//std::cout << "Image pairs: " << sfm.matches().size() << "\n";
+		//for (const auto& m : sfm.matches()) {
+		//	std::cout << "Pair (" << m.img1 << "," << m.img2
+		//		<< ") matches: " << m.matches.size() << "\n";
+		//}
+		//sfm.reconstruct(); // <-
+		//std::cout << "World points size: " << sfm.points().size() << "\n";
+		//renderSfMPoints(sfm.points(), objects);
+
+		//auto viewerObject = vle::Object::create();
+		//vle::KeyboardMovementController cameraController{};
 
 		auto currentTime = std::chrono::high_resolution_clock::now();
 
@@ -90,11 +147,19 @@ public:
 			constexpr auto MAX_FRAME_TIME_ELAPSED = 10000.f;
 			frameTimeElapsed = glm::min(frameTimeElapsed, MAX_FRAME_TIME_ELAPSED);
 
-			cameraController.moveInPlainXZ(this->win.getGLFWwindow(), frameTimeElapsed, viewerObject);
-			camera.setViewYXZ(viewerObject.transform.translation, viewerObject.transform.rotation);
+			//cameraController.moveInPlainXZ(this->win.getGLFWwindow(), frameTimeElapsed, viewerObject);
+			//camera.setViewYXZ(viewerObject.transform.translation, viewerObject.transform.rotation);
+			if (glfwGetKey(win.getGLFWwindow(), GLFW_KEY_W) == GLFW_PRESS)
+				cam.processKeyboard(vle::sys::FORWARD, frameTimeElapsed);
+			if (glfwGetKey(win.getGLFWwindow(), GLFW_KEY_S) == GLFW_PRESS)
+				cam.processKeyboard(vle::sys::BACKWARD, frameTimeElapsed);
+			if (glfwGetKey(win.getGLFWwindow(), GLFW_KEY_A) == GLFW_PRESS)
+				cam.processKeyboard(vle::sys::LEFT, frameTimeElapsed);
+			if (glfwGetKey(win.getGLFWwindow(), GLFW_KEY_D) == GLFW_PRESS)
+				cam.processKeyboard(vle::sys::RIGHT, frameTimeElapsed);
 
 			auto aspect = this->renderer.getAspectRatio();
-			camera.setPerspectiveProjection(glm::radians(50.f), aspect, .1f, 25.f);
+			//camera.setPerspectiveProjection(glm::radians(50.f), aspect, .1f, 25.f);
 
 			updateMarkerRotations(viewerObject.transform.translation);
 
@@ -132,16 +197,16 @@ public:
 					frameIndex,
 					frameTimeElapsed,
 					commandBuffer,
-					camera,
+					//camera,
 					globalDescriptorSets[frameIndex],
 					this->objects
 				};
 
 				// Update Phase
 				vle::GlobalUbo ubo{};
-				ubo.projection = camera.getProjection();
-				ubo.view = camera.getView();
-				ubo.inverseView = camera.getImverseView();
+				ubo.projection = camAdapter.getProjection();
+				ubo.view = camAdapter.getView();
+				ubo.inverseView = camAdapter.getInverseView();
 				pointLigthSystem.update(frameInfo, ubo);
 				uboBuffers[frameIndex]->writeToBuffer(&ubo);
 				uboBuffers[frameIndex]->flush();
@@ -160,36 +225,36 @@ public:
 private:
 
 	void loadObjects() {
-		std::shared_ptr<vle::ShaderModel> model =
-			vle::ShaderModel::createModelFromFile(this->device, "models/smooth_vase.obj");
+		//std::shared_ptr<vle::ShaderModel> model =
+		//	vle::ShaderModel::createModelFromFile(this->device, "models/smooth_vase.obj");
 
-		const int rows = 1;        // number of objects on Y axis
-		const int cols = 8;        // number of objects on X axis
+		//const int rows = 1;        // number of objects on Y axis
+		//const int cols = 1;        // number of objects on X axis
 
-		const float startX = -2.0f;
-		const float startY = 0.5f;
-		const float zPos = 2.5f;
+		//const float startX = -2.0f;
+		//const float startY = 0.5f;
+		//const float zPos = 2.5f;
 
-		const float spacingX = 0.6f;
-		const float spacingY = 0.6f;
+		//const float spacingX = 0.6f;
+		//const float spacingY = 0.6f;
 
-		for (int y = 0; y < rows; y++) {
-			for (int x = 0; x < cols; x++) {
+		//for (int y = 0; y < rows; y++) {
+		//	for (int x = 0; x < cols; x++) {
 
-				auto obj = vle::Object::create();
-				obj.model = model;
+		//		auto obj = vle::Object::create();
+		//		obj.model = model;
 
-				obj.transform.translation = {
-					startX + x * spacingX,
-					startY + y * spacingY,
-					zPos
-				};
+		//		obj.transform.translation = {
+		//			startX + x * spacingX,
+		//			startY + y * spacingY,
+		//			zPos
+		//		};
 
-				obj.transform.scale = { 3.f, 1.5f, 3.f };
+		//		obj.transform.scale = { 3.f, 1.5f, 3.f };
 
-				this->objects.emplace(obj.getId(), std::move(obj));
-			}
-		}
+		//		this->objects.emplace(obj.getId(), std::move(obj));
+		//	}
+		//}
 
 		//std::shared_ptr<vle::ShaderModel> quadModel =
 		//	vle::ShaderModel::createModelFromFile(this->device, "models/quad.obj");
@@ -207,7 +272,6 @@ private:
 			 {.1f, 1.f, 1.f},
 			 {1.f, 1.f, 1.f}  //
 		};
-
 		for (std::int32_t i = 0; i < lightColors.size(); i++) {
 			auto pointLight = vle::Object::createPointLight(1.f);
 			pointLight.color = lightColors[i];
@@ -219,13 +283,11 @@ private:
 			this->objects.emplace(pointLight.getId(), std::move(pointLight));
 		}
 
-		std::shared_ptr<vle::ShaderModel> roomModel = vle::ShaderModel::createModelFromFile(this->device, "models/room1.obj");
-		auto room = vle::Object::create();
-		room.model = roomModel;		
-		room.transform.translation = { 0.f, .5f, 0.f };
-		this->objects.emplace(room.getId(), std::move(room));
-
-		loadMarkersFromTxt("models/markers.txt", device, objects);
+		//std::shared_ptr<vle::ShaderModel> roomModel = vle::ShaderModel::createModelFromFile(this->device, "models/simple_scene.ply");
+		//auto room = vle::Object::create();
+		//room.model = roomModel;		
+		//room.transform.translation = { 0.f, .5f, 0.f };
+		//this->objects.emplace(room.getId(), std::move(room));
 	}
 
 	void loadMarkersFromTxt(const std::string& filePath, vle::EngineDevice& device, vle::ObjectMap& objects) {
@@ -282,7 +344,9 @@ private:
 	std::vector<vle::id_t> markerIds;
 };
 
-int main() {
+#include <Test.hpp>
+
+int main(int argc, char** argv) {
 	FirstApp app;
 	try {
 		app.run();
