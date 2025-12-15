@@ -8,20 +8,21 @@ PickingSystem::~PickingSystem()
 {
 }
 
-Ray PickingSystem::buildRay(float pointX, float pointY, int windowWidth, int windowHeight, const vle::Camera& camera)
+Ray PickingSystem::buildRay(float pointX, float pointY, int windowWidth, int windowHeight, const vle::sys::CameraSystem& camera)
 {
 	float x = (2.0f * pointX) / windowWidth - 1.0f;
 	float y = 1.0f - (2.0f * pointY) / windowHeight;
 
 	glm::vec4 rayClip = glm::vec4(x, y, -1.0f, 1.0f);
 
-	glm::vec4 rayEye = glm::inverse(camera.getProjection()) * rayClip;
+	glm::vec4 rayEye = glm::inverse(camera.getProjMatrix()) * rayClip;
 	rayEye = glm::vec4(rayEye.x, rayEye.y, -1.0f, 0.0f);
 
-	glm::vec4 rayWorld4 = glm::inverse(camera.getView()) * glm::vec4(rayEye.x, rayEye.y, rayEye.z, 0.0f);
+	glm::vec4 rayWorld4 = glm::inverse(camera.getViewMatrix()) * glm::vec4(rayEye.x, rayEye.y, rayEye.z, 0.0f);
 	glm::vec3 rayWorld = glm::normalize(glm::vec3(rayWorld4));
 
-	Ray ray{camera.getPosition(), rayWorld};
+	auto pos = camera.getPosition();
+	Ray ray{pos, rayWorld};
 
 	return ray;
 }

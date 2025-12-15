@@ -171,7 +171,7 @@ public:
 				glfwGetCursorPos(this->win.getGLFWwindow(), &mouseX, &mouseY);
 
 				printf("Mouse Position: %f, %f\n", mouseX, mouseY);
-				Ray ray = PickingSystem::buildRay((float)mouseX, (float)mouseY, WIDTH, HEIGHT, camera);
+				Ray ray = PickingSystem::buildRay((float)mouseX, (float)mouseY, WIDTH, HEIGHT, cam);
 
 				// 4. Build the model matrix for the large model
 				auto& room = this->objects.begin()->second; // example: get your large model

@@ -5,7 +5,7 @@
 #include <vector>
 
 #include <RenderSystem.hpp>
-#include <Camera.hpp>
+#include <CameraSystem.hpp>
 
 struct Ray{
 	glm::vec3 origin;
@@ -26,7 +26,7 @@ public:
 	//void update(vle::FrameInfo& frameInfo, vle::GlobalUbo& ubo) override {}
 	//void render(vle::FrameInfo& frameInfo) override {}
 
-	static Ray buildRay(float pointX, float pointY, int windowWidth, int windowHeight, const vle::Camera &camera);
+	static Ray buildRay(float pointX, float pointY, int windowWidth, int windowHeight, const vle::sys::CameraSystem &camera);
 
 	PickResult intersectModel(const Ray &ray, const std::shared_ptr<vle::ShaderModel>& model, const glm::mat4& modelMatrix);
 
