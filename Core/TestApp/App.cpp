@@ -1,10 +1,9 @@
 #include <iostream>
 
-#include <Ray.hpp>
-
-#include <CameraSystem.hpp>
+#include <minmap.hpp>
 
 #include <Renderer.hpp>
+#include <CameraSystem.hpp>
 #include <ObjectRenderSystem.hpp>
 #include <PointLightSystem.hpp>
 
