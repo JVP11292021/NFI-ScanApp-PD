@@ -1,5 +1,13 @@
 ﻿#include "PickingSystem.h"
 
+PickingSystem::PickingSystem()
+{
+}
+
+PickingSystem::~PickingSystem()
+{
+}
+
 Ray PickingSystem::buildRay(float pointX, float pointY, int windowWidth, int windowHeight, const vle::Camera& camera)
 {
 	float x = (2.0f * pointX) / windowWidth - 1.0f;

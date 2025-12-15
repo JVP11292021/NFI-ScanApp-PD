@@ -18,13 +18,13 @@ struct PickResult{
 	glm::vec3 position{0.f};
 };
 
-class PickingSystem : public vle::sys::RenderSystem<> {
+class PickingSystem /*: public vle::sys::RenderSystem<>*/ {
 public:
-	PickingSystem() = default;
-	~PickingSystem() override = default;
+	PickingSystem() /*= default*/;
+	~PickingSystem() /*override = default*/;
 
-	void update(vle::FrameInfo& frameInfo, vle::GlobalUbo& ubo) override {}
-	void render(vle::FrameInfo& frameInfo) override {}
+	//void update(vle::FrameInfo& frameInfo, vle::GlobalUbo& ubo) override {}
+	//void render(vle::FrameInfo& frameInfo) override {}
 
 	static Ray buildRay(float pointX, float pointY, int windowWidth, int windowHeight, const vle::Camera &camera);
 
