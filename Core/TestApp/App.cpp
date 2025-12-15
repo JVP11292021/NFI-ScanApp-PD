@@ -28,7 +28,7 @@
 
 class CameraAdapter {
 public:
-	explicit CameraAdapter(sfm::CameraSystem& advancedCamera)
+	explicit CameraAdapter(vle::sys::CameraSystem& advancedCamera)
 		: camera_(advancedCamera) {
 	}
 
@@ -49,7 +49,7 @@ public:
 	}
 
 private:
-	sfm::CameraSystem& camera_;
+	vle::sys::CameraSystem& camera_;
 	glm::mat4 view_{ 1.0f };
 	glm::mat4 projection_{ 1.0f };
 	glm::mat4 inverseView_{ 1.0f };
@@ -102,7 +102,7 @@ public:
 		vle::sys::PointLightSystem pointLigthSystem{ this->device, this->renderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout() };
 		//vle::Camera camera{};
 
-		sfm::CameraSystem cam{
+		vle::sys::CameraSystem cam{
 			glm::vec3(0.f, 0.f, 2.5f),
 			glm::vec3(0.f, 0.f, 1.f)
 		};
@@ -145,13 +145,13 @@ public:
 			//cameraController.moveInPlainXZ(this->win.getGLFWwindow(), frameTimeElapsed, viewerObject);
 			//camera.setViewYXZ(viewerObject.transform.translation, viewerObject.transform.rotation);
 			if (glfwGetKey(win.getGLFWwindow(), GLFW_KEY_W) == GLFW_PRESS)
-				cam.processKeyboard(sfm::FORWARD, frameTimeElapsed);
+				cam.processKeyboard(vle::sys::FORWARD, frameTimeElapsed);
 			if (glfwGetKey(win.getGLFWwindow(), GLFW_KEY_S) == GLFW_PRESS)
-				cam.processKeyboard(sfm::BACKWARD, frameTimeElapsed);
+				cam.processKeyboard(vle::sys::BACKWARD, frameTimeElapsed);
 			if (glfwGetKey(win.getGLFWwindow(), GLFW_KEY_A) == GLFW_PRESS)
-				cam.processKeyboard(sfm::LEFT, frameTimeElapsed);
+				cam.processKeyboard(vle::sys::LEFT, frameTimeElapsed);
 			if (glfwGetKey(win.getGLFWwindow(), GLFW_KEY_D) == GLFW_PRESS)
-				cam.processKeyboard(sfm::RIGHT, frameTimeElapsed);
+				cam.processKeyboard(vle::sys::RIGHT, frameTimeElapsed);
 
 			auto aspect = this->renderer.getAspectRatio();
 			//camera.setPerspectiveProjection(glm::radians(50.f), aspect, .1f, 25.f);
@@ -229,30 +229,30 @@ private:
 		//obj.transform.scale = { 3.f, 1.0f, 3.f };
 		//this->objects.emplace(obj.getId(), std::move(obj));
 
-		//std::vector<glm::vec3> lightColors{
-		//	 {1.f, .1f, .1f},
-		//	 {.1f, .1f, 1.f},
-		//	 {.1f, 1.f, .1f},
-		//	 {1.f, 1.f, .1f},
-		//	 {.1f, 1.f, 1.f},
-		//	 {1.f, 1.f, 1.f}  //
-		//};
-		//for (std::int32_t i = 0; i < lightColors.size(); i++) {
-		//	auto pointLight = vle::Object::createPointLight(1.f);
-		//	pointLight.color = lightColors[i];
-		//	auto rotHeight = glm::rotate(
-		//		glm::mat4(1.f),
-		//		(i * glm::two_pi<float>()) / lightColors.size(),
-		//		{ 0.f, 1.f, 0.f });
-		//	pointLight.transform.translation = glm::vec3(rotHeight * glm::vec4(-1.f, -1.f, -1.f, 1.f));
-		//	this->objects.emplace(pointLight.getId(), std::move(pointLight));
-		//}
+		std::vector<glm::vec3> lightColors{
+			 {1.f, .1f, .1f},
+			 {.1f, .1f, 1.f},
+			 {.1f, 1.f, .1f},
+			 {1.f, 1.f, .1f},
+			 {.1f, 1.f, 1.f},
+			 {1.f, 1.f, 1.f}  //
+		};
+		for (std::int32_t i = 0; i < lightColors.size(); i++) {
+			auto pointLight = vle::Object::createPointLight(1.f);
+			pointLight.color = lightColors[i];
+			auto rotHeight = glm::rotate(
+				glm::mat4(1.f),
+				(i * glm::two_pi<float>()) / lightColors.size(),
+				{ 0.f, 1.f, 0.f });
+			pointLight.transform.translation = glm::vec3(rotHeight * glm::vec4(-1.f, -1.f, -1.f, 1.f));
+			this->objects.emplace(pointLight.getId(), std::move(pointLight));
+		}
 
-		std::shared_ptr<vle::ShaderModel> roomModel = vle::ShaderModel::createModelFromFile(this->device, "models/simple_scene.ply");
-		auto room = vle::Object::create();
-		room.model = roomModel;		
-		room.transform.translation = { 0.f, .5f, 0.f };
-		this->objects.emplace(room.getId(), std::move(room));
+		//std::shared_ptr<vle::ShaderModel> roomModel = vle::ShaderModel::createModelFromFile(this->device, "models/simple_scene.ply");
+		//auto room = vle::Object::create();
+		//room.model = roomModel;		
+		//room.transform.translation = { 0.f, .5f, 0.f };
+		//this->objects.emplace(room.getId(), std::move(room));
 	}
 
 private:
