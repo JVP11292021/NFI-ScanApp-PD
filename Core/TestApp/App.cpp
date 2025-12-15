@@ -112,28 +112,7 @@ public:
 			glm::vec3(0.f, 0.f, 1.f)
 		};
 		CameraAdapter camAdapter{ cam };
-		//std::vector<cv::Mat> intrinsicsCv{};
-		//for (size_t i = 0; i < images.size(); ++i)
-		//	intrinsicsCv.push_back(intrinsicsToCvMat(cam.getCameraIntrinsics()));
-
-		//std::cout << "images size: " << images.size() << ", cam instrinsics: " << intrinsicsCv.size() << "\n";
-		//sfm::SfM3D sfm(intrinsicsCv);
-		//sfm.addImages(images);
-		//sfm.extractFeatures();
-
-		//std::cout << "feature size: " << sfm.features().size() << "\n";
-		//sfm.matchFeatures(); // <-
-		//std::cout << "Image pairs: " << sfm.matches().size() << "\n";
-		//for (const auto& m : sfm.matches()) {
-		//	std::cout << "Pair (" << m.img1 << "," << m.img2
-		//		<< ") matches: " << m.matches.size() << "\n";
-		//}
-		//sfm.reconstruct(); // <-
-		//std::cout << "World points size: " << sfm.points().size() << "\n";
-		//renderSfMPoints(sfm.points(), objects);
-
-		//auto viewerObject = vle::Object::create();
-		//vle::KeyboardMovementController cameraController{};
+		cam.setRotation(-0.5f, -3.14f, 0.f);
 
 		auto currentTime = std::chrono::high_resolution_clock::now();
 
@@ -157,6 +136,20 @@ public:
 				cam.processKeyboard(vle::sys::LEFT, frameTimeElapsed);
 			if (glfwGetKey(win.getGLFWwindow(), GLFW_KEY_D) == GLFW_PRESS)
 				cam.processKeyboard(vle::sys::RIGHT, frameTimeElapsed);
+
+			if (glfwGetKey(win.getGLFWwindow(), GLFW_KEY_Q) == GLFW_PRESS)
+				cam.processKeyboard(vle::sys::MOVE_DOWN, frameTimeElapsed);
+			if (glfwGetKey(win.getGLFWwindow(), GLFW_KEY_E) == GLFW_PRESS)
+				cam.processKeyboard(vle::sys::MOVE_UP, frameTimeElapsed);
+
+			if (glfwGetKey(win.getGLFWwindow(), GLFW_KEY_LEFT) == GLFW_PRESS)
+				cam.processKeyboard(vle::sys::ROTATE_LEFT, frameTimeElapsed);
+			if (glfwGetKey(win.getGLFWwindow(), GLFW_KEY_RIGHT) == GLFW_PRESS)
+				cam.processKeyboard(vle::sys::ROTATE_RIGHT, frameTimeElapsed);
+			if (glfwGetKey(win.getGLFWwindow(), GLFW_KEY_UP) == GLFW_PRESS)
+				cam.processKeyboard(vle::sys::ROTATE_UP, frameTimeElapsed);
+			if (glfwGetKey(win.getGLFWwindow(), GLFW_KEY_DOWN) == GLFW_PRESS)
+				cam.processKeyboard(vle::sys::ROTATE_DOWN, frameTimeElapsed);
 
 			auto aspect = this->renderer.getAspectRatio();
 			//camera.setPerspectiveProjection(glm::radians(50.f), aspect, .1f, 25.f);
