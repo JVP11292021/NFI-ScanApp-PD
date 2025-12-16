@@ -12,7 +12,7 @@
 MM_NS_B
 
 #if defined(COLMAP_CUDA_ENABLED) || !defined(COLMAP_GUI_ENABLED)
-const bool kUseOpenGL = false;
+const bool kUseOpenGL = true;
 #else
 const bool kUseOpenGL = true;
 #endif

@@ -93,6 +93,7 @@ int RunFeatureExtractor(int argc, char** argv) {
             (CameraMode)camera_mode);
     }
 
+    options.sift_extraction->use_gpu = false;
     colmap::StringToLower(&descriptor_normalization);
     if (descriptor_normalization == "l1_root") {
         options.sift_extraction->normalization =
@@ -189,6 +190,7 @@ int RunExhaustiveMatcher(int argc, char** argv) {
     options.AddExhaustiveMatchingOptions();
     options.Parse(argc, argv);
 
+    options.sift_matching->use_gpu = false;
     if (!VerifySiftGPUParams(options.sift_matching->use_gpu)) {
         return EXIT_FAILURE;
     }

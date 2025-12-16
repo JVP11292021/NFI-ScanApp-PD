@@ -23,7 +23,6 @@ project "EngineUtils"
 	kind "staticlib"
 	language "C++"
 	cppdialect "C++17"
-	staticruntime "on"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
@@ -89,7 +88,6 @@ project "EngineBackend"
 	kind "staticlib"
 	language "C++"
 	cppdialect "C++17"
-	staticruntime "on"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
@@ -169,7 +167,6 @@ project "EngineSystems"
 	kind "staticlib"
 	language "C++"
 	cppdialect "C++17"
-	staticruntime "on"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
@@ -243,7 +240,6 @@ project "RayTracing"
 	kind "staticlib"
 	language "C++"
 	cppdialect "C++17"
-	staticruntime "on"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
@@ -319,7 +315,6 @@ project "GSplats"
 	kind "staticlib"
 	language "C++"
 	cppdialect "C++17"
-	staticruntime "on"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
@@ -395,7 +390,6 @@ project "minmap"
 	kind "staticlib"
 	language "C++"
 	cppdialect "C++17"
-	staticruntime "on"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
@@ -412,12 +406,12 @@ project "minmap"
 		"Engine/Engine/EngineBackend",
 		"Engine/Engine/EngineUtils",
 		"Engine/Engine/Systems",
-		"C:/repo/vcpkg/installed/x64-windows/include"
+		"C:/repositories/vcpkg/installed/x64-windows/include"
 	}
 
 	libdirs {
 		"Libraries/lib",
-		"C:/repo/vcpkg/installed/x64-windows/lib"
+		"C:/repositories/vcpkg/installed/x64-windows/lib"
 	}
 
 	links {
@@ -489,7 +483,6 @@ project "TestApp"
 	kind "ConsoleApp"
 	language "C++"
 	cppdialect "C++17"
-	staticruntime "on"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
@@ -522,7 +515,6 @@ project "TestApp"
 		"RayTracing",
 		"GSplats",
 		"minmap",
-		"opencv_world4120d.lib",
 	}
 
 	dependson { 
