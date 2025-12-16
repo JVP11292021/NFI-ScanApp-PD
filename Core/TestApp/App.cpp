@@ -1,9 +1,11 @@
 #include <iostream>
 
+#include <minmap.hpp>
 #include <Ray.hpp>
 
 #include <CameraSystem.hpp>
 #include <MarkerManager.h>
+#include <PickingSystem.h>
 #include <Renderer.hpp>
 #include <ObjectRenderSystem.hpp>
 #include <PointCloudRenderSystem.hpp>
@@ -26,7 +28,6 @@
 #include <stdexcept>
 #include <array>
 #include <vector>
-#include <PickingSystem.h>
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -58,6 +59,77 @@ private:
 	glm::mat4 view_{ 1.0f };
 	glm::mat4 projection_{ 1.0f };
 	glm::mat4 inverseView_{ 1.0f };
+};
+
+class ReconstructionService {
+public:
+	bool runSparse(
+		const std::filesystem::path& dataset,
+		char** argv,
+		bool cpuOnly = true
+	) {
+		colmap::InitializeGlog(argv);
+
+		std::filesystem::path images = dataset / "images";
+		std::filesystem::path db = dataset / "database.db";
+		std::filesystem::path sparse = dataset / "sparse";
+
+		std::filesystem::create_directories(sparse);
+
+		// 1. Feature extraction
+		{
+			std::vector<std::string> args = {
+				"feature_extractor",
+				"--database_path", db.string(),
+				"--image_path", images.string()
+			};
+
+			if (run(minmap::RunFeatureExtractor, args) != 0)
+				return false;
+		}
+
+		// 2. Matching
+		{
+			std::vector<std::string> args = {
+				"exhaustive_matcher",
+				"--database_path", db.string()
+			};
+
+			if (run(minmap::RunExhaustiveMatcher, args) != 0)
+				return false;
+		}
+
+		// 3. Mapping
+		if (run(minmap::RunMapper, {
+			"mapper",
+			"--database_path", db.string(),
+			"--image_path", images.string(),
+			"--output_path", sparse.string()
+			}) != 0)
+			return false;
+
+		// 4. Export PLY
+		if (run(minmap::RunModelConverter, {
+			"model_converter",
+			"--input_path", (sparse / "0").string(),
+			"--output_path", (sparse / "sparse.ply").string(),
+			"--output_type", "PLY"
+			}) != 0)
+			return false;
+
+		return true;
+	}
+
+private:
+	int run(
+		int (*fn)(int, char**),
+		const std::vector<std::string>& args
+	) {
+		std::vector<char*> argv;
+		for (auto& s : args)
+			argv.push_back(const_cast<char*>(s.c_str()));
+		return fn((int)argv.size(), argv.data());
+	}
 };
 
 class FirstApp {
@@ -264,27 +336,28 @@ private:
 		//obj.transform.scale = { 3.f, 1.0f, 3.f };
 		//this->objects.emplace(obj.getId(), std::move(obj));
 
-		std::vector<glm::vec3> lightColors{
-			 {1.f, .1f, .1f},
-			 {.1f, .1f, 1.f},
-			 {.1f, 1.f, .1f},
-			 {1.f, 1.f, .1f},
-			 {.1f, 1.f, 1.f},
-			 {1.f, 1.f, 1.f}  //
-		};
-		for (std::int32_t i = 0; i < lightColors.size(); i++) {
-			auto pointLight = vle::Object::createPointLight(1.f);
-			pointLight.color = lightColors[i];
-			auto rotHeight = glm::rotate(
-				glm::mat4(1.f),
-				(i * glm::two_pi<float>()) / lightColors.size(),
-				{ 0.f, 1.f, 0.f });
-			pointLight.transform.translation = glm::vec3(rotHeight * glm::vec4(-1.f, -1.f, -1.f, 1.f));
-			this->objects.emplace(pointLight.getId(), std::move(pointLight));
-		}
-		this->markerManager.loadMarkersFromTxt("models/markers.txt", this->device, this->objects);
+		//std::vector<glm::vec3> lightColors{
+		//	 {1.f, .1f, .1f},
+		//	 {.1f, .1f, 1.f},
+		//	 {.1f, 1.f, .1f},
+		//	 {1.f, 1.f, .1f},
+		//	 {.1f, 1.f, 1.f},
+		//	 {1.f, 1.f, 1.f}  //
+		//};
+		//for (std::int32_t i = 0; i < lightColors.size(); i++) {
+		//	auto pointLight = vle::Object::createPointLight(1.f);
+		//	pointLight.color = lightColors[i];
+		//	auto rotHeight = glm::rotate(
+		//		glm::mat4(1.f),
+		//		(i * glm::two_pi<float>()) / lightColors.size(),
+		//		{ 0.f, 1.f, 0.f });
+		//	pointLight.transform.translation = glm::vec3(rotHeight * glm::vec4(-1.f, -1.f, -1.f, 1.f));
+		//	this->objects.emplace(pointLight.getId(), std::move(pointLight));
+		//}
+		//this->markerManager.loadMarkersFromTxt("models/markers.txt", this->device, this->objects);
 
-		std::shared_ptr<vle::ShaderModel> roomModel = vle::ShaderModel::createModelFromFile(this->device, "models/simple_scene.ply");
+		std::shared_ptr<vle::ShaderModel> roomModel = 
+			vle::ShaderModel::createModelFromFile(this->device, "pointclouds/well/sparse/sparse.ply");
 		auto room = vle::Object::create();
 		room.model = roomModel;		
 		room.transform.translation = { 0.f, .5f, 8.f };
@@ -309,6 +382,10 @@ private:
 };
 
 int main(int argc, char** argv) {
+	ReconstructionService recon{};
+	if (!recon.runSparse("pointclouds/well", argv))
+		return EXIT_FAILURE;
+
 	FirstApp app;
 	try {
 		app.run();
