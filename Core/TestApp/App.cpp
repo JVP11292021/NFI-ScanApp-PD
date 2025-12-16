@@ -113,7 +113,11 @@ public:
 			glm::vec3(0.f, 0.f, 1.f)
 		};
 		CameraAdapter camAdapter{ cam };
-		//cam.setRotation(-0.5f, 3.14f, 0.f);
+		//cam.setRotation(
+		//	0.0f,
+		//	0.0f, 
+		//	0.0f
+		//);
 
 		auto currentTime = std::chrono::high_resolution_clock::now();
 
@@ -283,17 +287,17 @@ private:
 		std::shared_ptr<vle::ShaderModel> roomModel = vle::ShaderModel::createModelFromFile(this->device, "models/simple_scene.ply");
 		auto room = vle::Object::create();
 		room.model = roomModel;		
-		room.transform.translation = { 0.f, .5f, 0.f };
+		room.transform.translation = { 0.f, .5f, 8.f };
 		room.transform.rotation = {
-			0.0f,
-			0.0f,
-			glm::radians(90.0f)
+			glm::radians(9.0f),
+			glm::radians(180.f),
+			glm::radians(93.0f)
 		};
 		this->points.emplace(room.getId(), std::move(room));
 	}
 
 private:
-	vle::EngineWindow win{ WIDTH, HEIGHT, "Hello Vulkan" };
+	vle::EngineWindow win{ WIDTH, HEIGHT, "NFI App Engine" };
 	vle::EngineDevice device{ win };
 	vle::sys::Renderer renderer{ win, device };
 

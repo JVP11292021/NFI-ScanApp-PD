@@ -44,7 +44,7 @@ void MarkerManager::loadMarkersFromTxt(const std::string& filePath, vle::EngineD
 		obj.model = markerPinModel;
 		obj.color = { 1.f, .1f, .1f };
 		obj.transform.translation = { x, y, z };
-		obj.transform.scale = { 0.4f, 0.3f, 0.4f };
+		obj.transform.scale = { 1.f, 0.8f, 1.f };
 		obj.transform.rotation = { glm::pi<float>(), 0.f, 0.f };
 
 		markerIds.push_back(obj.getId());
