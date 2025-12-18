@@ -8,6 +8,7 @@ workspace "RenderCore"
 		"Dist"
 	}
 
+local assimp_bin_dir = "Libraries/bin"
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 local vulkan_sdk = os.getenv("VULKAN_SDK")
 if vulkan_sdk == nil then
@@ -104,7 +105,7 @@ project "EngineBackend"
 
 	includedirs {
 		"Libraries/include",
-		"EngineUtils"
+		"Engine/Engine/EngineUtils"
 	}
 
 	libdirs {
@@ -113,6 +114,7 @@ project "EngineBackend"
 
 	links {
 		"glfw3_mt.lib",
+		"assimp-vc143-mtd.lib",
 		"EngineUtils"
 	}
 
@@ -146,11 +148,13 @@ project "EngineBackend"
 		systemversion "latest"
 
 	filter "configurations:Debug"
+	    links { "assimp-vc143-mtd.lib" }
 		defines "VLE_DEBUG"
 		symbols "on"
 		runtime "Debug"
 
 	filter "configurations:Release"
+	    links { "assimp-vc143-mt.lib" }
 		defines "VLE_RELEASE"
 		optimize "on"
 		runtime "Release"
@@ -180,8 +184,8 @@ project "EngineSystems"
 
 	includedirs {
 		"Libraries/include",
-		"EngineBackend",
-		"EngineUtils"
+		"Engine/Engine/EngineBackend",
+		"Engine/Engine/EngineUtils"
 	}
 
 	libdirs {
@@ -265,7 +269,7 @@ project "RayTracing"
 	links {
 		"EngineBackend",
 		"EngineUtils",
-		"EngineSystems"
+		"EngineSystems",
 	}
 
 	dependson { 
@@ -386,6 +390,98 @@ project "GSplats"
 		optimize "on"
 		runtime "Release"
 
+project "SfM"
+	location "SfM"
+	kind "staticlib"
+	language "C++"
+	cppdialect "C++17"
+	staticruntime "on"
+
+	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+
+	files {
+		"%{prj.name}/**.h",
+		"%{prj.name}/**.hpp",
+		"%{prj.name}/**.inl",
+		"%{prj.name}/**.cpp",
+	}
+
+	includedirs {
+		"Libraries/include",
+		"Engine/Engine/EngineBackend",
+		"Engine/Engine/EngineUtils",
+		"Engine/Engine/Systems",
+	}
+
+	libdirs {
+		"Libraries/lib",
+	}
+
+	links {
+		"EngineBackend",
+		"EngineUtils",
+		"EngineSystems",
+		"colmap_controllers.lib",
+        "colmap_util.lib",
+        "colmap_feature.lib",
+        "colmap_feature_types.lib",
+        "colmap_sfm.lib",
+		"colmap_sensor.lib",
+		"colmap_math.lib",
+		"colmap_optim.lib",
+		"colmap_mvs.lib",
+		"colmap_image.lib",
+		"colmap_retrieval.lib",
+		"colmap_vlfeat.lib",
+        "ceres.lib",
+        "glog.lib",
+	}
+
+	dependson { 
+		"EngineBackend", 
+		"EngineUtils",
+		"EngineSystems"
+	}
+
+	if vulkan_sdk ~= nil then
+        includedirs {
+            vulkan_sdk .. "/Include"
+        }
+
+        libdirs {
+            vulkan_sdk .. "/Lib"
+        }
+
+        links {
+            "vulkan-1.lib"
+        }
+
+        defines {
+            "USE_VULKAN"
+        }
+    end
+
+	filter "system:windows"
+		systemversion "latest"
+		defines { "_CRT_SECURE_NO_WARNINGS", "GLOG_NO_ABBREVIATED_SEVERITIES" }
+		buildoptions { "/permissive-" }  -- <-- important
+
+	filter "configurations:Debug"
+		defines "APP_DEBUG"
+		symbols "on"
+		runtime "Debug"
+
+	filter "configurations:Release"
+		defines "APP_RELEASE"
+		optimize "on"
+		runtime "Release"
+
+	filter "configurations:Dist"
+		defines "APP_DIST"
+		optimize "on"
+		runtime "Release"
+
 project "TestApp"
 	location "TestApp"
 	kind "ConsoleApp"
@@ -410,6 +506,7 @@ project "TestApp"
 		"Engine/Engine/Systems",
 		"RayTracing",
 		"GSplats",
+		"SfM"
 	}
 
 	libdirs {
@@ -422,6 +519,8 @@ project "TestApp"
 		"EngineSystems",
 		"RayTracing",
 		"GSplats",
+		"SfM",
+		"opencv_world4120d.lib",
 	}
 
 	dependson { 
@@ -431,6 +530,10 @@ project "TestApp"
 		"RayTracing",
 		"GSplats",
 	}
+
+	debugenvs {
+        "PATH=" .. assimp_bin_dir .. ";$(PATH)"
+    }
 
 	if vulkan_sdk ~= nil then
         includedirs {
@@ -452,16 +555,20 @@ project "TestApp"
 
 	filter "system:windows"
 		systemversion "latest"
+		defines { "_CRT_SECURE_NO_WARNINGS", "GLOG_NO_ABBREVIATED_SEVERITIES" }
+		buildoptions { "/permissive-" }  -- <-- important
 
-	filter "configurations:Debug"
-		defines "APP_DEBUG"
-		symbols "on"
-		runtime "Debug"
+    filter "configurations:Debug"
+        defines "APP_DEBUG"
+        symbols "on"
+        runtime "Debug"
+        links { "assimp-vc143-mtd.lib" }
 
-	filter "configurations:Release"
-		defines "APP_RELEASE"
-		optimize "on"
-		runtime "Release"
+    filter "configurations:Release"
+        defines "APP_RELEASE"
+        optimize "on"
+        runtime "Release"
+        links { "assimp-vc143-mt.lib" }
 
 	filter "configurations:Dist"
 		defines "APP_DIST"
