@@ -1,7 +1,5 @@
 #include <iostream>
 
-#include <Ray.hpp>
-
 #include <CameraSystem.hpp>
 #include <MarkerManager.h>
 #include <Renderer.hpp>
@@ -172,20 +170,20 @@ public:
 				Ray ray = PickingSystem::buildRay((float)mouseX, (float)mouseY, WIDTH, HEIGHT, cam);
 
 				// 4. Build the model matrix for the large model
-				auto& room = this->objects.begin()->second; // example: get your large model
-				glm::mat4 modelMatrix(1.0f);
-				modelMatrix = glm::translate(modelMatrix, room.transform.translation);
-				modelMatrix = glm::rotate(modelMatrix, room.transform.rotation.y, glm::vec3(0, 1, 0));
-				modelMatrix = glm::rotate(modelMatrix, room.transform.rotation.x, glm::vec3(1, 0, 0));
-				modelMatrix = glm::rotate(modelMatrix, room.transform.rotation.z, glm::vec3(0, 0, 1));
-				modelMatrix = glm::scale(modelMatrix, room.transform.scale);
+				//auto& room = this->objects.begin()->second;
+				//glm::mat4 modelMatrix(1.0f);
+				//modelMatrix = glm::translate(modelMatrix, room.transform.translation);
+				//modelMatrix = glm::rotate(modelMatrix, room.transform.rotation.y, glm::vec3(0, 1, 0));
+				//modelMatrix = glm::rotate(modelMatrix, room.transform.rotation.x, glm::vec3(1, 0, 0));
+				//modelMatrix = glm::rotate(modelMatrix, room.transform.rotation.z, glm::vec3(0, 0, 1));
+				//modelMatrix = glm::scale(modelMatrix, room.transform.scale);
 
-				// 5. Call intersection function (to implement next)
-				PickResult result = pickingSystem.intersectModel(ray, room.model, modelMatrix);
+				//// 5. Call intersection function (to implement next)
+				//PickResult result = pickingSystem.intersectModel(ray, room.model, modelMatrix);
 
-				if (result.hit) {
-					std::cout << "Hit at: " << result.position.x << ", " << result.position.y << ", " << result.position.z << "\n";
-				}
+				//if (result.hit) {
+				//	std::cout << "Hit at: " << result.position.x << ", " << result.position.y << ", " << result.position.z << "\n";
+				//}
 			}
 			prevMouseState = mouseState;
 
@@ -264,24 +262,24 @@ private:
 		//obj.transform.scale = { 3.f, 1.0f, 3.f };
 		//this->objects.emplace(obj.getId(), std::move(obj));
 
-		std::vector<glm::vec3> lightColors{
-			 {1.f, .1f, .1f},
-			 {.1f, .1f, 1.f},
-			 {.1f, 1.f, .1f},
-			 {1.f, 1.f, .1f},
-			 {.1f, 1.f, 1.f},
-			 {1.f, 1.f, 1.f}  //
-		};
-		for (std::int32_t i = 0; i < lightColors.size(); i++) {
-			auto pointLight = vle::Object::createPointLight(1.f);
-			pointLight.color = lightColors[i];
-			auto rotHeight = glm::rotate(
-				glm::mat4(1.f),
-				(i * glm::two_pi<float>()) / lightColors.size(),
-				{ 0.f, 1.f, 0.f });
-			pointLight.transform.translation = glm::vec3(rotHeight * glm::vec4(-1.f, -1.f, -1.f, 1.f));
-			this->objects.emplace(pointLight.getId(), std::move(pointLight));
-		}
+		//std::vector<glm::vec3> lightColors{
+		//	 {1.f, .1f, .1f},
+		//	 {.1f, .1f, 1.f},
+		//	 {.1f, 1.f, .1f},
+		//	 {1.f, 1.f, .1f},
+		//	 {.1f, 1.f, 1.f},
+		//	 {1.f, 1.f, 1.f}  //
+		//};
+		//for (std::int32_t i = 0; i < lightColors.size(); i++) {
+		//	auto pointLight = vle::Object::createPointLight(1.f);
+		//	pointLight.color = lightColors[i];
+		//	auto rotHeight = glm::rotate(
+		//		glm::mat4(1.f),
+		//		(i * glm::two_pi<float>()) / lightColors.size(),
+		//		{ 0.f, 1.f, 0.f });
+		//	pointLight.transform.translation = glm::vec3(rotHeight * glm::vec4(-1.f, -1.f, -1.f, 1.f));
+		//	this->objects.emplace(pointLight.getId(), std::move(pointLight));
+		//}
 		this->markerManager.loadMarkersFromTxt("models/markers.txt", this->device, this->objects);
 
 		std::shared_ptr<vle::ShaderModel> roomModel = vle::ShaderModel::createModelFromFile(this->device, "models/simple_scene.ply");
