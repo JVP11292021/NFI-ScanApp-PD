@@ -1,12 +1,12 @@
 #include "Database.hpp"
 
-#include <colmap/controllers/option_manager.h>
-#include <colmap/geometry/pose.h>
-#include <colmap/scene/database.h>
-#include <colmap/scene/reconstruction.h>
-#include <colmap/scene/rig.h>
-#include <colmap/util/file.h>
-#include <colmap/util/misc.h>
+#include "colmap/controllers/option_manager.h"
+#include "colmap/geometry/pose.h"
+#include "colmap/scene/database.h"
+#include "colmap/scene/reconstruction.h"
+#include "colmap/scene/rig.h"
+#include "colmap/util/file.h"
+#include "colmap/util/misc.h"
 
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
@@ -122,7 +122,7 @@ int RunRigConfigurator(int argc, char** argv) {
 
     colmap::Database database(database_path);
 
-    ApplyRigConfig(
+    colmap::ApplyRigConfig(
         colmap::ReadRigConfig(rig_config_path),
         database,
         reconstruction.has_value() ? &reconstruction.value() : nullptr);

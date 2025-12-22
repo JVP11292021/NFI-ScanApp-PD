@@ -3,9 +3,9 @@
 
 #include "minmap_defs.hpp"
 
-#include <colmap/estimators/alignment.h>
-#include <colmap/geometry/sim3.h>
-#include <colmap/scene/reconstruction.h>
+#include "colmap/estimators/alignment.h"
+#include "colmap/geometry/sim3.h"
+#include "colmap/scene/reconstruction.h"
 
 MM_NS_B
 

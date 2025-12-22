@@ -399,46 +399,23 @@ project "minmap"
 		"%{prj.name}/**.hpp",
 		"%{prj.name}/**.inl",
 		"%{prj.name}/**.cpp",
+		"%{prj.name}/**.cc",
 	}
 
 	includedirs {
 		"Libraries/include",
-		"Engine/Engine/EngineBackend",
-		"Engine/Engine/EngineUtils",
-		"Engine/Engine/Systems",
-		"C:/repositories/vcpkg/installed/x64-windows/include"
 	}
 
 	libdirs {
 		"Libraries/lib",
-		"C:/repositories/vcpkg/installed/x64-windows/lib"
 	}
 
 	links {
-		"EngineBackend",
-		"EngineUtils",
-		"EngineSystems",
-		"colmap_controllers.lib",
-        "colmap_util.lib",
-        "colmap_feature.lib",
-        "colmap_feature_types.lib",
-        "colmap_sfm.lib",
-		"colmap_sensor.lib",
-		"colmap_math.lib",
-		"colmap_optim.lib",
-		"colmap_mvs.lib",
-		"colmap_image.lib",
-		"colmap_retrieval.lib",
-		"colmap_vlfeat.lib",
         "ceres.lib",
         "glog.lib"
 	}
 
-	dependson { 
-		"EngineBackend", 
-		"EngineUtils",
-		"EngineSystems"
-	}
+	dependson {}
 
 	if vulkan_sdk ~= nil then
         includedirs {
@@ -460,7 +437,7 @@ project "minmap"
 
 	filter "system:windows"
 		systemversion "latest"
-		defines { "_CRT_SECURE_NO_WARNINGS", "GLOG_NO_ABBREVIATED_SEVERITIES" }
+		defines { "_CRT_SECURE_NO_WARNINGS", "GLOG_NO_ABBREVIATED_SEVERITIES", "GLOG_USE_GLOG_EXPORT" }
 		buildoptions { "/permissive-" }  -- <-- important
 
 	filter "configurations:Debug"

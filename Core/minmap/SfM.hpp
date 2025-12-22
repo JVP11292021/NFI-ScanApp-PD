@@ -3,8 +3,8 @@
 
 #include "minmap_defs.hpp"
 
-#include <colmap/controllers/incremental_pipeline.h>
-#include <colmap/scene/reconstruction.h>
+#include "colmap/controllers/incremental_pipeline.h"
+#include "colmap/scene/reconstruction.h"
 
 MM_NS_B
 

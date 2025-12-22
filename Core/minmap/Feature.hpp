@@ -3,9 +3,9 @@
 
 #include "minmap_defs.hpp"
 
-#include <colmap/feature/pairing.h>
-#include <colmap/controllers/feature_matching.h>
-#include <colmap/controllers/image_reader.h>
+#include "colmap/feature/pairing.h"
+#include "colmap/controllers/feature_matching.h"
+#include "colmap/controllers/image_reader.h"
 
 MM_NS_B
 
