@@ -6,6 +6,7 @@
 #include <ObjectRenderSystem.hpp>
 #include <PointCloudRenderSystem.hpp>
 #include <PointLightSystem.hpp>
+#include <PickingRenderSystem.hpp>
 
 #include <Device.hpp>
 #include <defs.hpp>
@@ -105,6 +106,7 @@ public:
 		vle::sys::PointCloudRenderSystem pointCloudRenderSystem{ this->device, this->renderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout() };
 		//vle::Camera camera{};
 		
+		PickingRenderSystem pickingRenderSystem{ this->device, WIDTH, HEIGHT, globalSetLayout->getDescriptorSetLayout(), this->renderer.getSwapChainRenderPass()};
 
 		vle::sys::CameraSystem cam{
 			glm::vec3(0.f, 0.f, 2.5f),
@@ -113,6 +115,10 @@ public:
 		CameraAdapter camAdapter{ cam };
 
 		auto currentTime = std::chrono::high_resolution_clock::now();
+
+		// Track if we need to pick on this frame
+		bool shouldPick = false;
+		uint32_t pickX = 0, pickY = 0;
 
 		while (!this->win.shouldClose()) {
 			glfwPollEvents();
@@ -154,13 +160,17 @@ public:
 
 			this->markerManager.updateMarkerRotations(cam.getPosition(), objects);
 
+			// Detect mouse click
 			static int prevMouseState = GLFW_RELEASE;
 			int mouseState = glfwGetMouseButton(this->win.getGLFWwindow(), GLFW_MOUSE_BUTTON_LEFT);
 			if (mouseState == GLFW_PRESS && prevMouseState == GLFW_RELEASE) {
-
 				double mouseX, mouseY;
 				glfwGetCursorPos(this->win.getGLFWwindow(), &mouseX, &mouseY);
-
+				
+				pickX = static_cast<uint32_t>(mouseX);
+				pickY = static_cast<uint32_t>(HEIGHT - mouseY - 1);
+				shouldPick = true;
+				
 				printf("Mouse Position: %f, %f\n", mouseX, mouseY);
 			}
 			prevMouseState = mouseState;
@@ -181,11 +191,42 @@ public:
 				ubo.projection = camAdapter.getProjection();
 				ubo.view = camAdapter.getView();
 				ubo.inverseView = camAdapter.getInverseView();
+
 				pointLigthSystem.update(frameInfo, ubo);
+				pickingRenderSystem.update(frameInfo, ubo);
+
 				uboBuffers[frameIndex]->writeToBuffer(&ubo);
 				uboBuffers[frameIndex]->flush();
 
-				// Render Phase
+
+				// Render Phase - Picking render pass (must happen BEFORE reading)
+				pickingRenderSystem.render(frameInfo);
+
+				if (shouldPick) {
+					VkCommandBuffer pickCmdBuffer = this->device.beginSingleTimeCommands();
+					
+					pickingRenderSystem.copyPixelToStaging(pickCmdBuffer, pickX, pickY);
+					
+					this->device.endSingleTimeCommands(pickCmdBuffer);
+					
+					PickResult pick = pickingRenderSystem.readPickResult();
+
+					if (pick.id != 0xFFFFFFFF) {
+						std::cout << "Picked Point Cloud ID: " << pick.objectID 
+								  << ", Point Index: " << pick.pointIndex 
+								  << ", World Position: (" 
+								  << pick.worldPos.x << ", " 
+								  << pick.worldPos.y << ", " 
+								  << pick.worldPos.z << ")\n";
+					}
+					else {
+						std::cout << "No point picked.\n";
+					}
+					
+					shouldPick = false;
+				}
+
+				// Render Phase - Swap chain render pass
 				this->renderer.beginSwapChainRenderPass(commandBuffer);
 				objectRenderSystem.render(frameInfo);
 				pointLigthSystem.render(frameInfo);
