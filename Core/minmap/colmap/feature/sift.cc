@@ -27,18 +27,17 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/feature/sift.h"
+#include "sift.h"
 
-#include "colmap/feature/utils.h"
-#include "colmap/math/math.h"
-#include "colmap/util/cuda.h"
-#include "colmap/util/file.h"
-#include "colmap/util/logging.h"
-#include "colmap/util/misc.h"
-#include "colmap/util/opengl_utils.h"
+#include "utils.h"
+#include "../../colmap/math/math.h"
+#include "../../colmap/util/cuda.h"
+#include "../../colmap/util/file.h"
+#include "../../colmap/util/logging.h"
+#include "../../colmap/util/misc.h"
 
-#include "thirdparty/VLFeat/covdet.h"
-#include "thirdparty/VLFeat/sift.h"
+#include "../../thirdparty/VLFeat/covdet.h"
+#include "../../thirdparty/VLFeat/sift.h"
 
 #include <array>
 #include <fstream>

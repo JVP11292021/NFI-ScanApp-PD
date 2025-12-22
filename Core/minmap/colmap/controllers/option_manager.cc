@@ -27,22 +27,22 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/controllers/option_manager.h"
+#include "option_manager.h"
 
-#include "colmap/controllers/feature_extraction.h"
-#include "colmap/controllers/image_reader.h"
-#include "colmap/controllers/incremental_pipeline.h"
-#include "colmap/estimators/bundle_adjustment.h"
-#include "colmap/estimators/two_view_geometry.h"
-#include "colmap/feature/pairing.h"
-#include "colmap/feature/sift.h"
-#include "colmap/math/random.h"
-#include "colmap/mvs/fusion.h"
-#include "colmap/mvs/meshing.h"
-#include "colmap/mvs/patch_match.h"
-#include "colmap/ui/render_options.h"
-#include "colmap/util/file.h"
-#include "colmap/util/version.h"
+#include "feature_extraction.h"
+#include "image_reader.h"
+#include "incremental_pipeline.h"
+#include "../../colmap/estimators/bundle_adjustment.h"
+#include "../../colmap/estimators/two_view_geometry.h"
+#include "../../colmap/feature/pairing.h"
+#include "../../colmap/feature/sift.h"
+#include "../../colmap/math/random.h"
+#include "../../colmap/mvs/fusion.h"
+#include "../../colmap/mvs/meshing.h"
+#include "../../colmap/mvs/patch_match.h"
+#include "../../colmap/ui/render_options.h"
+#include "../../colmap/util/file.h"
+#include "../../colmap/util/version.h"
 
 #include <boost/property_tree/ini_parser.hpp>
 

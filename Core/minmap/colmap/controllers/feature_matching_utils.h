@@ -29,12 +29,12 @@
 
 #pragma once
 
-#include "colmap/estimators/two_view_geometry.h"
-#include "colmap/feature/matcher.h"
-#include "colmap/feature/sift.h"
-#include "colmap/scene/database.h"
-#include "colmap/util/opengl_utils.h"
-#include "colmap/util/threading.h"
+#include "../../colmap/estimators/two_view_geometry.h"
+#include "../../colmap/feature/matcher.h"
+#include "../../colmap/feature/sift.h"
+#include "../../colmap/scene/database.h"
+#include "../../colmap/util/opengl_utils.h"
+#include "../../colmap/util/threading.h"
 
 #include <array>
 #include <memory>

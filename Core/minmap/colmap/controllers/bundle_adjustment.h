@@ -29,9 +29,9 @@
 
 #pragma once
 
-#include "colmap/controllers/option_manager.h"
-#include "colmap/scene/reconstruction.h"
-#include "colmap/util/base_controller.h"
+#include "option_manager.h"
+#include "../../colmap/scene/reconstruction.h"
+#include "../../colmap/util/base_controller.h"
 
 namespace colmap {
 

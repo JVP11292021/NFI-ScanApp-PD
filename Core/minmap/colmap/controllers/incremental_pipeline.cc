@@ -27,12 +27,12 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/controllers/incremental_pipeline.h"
+#include "incremental_pipeline.h"
 
-#include "colmap/estimators/alignment.h"
-#include "colmap/util/file.h"
-#include "colmap/util/misc.h"
-#include "colmap/util/timer.h"
+#include "../../colmap/estimators/alignment.h"
+#include "../../colmap/util/file.h"
+#include "../../colmap/util/misc.h"
+#include "../../colmap/util/timer.h"
 
 namespace colmap {
 namespace {

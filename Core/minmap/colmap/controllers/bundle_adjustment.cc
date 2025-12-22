@@ -27,12 +27,12 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/controllers/bundle_adjustment.h"
+#include "bundle_adjustment.h"
 
-#include "colmap/estimators/bundle_adjustment.h"
-#include "colmap/sfm/observation_manager.h"
-#include "colmap/util/misc.h"
-#include "colmap/util/timer.h"
+#include "../../colmap/estimators/bundle_adjustment.h"
+#include "../../colmap/sfm/observation_manager.h"
+#include "../../colmap/util/misc.h"
+#include "../../colmap/util/timer.h"
 
 #include <ceres/ceres.h>
 

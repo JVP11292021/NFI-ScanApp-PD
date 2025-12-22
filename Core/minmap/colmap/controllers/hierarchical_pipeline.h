@@ -29,10 +29,10 @@
 
 #pragma once
 
-#include "colmap/controllers/incremental_pipeline.h"
-#include "colmap/scene/reconstruction_manager.h"
-#include "colmap/scene/scene_clustering.h"
-#include "colmap/util/base_controller.h"
+#include "incremental_pipeline.h"
+#include "../../colmap/scene/reconstruction_manager.h"
+#include "../../colmap/scene/scene_clustering.h"
+#include "../../colmap/util/base_controller.h"
 
 #include <memory>
 

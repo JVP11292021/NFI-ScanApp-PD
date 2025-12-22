@@ -27,16 +27,16 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/controllers/feature_extraction.h"
+#include "feature_extraction.h"
 
-#include "colmap/feature/sift.h"
-#include "colmap/geometry/gps.h"
-#include "colmap/scene/database.h"
-#include "colmap/util/cuda.h"
-#include "colmap/util/file.h"
-#include "colmap/util/misc.h"
-#include "colmap/util/opengl_utils.h"
-#include "colmap/util/timer.h"
+#include "../../colmap/feature/sift.h"
+#include "../../colmap/geometry/gps.h"
+#include "../../colmap/scene/database.h"
+#include "../../colmap/util/cuda.h"
+#include "../../colmap/util/file.h"
+#include "../../colmap/util/misc.h"
+#include "../../colmap/util/opengl_utils.h"
+#include "../../colmap/util/timer.h"
 
 #include <numeric>
 

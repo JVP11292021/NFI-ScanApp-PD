@@ -27,18 +27,19 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/controllers/automatic_reconstruction.h"
+#include "automatic_reconstruction.h"
 
-#include "colmap/controllers/feature_extraction.h"
-#include "colmap/controllers/feature_matching.h"
-#include "colmap/controllers/incremental_pipeline.h"
-#include "colmap/controllers/option_manager.h"
-#include "colmap/image/undistortion.h"
-#include "colmap/mvs/fusion.h"
-#include "colmap/mvs/meshing.h"
-#include "colmap/mvs/patch_match.h"
-#include "colmap/util/logging.h"
-#include "colmap/util/misc.h"
+#include "feature_extraction.h"
+#include "feature_matching.h"
+#include "incremental_pipeline.h"
+#include "option_manager.h"
+
+#include "../../colmap/image/undistortion.h"
+#include "../../colmap/mvs/fusion.h"
+#include "../../colmap/mvs/meshing.h"
+#include "../../colmap/mvs/patch_match.h"
+#include "../../colmap/util/logging.h"
+#include "../../colmap/util/misc.h"
 
 namespace colmap {
 

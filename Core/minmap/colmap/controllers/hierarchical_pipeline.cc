@@ -27,13 +27,13 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/controllers/hierarchical_pipeline.h"
+#include "hierarchical_pipeline.h"
 
-#include "colmap/estimators/alignment.h"
-#include "colmap/scene/scene_clustering.h"
-#include "colmap/sfm/observation_manager.h"
-#include "colmap/util/misc.h"
-#include "colmap/util/threading.h"
+#include "../../colmap/estimators/alignment.h"
+#include "../../colmap/scene/scene_clustering.h"
+#include "../../colmap/sfm/observation_manager.h"
+#include "../../colmap/util/misc.h"
+#include "../../colmap/util/threading.h"
 
 namespace colmap {
 namespace {

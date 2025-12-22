@@ -29,8 +29,8 @@
 
 #pragma once
 
-#include "colmap/feature/extractor.h"
-#include "colmap/feature/matcher.h"
+#include "extractor.h"
+#include "matcher.h"
 
 namespace colmap {
 

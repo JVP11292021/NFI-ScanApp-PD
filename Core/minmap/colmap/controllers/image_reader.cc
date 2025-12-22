@@ -27,11 +27,11 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/controllers/image_reader.h"
+#include "image_reader.h"
 
-#include "colmap/sensor/models.h"
-#include "colmap/util/file.h"
-#include "colmap/util/misc.h"
+#include "../../colmap/sensor/models.h"
+#include "../../colmap/util/file.h"
+#include "../../colmap/util/misc.h"
 
 namespace colmap {
 

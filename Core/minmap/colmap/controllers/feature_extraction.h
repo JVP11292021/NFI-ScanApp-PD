@@ -29,9 +29,9 @@
 
 #pragma once
 
-#include "colmap/controllers/image_reader.h"
-#include "colmap/feature/sift.h"
-#include "colmap/util/threading.h"
+#include "image_reader.h"
+#include "../../colmap/feature/sift.h"
+#include "../../colmap/util/threading.h"
 
 namespace colmap {
 

@@ -29,9 +29,9 @@
 
 #pragma once
 
-#include "colmap/util/endian.h"
-#include "colmap/util/logging.h"
-#include "colmap/util/types.h"
+#include "endian.h"
+#include "logging.h"
+#include "types.h"
 
 #include <filesystem>
 #include <fstream>

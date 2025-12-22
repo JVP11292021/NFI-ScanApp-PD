@@ -4,11 +4,11 @@
 #include "colmap/controllers/feature_matching.h"
 #include "colmap/controllers/image_reader.h"
 #include "colmap/controllers/option_manager.h"
-#include "colmap/feature/sift.h"
+#include "colmap/feature/sift.h" // Has multiple dependencies
 #include "colmap/feature/utils.h"
-#include "colmap/sensor/models.h"
-#include "colmap/util/file.h"
-#include "colmap/util/misc.h"
+#include "colmap/sensor/models.h" // Dependencies: math.h, enum_utils.h, types.h (all colmap)
+#include "colmap/util/file.h"  // Dependencies: endian.h, types.h, logging.h (all colmap)
+#include "colmap/util/misc.h" // Dependencies: logging.h
 #include "colmap/util/opengl_utils.h"
 #include "colmap/util/threading.h"
 

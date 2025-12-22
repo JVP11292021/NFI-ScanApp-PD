@@ -29,7 +29,7 @@
 
 #pragma once
 
-#include "colmap/feature/types.h"
+#include "types.h"
 
 namespace colmap {
 

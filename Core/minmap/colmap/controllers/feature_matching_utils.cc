@@ -27,12 +27,12 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/controllers/feature_matching_utils.h"
+#include "feature_matching_utils.h"
 
-#include "colmap/estimators/two_view_geometry.h"
-#include "colmap/feature/utils.h"
-#include "colmap/util/cuda.h"
-#include "colmap/util/misc.h"
+#include "../../colmap/estimators/two_view_geometry.h"
+#include "../../colmap/feature/utils.h"
+#include "../../colmap/util/cuda.h"
+#include "../../colmap/util/misc.h"
 
 #include <fstream>
 #include <numeric>

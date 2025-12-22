@@ -27,15 +27,15 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/controllers/feature_matching.h"
+#include "feature_matching.h"
 
-#include "colmap/controllers/feature_matching_utils.h"
-#include "colmap/estimators/two_view_geometry.h"
-#include "colmap/feature/matcher.h"
-#include "colmap/feature/utils.h"
-#include "colmap/util/file.h"
-#include "colmap/util/misc.h"
-#include "colmap/util/timer.h"
+#include "feature_matching_utils.h"
+#include "../../colmap/estimators/two_view_geometry.h"
+#include "../../colmap/feature/matcher.h"
+#include "../../colmap/feature/utils.h"
+#include "../../colmap/util/file.h"
+#include "../../colmap/util/misc.h"
+#include "../../colmap/util/timer.h"
 
 #include <fstream>
 #include <numeric>

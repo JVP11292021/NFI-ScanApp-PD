@@ -29,8 +29,8 @@
 
 #pragma once
 
-#include "colmap/util/glog_macros.h"
-#include "colmap/util/string.h"
+#include "glog_macros.h"
+#include "string.h"
 
 #include <exception>
 #include <iostream>
