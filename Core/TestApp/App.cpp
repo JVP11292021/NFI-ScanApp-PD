@@ -24,7 +24,6 @@
 #include <stdexcept>
 #include <array>
 #include <vector>
-#include <PickingSystem.h>
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -105,17 +104,13 @@ public:
 		vle::sys::PointLightSystem pointLigthSystem{ this->device, this->renderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout() };
 		vle::sys::PointCloudRenderSystem pointCloudRenderSystem{ this->device, this->renderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout() };
 		//vle::Camera camera{};
+		
 
 		vle::sys::CameraSystem cam{
 			glm::vec3(0.f, 0.f, 2.5f),
 			glm::vec3(0.f, 0.f, 1.f)
 		};
 		CameraAdapter camAdapter{ cam };
-		//cam.setRotation(
-		//	0.0f,
-		//	0.0f, 
-		//	0.0f
-		//);
 
 		auto currentTime = std::chrono::high_resolution_clock::now();
 
@@ -167,23 +162,6 @@ public:
 				glfwGetCursorPos(this->win.getGLFWwindow(), &mouseX, &mouseY);
 
 				printf("Mouse Position: %f, %f\n", mouseX, mouseY);
-				Ray ray = PickingSystem::buildRay((float)mouseX, (float)mouseY, WIDTH, HEIGHT, cam);
-
-				// 4. Build the model matrix for the large model
-				//auto& room = this->objects.begin()->second;
-				//glm::mat4 modelMatrix(1.0f);
-				//modelMatrix = glm::translate(modelMatrix, room.transform.translation);
-				//modelMatrix = glm::rotate(modelMatrix, room.transform.rotation.y, glm::vec3(0, 1, 0));
-				//modelMatrix = glm::rotate(modelMatrix, room.transform.rotation.x, glm::vec3(1, 0, 0));
-				//modelMatrix = glm::rotate(modelMatrix, room.transform.rotation.z, glm::vec3(0, 0, 1));
-				//modelMatrix = glm::scale(modelMatrix, room.transform.scale);
-
-				//// 5. Call intersection function (to implement next)
-				//PickResult result = pickingSystem.intersectModel(ray, room.model, modelMatrix);
-
-				//if (result.hit) {
-				//	std::cout << "Hit at: " << result.position.x << ", " << result.position.y << ", " << result.position.z << "\n";
-				//}
 			}
 			prevMouseState = mouseState;
 
@@ -193,7 +171,6 @@ public:
 					frameIndex,
 					frameTimeElapsed,
 					commandBuffer,
-					//camera,
 					globalDescriptorSets[frameIndex],
 					this->objects,
 					this->points
@@ -302,7 +279,6 @@ private:
 	std::unique_ptr<vle::DescriptorPool> globalPool{};
 	vle::ObjectMap objects;
 	vle::ObjectMap points;
-	PickingSystem pickingSystem;
 	MarkerManager markerManager;
 };
 
