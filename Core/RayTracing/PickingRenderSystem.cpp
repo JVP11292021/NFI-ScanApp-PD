@@ -75,7 +75,7 @@ void PickingRenderSystem::render(vle::FrameInfo& frameInfo) {
         PickingPushConstantData push{};
         push.modelMatrix = obj.transform.mat4();
         push.objectID = obj.getId();
-        push.pointSize = 4.0f;
+        push.pointSize = 10.0f;
 
         vkCmdPushConstants(
             cmdBuffer,

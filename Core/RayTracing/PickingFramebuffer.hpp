@@ -2,7 +2,6 @@
 #define RT_PICKING_FRAMEBUFFER_HPP
 
 #include <Device.hpp>
-#include <vulkan/vulkan.h>
 #include <memory>
 #include <array>
 
@@ -19,7 +18,7 @@ public:
     VkExtent2D getExtent() const { return extent; }
     
     VkImage getColorImage() const { return colorImage; }
-    VkImage getPositionImage() const { return positionImage; }  // Add this line
+    VkImage getPositionImage() const { return positionImage; }
     VkImage getDepthImage() const { return depthImage; }
 
 private:

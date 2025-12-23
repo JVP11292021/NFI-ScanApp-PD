@@ -218,6 +218,10 @@ public:
 								  << pick.worldPos.x << ", " 
 								  << pick.worldPos.y << ", " 
 								  << pick.worldPos.z << ")\n";
+						
+						// Create a marker at the picked position
+						this->markerManager.createMarker(pick.worldPos, this->device, this->objects);
+						std::cout << "Marker created at picked position!\n";
 					}
 					else {
 						std::cout << "No point picked.\n";
