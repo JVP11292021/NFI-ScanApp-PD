@@ -6,7 +6,7 @@ PickingRenderSystem::PickingRenderSystem(vle::EngineDevice& device, uint32_t wid
 {
     stagingBufferID = std::make_unique<vle::Buffer>(
         device,
-        sizeof(uint32_t),
+        sizeof(PickID),
         1,
         VK_BUFFER_USAGE_TRANSFER_DST_BIT,
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
@@ -30,10 +30,11 @@ void PickingRenderSystem::render(vle::FrameInfo& frameInfo) {
     VkCommandBuffer cmdBuffer = frameInfo.commandBuffer;
 
     std::array<VkClearValue, 3> clearValues{};
-    uint32_t invalidID = 0xFFFFFFFF;
-    memcpy(&clearValues[0].color.float32[0], &invalidID, sizeof(uint32_t));
-    clearValues[1].color = { {0.0f, 0.0f, 0.0f, 0.0f} };
+    clearValues[0].color.uint32[0] = 0xFFFFFFFF;
+    clearValues[0].color.uint32[1] = 0xFFFFFFFF;
+    clearValues[1].color = { {0.f, 0.f, 0.f, 0.f} };
     clearValues[2].depthStencil = { 1.0f, 0 };
+
 
     VkRenderPassBeginInfo rpInfo{};
     rpInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -109,7 +110,8 @@ void PickingRenderSystem::createPipeline(VkRenderPass renderPass) {
             filteredAttributes.push_back(attr);
         }
     }
-    
+    //pipelineConfig.depthStencilInfo.depthTestEnable = VK_FALSE;
+    //pipelineConfig.depthStencilInfo.depthWriteEnable = VK_FALSE;
     pipelineConfig.bindingDescriptions = bindings;
     pipelineConfig.attributeDescriptors = filteredAttributes;
     pipelineConfig.renderPass = pickingFB.getRenderPass();
@@ -132,8 +134,15 @@ void PickingRenderSystem::copyPixelToStaging(VkCommandBuffer cmdBuffer, uint32_t
     regionID.imageSubresource.mipLevel = 0;
     regionID.imageSubresource.baseArrayLayer = 0;
     regionID.imageSubresource.layerCount = 1;
-    regionID.imageOffset = { static_cast<int32_t>(mouseX), static_cast<int32_t>(mouseY), 0 };
-    regionID.imageExtent = { 1, 1, 1 };
+
+    uint32_t flippedY = pickingFB.getExtent().height - mouseY - 1;
+
+    regionID.imageOffset = {
+        static_cast<int32_t>(mouseX),
+        static_cast<int32_t>(flippedY),
+        0
+    };
+	regionID.imageExtent = { 1, 1, 1 };
 
     vkCmdCopyImageToBuffer(
         cmdBuffer,
@@ -152,7 +161,11 @@ void PickingRenderSystem::copyPixelToStaging(VkCommandBuffer cmdBuffer, uint32_t
     regionPos.imageSubresource.mipLevel = 0;
     regionPos.imageSubresource.baseArrayLayer = 0;
     regionPos.imageSubresource.layerCount = 1;
-    regionPos.imageOffset = { static_cast<int32_t>(mouseX), static_cast<int32_t>(mouseY), 0 };
+    regionPos.imageOffset = {
+        static_cast<int32_t>(mouseX),
+        static_cast<int32_t>(flippedY),
+        0
+    };
     regionPos.imageExtent = { 1, 1, 1 };
 
     vkCmdCopyImageToBuffer(
@@ -166,26 +179,31 @@ void PickingRenderSystem::copyPixelToStaging(VkCommandBuffer cmdBuffer, uint32_t
 }
 
 PickResult PickingRenderSystem::readPickResult() {
-    PickResult result;
-    
+    PickResult result{};
+
+    PickID pick;
+
     stagingBufferID->map();
-    uint32_t combinedID;
-    memcpy(&combinedID, stagingBufferID->getMappedMemory(), sizeof(uint32_t));
+    memcpy(&pick, stagingBufferID->getMappedMemory(), sizeof(PickID));
     stagingBufferID->unmap();
 
-    result.id = combinedID;
-    
-    if (combinedID != 0xFFFFFFFF) {
-        result.objectID = (combinedID >> 16) & 0xFFFF;
-        result.pointIndex = combinedID & 0xFFFF;
-        
-        stagingBufferPos->map();
-        float posData[4];
-        memcpy(posData, stagingBufferPos->getMappedMemory(), sizeof(float) * 4);
-        stagingBufferPos->unmap();
-        
-        result.worldPos = glm::vec3(posData[0], posData[1], posData[2]);
+    if (pick.objectID == 0xFFFFFFFF) {
+        result.hit = false;
+		result.id = 0xFFFFFFFF;
+        return result;
     }
 
+    result.hit = true;
+    result.objectID = pick.objectID;
+    result.pointIndex = pick.pointIndex;
+
+	result.id = (pick.objectID << 16) | (pick.pointIndex & 0xFFFF);
+
+    stagingBufferPos->map();
+    float pos[4];
+    memcpy(pos, stagingBufferPos->getMappedMemory(), sizeof(float) * 4);
+    stagingBufferPos->unmap();
+
+    result.worldPos = glm::vec3(pos[0], pos[1], pos[2]);
     return result;
 }

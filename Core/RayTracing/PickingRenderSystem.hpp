@@ -24,10 +24,16 @@ struct PickingPushConstantData {
 };
 
 struct PickResult {
+    bool hit = false;
     uint32_t id = 0xFFFFFFFF;
     uint32_t objectID = 0xFFFFFFFF;
     uint32_t pointIndex = 0xFFFFFFFF;
     glm::vec3 worldPos = glm::vec3(0.0f);
+};
+
+struct PickID {
+    uint32_t objectID;
+    uint32_t pointIndex;
 };
 
 class PickingRenderSystem : public vle::sys::RenderSystem<PickingPushConstantData>

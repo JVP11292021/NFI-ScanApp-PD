@@ -2,8 +2,9 @@
 
 layout(location = 0) in vec3 position;
 
-layout(location = 0) out flat uint vPickID;
-layout(location = 1) out vec3 vWorldPos;
+layout(location = 0) out flat uint vObjectID;
+layout(location = 1) out flat uint vVertexIndex;
+layout(location = 2) out vec3 vWorldPos;
 
 layout(set = 0, binding = 0) uniform GlobalUbo {
     mat4 projection;
@@ -11,18 +12,19 @@ layout(set = 0, binding = 0) uniform GlobalUbo {
 } ubo;
 
 layout(push_constant) uniform Push {
-    mat4 modelMatrix;
+    mat4 model;
     uint objectID;
     float pointSize;
 } push;
 
-void main() {
-    vec4 worldPos = push.modelMatrix * vec4(position, 1.0);
-    vec4 viewPos = ubo.view * worldPos;
 
-    gl_Position = ubo.projection * viewPos;
+void main() {
+    vec4 worldPos = push.model * vec4(position, 1.0);
+
+    gl_Position = ubo.projection * ubo.view * worldPos;
     gl_PointSize = push.pointSize;
 
-    vPickID = (push.objectID << 16) | (gl_VertexIndex & 0xFFFF);
-    vWorldPos = worldPos.xyz;
+    vObjectID     = push.objectID;
+    vVertexIndex  = uint(gl_VertexIndex);
+    vWorldPos     = worldPos.xyz;
 }

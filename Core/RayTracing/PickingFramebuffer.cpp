@@ -28,7 +28,7 @@ PickingFramebuffer::~PickingFramebuffer() {
 
 void PickingFramebuffer::createRenderPass() {
     VkAttachmentDescription colorAttachment{};
-    colorAttachment.format = VK_FORMAT_R32_UINT;
+    colorAttachment.format = VK_FORMAT_R32G32_UINT;
     colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
     colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
     colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -117,7 +117,7 @@ void PickingFramebuffer::createImages() {
     colorImageInfo.extent.depth = 1;
     colorImageInfo.mipLevels = 1;
     colorImageInfo.arrayLayers = 1;
-    colorImageInfo.format = VK_FORMAT_R32_UINT;
+    colorImageInfo.format = VK_FORMAT_R32G32_UINT;
     colorImageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
     colorImageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     colorImageInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
@@ -130,7 +130,7 @@ void PickingFramebuffer::createImages() {
     colorViewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
     colorViewInfo.image = colorImage;
     colorViewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-    colorViewInfo.format = VK_FORMAT_R32_UINT;
+    colorViewInfo.format = VK_FORMAT_R32G32_UINT;
     colorViewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     colorViewInfo.subresourceRange.baseMipLevel = 0;
     colorViewInfo.subresourceRange.levelCount = 1;
