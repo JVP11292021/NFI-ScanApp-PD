@@ -27,10 +27,10 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/optim/combination_sampler.h"
+#include "combination_sampler.h"
 
-#include "colmap/math/math.h"
-#include "colmap/math/random.h"
+#include "../math/math.h"
+#include "../math/random.h"
 
 #include <numeric>
 

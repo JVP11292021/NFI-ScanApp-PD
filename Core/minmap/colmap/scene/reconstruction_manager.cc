@@ -27,9 +27,9 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/scene/reconstruction_manager.h"
+#include "reconstruction_manager.h"
 
-#include "colmap/util/file.h"
+#include "../util/file.h"
 
 namespace colmap {
 

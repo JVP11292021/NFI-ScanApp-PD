@@ -29,7 +29,7 @@
 
 #pragma once
 
-#include "colmap/util/logging.h"
+#include "../util/logging.h"
 
 #include <chrono>
 #include <memory>
@@ -84,7 +84,7 @@ void Shuffle(uint32_t num_to_shuffle, std::vector<T>* elems);
 
 template <typename T>
 T RandomUniformInteger(const T min, const T max) {
-  if (COLMAP_PREDICT_FALSE(PRNG == nullptr)) {
+  if (PRNG == nullptr) {
     SetPRNGSeed();
   }
 
@@ -94,7 +94,7 @@ T RandomUniformInteger(const T min, const T max) {
 
 template <typename T>
 T RandomUniformReal(const T min, const T max) {
-  if (COLMAP_PREDICT_FALSE(PRNG == nullptr)) {
+  if (PRNG == nullptr) {
     SetPRNGSeed();
   }
 
@@ -104,7 +104,7 @@ T RandomUniformReal(const T min, const T max) {
 
 template <typename T>
 T RandomGaussian(const T mean, const T stddev) {
-  if (COLMAP_PREDICT_FALSE(PRNG == nullptr)) {
+  if (PRNG == nullptr) {
     SetPRNGSeed();
   }
 

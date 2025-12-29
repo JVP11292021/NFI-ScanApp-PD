@@ -27,13 +27,13 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/image/line.h"
+#include "line.h"
 
-#include "colmap/util/logging.h"
+#include "../util/logging.h"
 
 #ifdef COLMAP_LSD_ENABLED
 extern "C" {
-#include "thirdparty/LSD/lsd.h"
+#include "../../thirdparty/LSD/lsd.h"
 }
 #endif
 

@@ -3,9 +3,9 @@
 
 #include "minmap_defs.hpp"
 
-#include "colmap/feature/pairing.h"
+#include "colmap/feature/pairing.h" // Dependencies: matcher.h, resources.h, visual_index.h, database.h, threading.h, types.h
 #include "colmap/controllers/feature_matching.h"
-#include "colmap/controllers/image_reader.h"
+#include "colmap/controllers/image_reader.h" // Dependencies: gps.h, database.h, bitmap.h, threading.h
 
 MM_NS_B
 
@@ -35,13 +35,13 @@ bool VerifyCameraParams(const std::string& camera_model,
     const std::string& params);
 
 int RunFeatureExtractor(int argc, char** argv);
-int RunFeatureImporter(int argc, char** argv);
 int RunExhaustiveMatcher(int argc, char** argv);
-int RunMatchesImporter(int argc, char** argv);
-int RunSequentialMatcher(int argc, char** argv);
-int RunSpatialMatcher(int argc, char** argv);
-int RunTransitiveMatcher(int argc, char** argv);
-int RunVocabTreeMatcher(int argc, char** argv);
+//int RunFeatureImporter(int argc, char** argv);
+//int RunMatchesImporter(int argc, char** argv);
+//int RunSequentialMatcher(int argc, char** argv);
+//int RunSpatialMatcher(int argc, char** argv);
+//int RunTransitiveMatcher(int argc, char** argv);
+//int RunVocabTreeMatcher(int argc, char** argv);
 
 MM_NS_E
 

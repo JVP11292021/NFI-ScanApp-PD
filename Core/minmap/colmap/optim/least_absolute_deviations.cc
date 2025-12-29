@@ -27,9 +27,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/optim/least_absolute_deviations.h"
-
-#include "colmap/util/eigen_alignment.h"
+#include "least_absolute_deviations.h"
 
 #include <Eigen/SparseCholesky>
 

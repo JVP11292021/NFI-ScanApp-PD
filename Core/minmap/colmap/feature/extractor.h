@@ -29,8 +29,8 @@
 
 #pragma once
 
-#include "colmap/feature/types.h"
-#include "colmap/sensor/bitmap.h"
+#include "../feature/types.h"
+#include "../sensor/bitmap.h"
 
 namespace colmap {
 

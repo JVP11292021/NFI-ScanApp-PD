@@ -29,9 +29,8 @@
 
 #pragma once
 
-#include "colmap/feature/types.h"
-#include "colmap/retrieval/utils.h"
-#include "colmap/util/eigen_alignment.h"
+#include "../feature/types.h"
+#include "../retrieval/utils.h"
 
 #include <Eigen/Core>
 

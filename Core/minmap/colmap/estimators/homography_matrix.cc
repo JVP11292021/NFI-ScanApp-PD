@@ -27,10 +27,9 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/estimators/homography_matrix.h"
+#include "homography_matrix.h"
 
-#include "colmap/util/eigen_alignment.h"
-#include "colmap/util/logging.h"
+#include "../util/logging.h"
 
 #include <Eigen/Geometry>
 #include <Eigen/LU>

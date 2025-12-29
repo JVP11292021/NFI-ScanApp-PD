@@ -29,7 +29,8 @@
 
 #pragma once
 
-#include "colmap/scene/reconstruction.h"
+#include "reconstruction.h"
+#include "../geometry/rigid3.h"
 
 #include <functional>
 #include <unordered_map>

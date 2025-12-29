@@ -27,10 +27,10 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/scene/scene_clustering.h"
+#include "scene_clustering.h"
 
-#include "colmap/math/graph_cut.h"
-#include "colmap/math/random.h"
+#include "../math/graph_cut.h"
+#include "../math/random.h"
 
 #include <set>
 

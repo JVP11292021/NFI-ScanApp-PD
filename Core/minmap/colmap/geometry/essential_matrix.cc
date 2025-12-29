@@ -27,10 +27,10 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/geometry/essential_matrix.h"
+#include "essential_matrix.h"
 
-#include "colmap/geometry/pose.h"
-#include "colmap/util/logging.h"
+#include "../geometry/pose.h"
+#include "../util/logging.h"
 
 #include <array>
 

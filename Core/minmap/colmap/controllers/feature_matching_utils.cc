@@ -29,10 +29,9 @@
 
 #include "feature_matching_utils.h"
 
-#include "../../colmap/estimators/two_view_geometry.h"
-#include "../../colmap/feature/utils.h"
-#include "../../colmap/util/cuda.h"
-#include "../../colmap/util/misc.h"
+#include "../estimators/two_view_geometry.h"
+#include "../feature/utils.h"
+#include "../util/misc.h"
 
 #include <fstream>
 #include <numeric>

@@ -29,8 +29,8 @@
 
 #pragma once
 
-#include "colmap/util/logging.h"
-#include "colmap/util/types.h"
+#include "../util/logging.h"
+#include "../util/types.h"
 
 #include <vector>
 

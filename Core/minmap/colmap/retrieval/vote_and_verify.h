@@ -29,7 +29,7 @@
 
 #pragma once
 
-#include "colmap/retrieval/geometry.h"
+#include "geometry.h"
 
 namespace colmap {
 namespace retrieval {

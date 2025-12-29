@@ -29,10 +29,10 @@
 
 #include "bundle_adjustment.h"
 
-#include "../../colmap/estimators/bundle_adjustment.h"
-#include "../../colmap/sfm/observation_manager.h"
-#include "../../colmap/util/misc.h"
-#include "../../colmap/util/timer.h"
+#include "../estimators/bundle_adjustment.h"
+#include "../sfm/observation_manager.h"
+#include "../util/misc.h"
+#include "../util/timer.h"
 
 #include <ceres/ceres.h>
 

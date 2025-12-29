@@ -27,10 +27,10 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/scene/projection.h"
+#include "projection.h"
 
-#include "colmap/geometry/pose.h"
-#include "colmap/math/matrix.h"
+#include "../geometry/pose.h"
+#include "../math/matrix.h"
 
 namespace colmap {
 

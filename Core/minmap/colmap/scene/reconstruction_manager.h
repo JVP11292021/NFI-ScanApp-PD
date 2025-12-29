@@ -29,7 +29,7 @@
 
 #pragma once
 
-#include "colmap/scene/reconstruction.h"
+#include "reconstruction.h"
 
 #include <memory>
 

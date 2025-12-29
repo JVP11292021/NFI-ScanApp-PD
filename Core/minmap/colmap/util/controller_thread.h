@@ -29,8 +29,8 @@
 
 #pragma once
 
-#include "colmap/util/base_controller.h"
-#include "colmap/util/threading.h"
+#include "base_controller.h"
+#include "threading.h"
 
 namespace colmap {
 

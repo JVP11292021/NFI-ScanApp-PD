@@ -29,7 +29,7 @@
 
 #pragma once
 
-#include "colmap/util/types.h"
+#include "types.h"
 
 #include <string>
 #include <vector>

@@ -29,10 +29,10 @@
 
 #pragma once
 
-#include "colmap/optim/random_sampler.h"
-#include "colmap/optim/ransac.h"
-#include "colmap/optim/support_measurement.h"
-#include "colmap/util/logging.h"
+#include "../optim/random_sampler.h"
+#include "../optim/ransac.h"
+#include "../optim/support_measurement.h"
+#include "../util/logging.h"
 
 #include <cfloat>
 #include <optional>

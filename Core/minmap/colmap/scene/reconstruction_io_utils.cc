@@ -27,7 +27,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/scene/reconstruction_io_utils.h"
+#include "reconstruction_io_utils.h"
 
 #include <fstream>
 
@@ -35,7 +35,7 @@ namespace colmap {
 
 void CreateOneRigPerCamera(Reconstruction& reconstruction) {
   for (const auto& [camera_id, camera] : reconstruction.Cameras()) {
-    Rig rig;
+    Rig rig{};
     rig.SetRigId(camera_id);
     rig.AddRefSensor(camera.SensorId());
     reconstruction.AddRig(std::move(rig));

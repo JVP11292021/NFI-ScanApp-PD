@@ -30,21 +30,9 @@
 #pragma once
 
 #include <Eigen/Core>
-#include <gmock/gmock.h>
 
 namespace colmap {
 
-template <typename T>
-bool EigenMatrixMatchAndExplainShape(T lhs,
-                                     T rhs,
-                                     testing::MatchResultListener* listener) {
-  if (lhs.rows() != rhs.rows() || lhs.cols() != rhs.cols()) {
-    *listener << " have different shape (" << lhs.rows() << ", " << lhs.cols()
-              << ") vs. (" << rhs.rows() << ", " << rhs.cols() << ")";
-    return false;
-  }
-  return true;
-}
 
 template <typename T>
 class EigenMatrixEqMatcher : public testing::MatcherInterface<T> {
@@ -66,12 +54,6 @@ class EigenMatrixEqMatcher : public testing::MatcherInterface<T> {
 };
 
 template <typename T>
-testing::PolymorphicMatcher<EigenMatrixEqMatcher<T>> EigenMatrixEq(T rhs) {
-  return testing::MakePolymorphicMatcher(
-      EigenMatrixEqMatcher<T>(std::forward<T>(rhs)));
-}
-
-template <typename T>
 class EigenMatrixNearMatcher : public testing::MatcherInterface<T> {
  public:
   EigenMatrixNearMatcher(T rhs, double tol)
@@ -91,12 +73,5 @@ class EigenMatrixNearMatcher : public testing::MatcherInterface<T> {
   const T rhs_;
   const double tol_;
 };
-
-template <typename T>
-testing::PolymorphicMatcher<EigenMatrixNearMatcher<T>> EigenMatrixNear(
-    T rhs, double tol = Eigen::NumTraits<double>::dummy_precision()) {
-  return testing::MakePolymorphicMatcher(
-      EigenMatrixNearMatcher<T>(std::forward<T>(rhs), tol));
-}
 
 }  // namespace colmap

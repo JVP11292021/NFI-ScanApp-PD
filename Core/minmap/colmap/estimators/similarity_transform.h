@@ -29,13 +29,12 @@
 
 #pragma once
 
-#include "colmap/geometry/rigid3.h"
-#include "colmap/geometry/sim3.h"
-#include "colmap/optim/loransac.h"
-#include "colmap/optim/ransac.h"
-#include "colmap/util/eigen_alignment.h"
-#include "colmap/util/logging.h"
-#include "colmap/util/types.h"
+#include "../geometry/rigid3.h"
+#include "../geometry/sim3.h"
+#include "../optim/loransac.h"
+#include "../optim/ransac.h"
+#include "../util/logging.h"
+#include "../util/types.h"
 
 #include <vector>
 

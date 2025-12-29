@@ -29,10 +29,10 @@
 
 #pragma once
 
-#include "colmap/scene/camera.h"
-#include "colmap/scene/database.h"
-#include "colmap/scene/reconstruction.h"
-#include "colmap/util/types.h"
+#include "../scene/camera.h"
+#include "../scene/database.h"
+#include "../scene/reconstruction.h"
+#include "../util/types.h"
 
 #include <optional>
 #include <vector>

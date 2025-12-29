@@ -29,10 +29,9 @@
 
 #pragma once
 
-#include "colmap/scene/track.h"
-#include "colmap/util/eigen_alignment.h"
-#include "colmap/util/logging.h"
-#include "colmap/util/types.h"
+#include "../scene/track.h"
+#include "../util/logging.h"
+#include "../util/types.h"
 
 #include <vector>
 

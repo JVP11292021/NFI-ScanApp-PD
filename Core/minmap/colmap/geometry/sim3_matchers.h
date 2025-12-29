@@ -29,9 +29,8 @@
 
 #pragma once
 
-#include "colmap/geometry/sim3.h"
+#include "sim3.h"
 
-#include <gmock/gmock.h>
 
 namespace colmap {
 
@@ -60,12 +59,6 @@ class Sim3dEqMatcher : public testing::MatcherInterface<T> {
  private:
   const Sim3d rhs_;
 };
-
-template <typename T>
-testing::PolymorphicMatcher<Sim3dEqMatcher<T>> Sim3dEq(T rhs) {
-  return testing::MakePolymorphicMatcher(
-      Sim3dEqMatcher<T>(std::forward<T>(rhs)));
-}
 
 template <typename T>
 class Sim3dNearMatcher : public testing::MatcherInterface<T> {
@@ -99,15 +92,5 @@ class Sim3dNearMatcher : public testing::MatcherInterface<T> {
   const double rtol_;
   const double ttol_;
 };
-
-template <typename T>
-testing::PolymorphicMatcher<Sim3dNearMatcher<T>> Sim3dNear(
-    T rhs,
-    double stol = Eigen::NumTraits<double>::dummy_precision(),
-    double rtol = Eigen::NumTraits<double>::dummy_precision(),
-    double ttol = Eigen::NumTraits<double>::dummy_precision()) {
-  return testing::MakePolymorphicMatcher(
-      Sim3dNearMatcher<T>(std::forward<T>(rhs), stol, rtol, ttol));
-}
 
 }  // namespace colmap

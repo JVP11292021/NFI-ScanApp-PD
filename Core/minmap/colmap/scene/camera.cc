@@ -27,11 +27,11 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/scene/camera.h"
+#include "camera.h"
 
-#include "colmap/sensor/models.h"
-#include "colmap/util/logging.h"
-#include "colmap/util/misc.h"
+#include "../sensor/models.h"
+#include "../util/logging.h"
+#include "../util/misc.h"
 
 #include <iomanip>
 

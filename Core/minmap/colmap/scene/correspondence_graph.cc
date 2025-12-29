@@ -27,10 +27,10 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/scene/correspondence_graph.h"
+#include "correspondence_graph.h"
 
-#include "colmap/geometry/pose.h"
-#include "colmap/util/string.h"
+#include "../geometry/pose.h"
+#include "../util/string.h"
 
 #include <map>
 #include <set>

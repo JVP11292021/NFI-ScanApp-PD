@@ -29,7 +29,7 @@
 
 #pragma once
 
-#include "colmap/optim/sampler.h"
+#include "sampler.h"
 
 namespace colmap {
 

@@ -27,11 +27,11 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/sfm/incremental_triangulator.h"
+#include "incremental_triangulator.h"
 
-#include "colmap/estimators/triangulation.h"
-#include "colmap/scene/projection.h"
-#include "colmap/util/misc.h"
+#include "../estimators/triangulation.h"
+#include "../scene/projection.h"
+#include "../util/misc.h"
 
 namespace colmap {
 namespace {

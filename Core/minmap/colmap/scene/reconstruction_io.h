@@ -29,9 +29,9 @@
 
 #pragma once
 
-#include "colmap/scene/reconstruction.h"
-#include "colmap/scene/reconstruction_io_binary.h"
-#include "colmap/scene/reconstruction_io_text.h"
+#include "../scene/reconstruction.h"
+#include "../scene/reconstruction_io_binary.h"
+#include "../scene/reconstruction_io_text.h"
 
 #include <iostream>
 

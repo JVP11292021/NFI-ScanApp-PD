@@ -29,7 +29,7 @@
 
 #pragma once
 
-#include "colmap/util/logging.h"
+#include "../util/logging.h"
 
 #include <cstddef>
 #include <vector>

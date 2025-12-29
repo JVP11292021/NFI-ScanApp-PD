@@ -27,18 +27,18 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/estimators/pose.h"
+#include "pose.h"
 
-#include "colmap/estimators/absolute_pose.h"
-#include "colmap/estimators/bundle_adjustment.h"
-#include "colmap/estimators/cost_functions.h"
-#include "colmap/estimators/essential_matrix.h"
-#include "colmap/estimators/manifold.h"
-#include "colmap/geometry/essential_matrix.h"
-#include "colmap/geometry/pose.h"
-#include "colmap/geometry/triangulation.h"
-#include "colmap/sensor/models.h"
-#include "colmap/util/logging.h"
+#include "../estimators/absolute_pose.h"
+#include "../estimators/bundle_adjustment.h"
+#include "../estimators/cost_functions.h"
+#include "../estimators/essential_matrix.h"
+#include "../estimators/manifold.h"
+#include "../geometry/essential_matrix.h"
+#include "../geometry/pose.h"
+#include "../geometry/triangulation.h"
+#include "../sensor/models.h"
+#include "../util/logging.h"
 
 namespace colmap {
 

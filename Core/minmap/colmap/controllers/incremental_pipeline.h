@@ -29,9 +29,9 @@
 
 #pragma once
 
-#include "../../colmap/scene/reconstruction_manager.h"
-#include "../../colmap/sfm/incremental_mapper.h"
-#include "../../colmap/util/base_controller.h"
+#include "../scene/reconstruction_manager.h"
+#include "../sfm/incremental_mapper.h"
+#include "../util/base_controller.h"
 
 namespace colmap {
 

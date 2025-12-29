@@ -37,12 +37,7 @@
 #include "../../colmap/feature/pairing.h"
 #include "../../colmap/feature/sift.h"
 #include "../../colmap/math/random.h"
-#include "../../colmap/mvs/fusion.h"
-#include "../../colmap/mvs/meshing.h"
-#include "../../colmap/mvs/patch_match.h"
-#include "../../colmap/ui/render_options.h"
 #include "../../colmap/util/file.h"
-#include "../../colmap/util/version.h"
 
 #include <boost/property_tree/ini_parser.hpp>
 
@@ -67,11 +62,6 @@ OptionManager::OptionManager(bool add_project_options) {
   image_pairs_matching = std::make_shared<ImagePairsMatchingOptions>();
   bundle_adjustment = std::make_shared<BundleAdjustmentOptions>();
   mapper = std::make_shared<IncrementalPipelineOptions>();
-  patch_match_stereo = std::make_shared<mvs::PatchMatchOptions>();
-  stereo_fusion = std::make_shared<mvs::StereoFusionOptions>();
-  poisson_meshing = std::make_shared<mvs::PoissonMeshingOptions>();
-  delaunay_meshing = std::make_shared<mvs::DelaunayMeshingOptions>();
-  render = std::make_shared<RenderOptions>();
 
   Reset();
 
@@ -100,11 +90,10 @@ void OptionManager::ModifyForVideoData() {
   mapper->min_focal_length_ratio = 0.1;
   mapper->max_focal_length_ratio = 10;
   mapper->max_extra_param = std::numeric_limits<double>::max();
-  stereo_fusion->min_num_pixels = 15;
 }
 
 void OptionManager::ModifyForInternetData() {
-  stereo_fusion->min_num_pixels = 10;
+  //stereo_fusion->min_num_pixels = 10;
 }
 
 void OptionManager::ModifyForLowQuality() {
@@ -118,14 +107,6 @@ void OptionManager::ModifyForLowQuality() {
   mapper->ba_global_frames_ratio *= 1.2;
   mapper->ba_global_points_ratio *= 1.2;
   mapper->ba_global_max_refinements = 2;
-  patch_match_stereo->max_image_size = 1000;
-  patch_match_stereo->window_radius = 4;
-  patch_match_stereo->window_step = 2;
-  patch_match_stereo->num_samples /= 2;
-  patch_match_stereo->num_iterations = 3;
-  patch_match_stereo->geom_consistency = false;
-  stereo_fusion->check_num_images /= 2;
-  stereo_fusion->max_image_size = 1000;
 }
 
 void OptionManager::ModifyForMediumQuality() {
@@ -139,14 +120,6 @@ void OptionManager::ModifyForMediumQuality() {
   mapper->ba_global_frames_ratio *= 1.1;
   mapper->ba_global_points_ratio *= 1.1;
   mapper->ba_global_max_refinements = 2;
-  patch_match_stereo->max_image_size = 1600;
-  patch_match_stereo->window_radius = 4;
-  patch_match_stereo->window_step = 2;
-  patch_match_stereo->num_samples /= 1.5;
-  patch_match_stereo->num_iterations = 5;
-  patch_match_stereo->geom_consistency = false;
-  stereo_fusion->check_num_images /= 1.5;
-  stereo_fusion->max_image_size = 1600;
 }
 
 void OptionManager::ModifyForHighQuality() {
@@ -158,8 +131,6 @@ void OptionManager::ModifyForHighQuality() {
   mapper->ba_local_max_num_iterations = 30;
   mapper->ba_local_max_refinements = 3;
   mapper->ba_global_max_num_iterations = 75;
-  patch_match_stereo->max_image_size = 2400;
-  stereo_fusion->max_image_size = 2400;
 }
 
 void OptionManager::ModifyForExtremeQuality() {
@@ -635,57 +606,57 @@ void OptionManager::AddPatchMatchStereoOptions() {
   }
   added_patch_match_stereo_options_ = true;
 
-  AddAndRegisterDefaultOption("PatchMatchStereo.max_image_size",
-                              &patch_match_stereo->max_image_size);
-  AddAndRegisterDefaultOption("PatchMatchStereo.gpu_index",
-                              &patch_match_stereo->gpu_index);
-  AddAndRegisterDefaultOption("PatchMatchStereo.depth_min",
-                              &patch_match_stereo->depth_min);
-  AddAndRegisterDefaultOption("PatchMatchStereo.depth_max",
-                              &patch_match_stereo->depth_max);
-  AddAndRegisterDefaultOption("PatchMatchStereo.window_radius",
-                              &patch_match_stereo->window_radius);
-  AddAndRegisterDefaultOption("PatchMatchStereo.window_step",
-                              &patch_match_stereo->window_step);
-  AddAndRegisterDefaultOption("PatchMatchStereo.sigma_spatial",
-                              &patch_match_stereo->sigma_spatial);
-  AddAndRegisterDefaultOption("PatchMatchStereo.sigma_color",
-                              &patch_match_stereo->sigma_color);
-  AddAndRegisterDefaultOption("PatchMatchStereo.num_samples",
-                              &patch_match_stereo->num_samples);
-  AddAndRegisterDefaultOption("PatchMatchStereo.ncc_sigma",
-                              &patch_match_stereo->ncc_sigma);
-  AddAndRegisterDefaultOption("PatchMatchStereo.min_triangulation_angle",
-                              &patch_match_stereo->min_triangulation_angle);
-  AddAndRegisterDefaultOption("PatchMatchStereo.incident_angle_sigma",
-                              &patch_match_stereo->incident_angle_sigma);
-  AddAndRegisterDefaultOption("PatchMatchStereo.num_iterations",
-                              &patch_match_stereo->num_iterations);
-  AddAndRegisterDefaultOption("PatchMatchStereo.geom_consistency",
-                              &patch_match_stereo->geom_consistency);
-  AddAndRegisterDefaultOption(
-      "PatchMatchStereo.geom_consistency_regularizer",
-      &patch_match_stereo->geom_consistency_regularizer);
-  AddAndRegisterDefaultOption("PatchMatchStereo.geom_consistency_max_cost",
-                              &patch_match_stereo->geom_consistency_max_cost);
-  AddAndRegisterDefaultOption("PatchMatchStereo.filter",
-                              &patch_match_stereo->filter);
-  AddAndRegisterDefaultOption("PatchMatchStereo.filter_min_ncc",
-                              &patch_match_stereo->filter_min_ncc);
-  AddAndRegisterDefaultOption(
-      "PatchMatchStereo.filter_min_triangulation_angle",
-      &patch_match_stereo->filter_min_triangulation_angle);
-  AddAndRegisterDefaultOption("PatchMatchStereo.filter_min_num_consistent",
-                              &patch_match_stereo->filter_min_num_consistent);
-  AddAndRegisterDefaultOption(
-      "PatchMatchStereo.filter_geom_consistency_max_cost",
-      &patch_match_stereo->filter_geom_consistency_max_cost);
-  AddAndRegisterDefaultOption("PatchMatchStereo.cache_size",
-                              &patch_match_stereo->cache_size);
-  AddAndRegisterDefaultOption("PatchMatchStereo.allow_missing_files",
-                              &patch_match_stereo->allow_missing_files);
-  AddAndRegisterDefaultOption("PatchMatchStereo.write_consistency_graph",
-                              &patch_match_stereo->write_consistency_graph);
+  //AddAndRegisterDefaultOption("PatchMatchStereo.max_image_size",
+  //                            &patch_match_stereo->max_image_size);
+  //AddAndRegisterDefaultOption("PatchMatchStereo.gpu_index",
+  //                            &patch_match_stereo->gpu_index);
+  //AddAndRegisterDefaultOption("PatchMatchStereo.depth_min",
+  //                            &patch_match_stereo->depth_min);
+  //AddAndRegisterDefaultOption("PatchMatchStereo.depth_max",
+  //                            &patch_match_stereo->depth_max);
+  //AddAndRegisterDefaultOption("PatchMatchStereo.window_radius",
+  //                            &patch_match_stereo->window_radius);
+  //AddAndRegisterDefaultOption("PatchMatchStereo.window_step",
+  //                            &patch_match_stereo->window_step);
+  //AddAndRegisterDefaultOption("PatchMatchStereo.sigma_spatial",
+  //                            &patch_match_stereo->sigma_spatial);
+  //AddAndRegisterDefaultOption("PatchMatchStereo.sigma_color",
+  //                            &patch_match_stereo->sigma_color);
+  //AddAndRegisterDefaultOption("PatchMatchStereo.num_samples",
+  //                            &patch_match_stereo->num_samples);
+  //AddAndRegisterDefaultOption("PatchMatchStereo.ncc_sigma",
+  //                            &patch_match_stereo->ncc_sigma);
+  //AddAndRegisterDefaultOption("PatchMatchStereo.min_triangulation_angle",
+  //                            &patch_match_stereo->min_triangulation_angle);
+  //AddAndRegisterDefaultOption("PatchMatchStereo.incident_angle_sigma",
+  //                            &patch_match_stereo->incident_angle_sigma);
+  //AddAndRegisterDefaultOption("PatchMatchStereo.num_iterations",
+  //                            &patch_match_stereo->num_iterations);
+  //AddAndRegisterDefaultOption("PatchMatchStereo.geom_consistency",
+  //                            &patch_match_stereo->geom_consistency);
+  //AddAndRegisterDefaultOption(
+  //    "PatchMatchStereo.geom_consistency_regularizer",
+  //    &patch_match_stereo->geom_consistency_regularizer);
+  //AddAndRegisterDefaultOption("PatchMatchStereo.geom_consistency_max_cost",
+  //                            &patch_match_stereo->geom_consistency_max_cost);
+  //AddAndRegisterDefaultOption("PatchMatchStereo.filter",
+  //                            &patch_match_stereo->filter);
+  //AddAndRegisterDefaultOption("PatchMatchStereo.filter_min_ncc",
+  //                            &patch_match_stereo->filter_min_ncc);
+  //AddAndRegisterDefaultOption(
+  //    "PatchMatchStereo.filter_min_triangulation_angle",
+  //    &patch_match_stereo->filter_min_triangulation_angle);
+  //AddAndRegisterDefaultOption("PatchMatchStereo.filter_min_num_consistent",
+  //                            &patch_match_stereo->filter_min_num_consistent);
+  //AddAndRegisterDefaultOption(
+  //    "PatchMatchStereo.filter_geom_consistency_max_cost",
+  //    &patch_match_stereo->filter_geom_consistency_max_cost);
+  //AddAndRegisterDefaultOption("PatchMatchStereo.cache_size",
+  //                            &patch_match_stereo->cache_size);
+  //AddAndRegisterDefaultOption("PatchMatchStereo.allow_missing_files",
+  //                            &patch_match_stereo->allow_missing_files);
+  //AddAndRegisterDefaultOption("PatchMatchStereo.write_consistency_graph",
+  //                            &patch_match_stereo->write_consistency_graph);
 }
 
 void OptionManager::AddStereoFusionOptions() {
@@ -694,30 +665,30 @@ void OptionManager::AddStereoFusionOptions() {
   }
   added_stereo_fusion_options_ = true;
 
-  AddAndRegisterDefaultOption("StereoFusion.mask_path",
-                              &stereo_fusion->mask_path);
-  AddAndRegisterDefaultOption("StereoFusion.num_threads",
-                              &stereo_fusion->num_threads);
-  AddAndRegisterDefaultOption("StereoFusion.max_image_size",
-                              &stereo_fusion->max_image_size);
-  AddAndRegisterDefaultOption("StereoFusion.min_num_pixels",
-                              &stereo_fusion->min_num_pixels);
-  AddAndRegisterDefaultOption("StereoFusion.max_num_pixels",
-                              &stereo_fusion->max_num_pixels);
-  AddAndRegisterDefaultOption("StereoFusion.max_traversal_depth",
-                              &stereo_fusion->max_traversal_depth);
-  AddAndRegisterDefaultOption("StereoFusion.max_reproj_error",
-                              &stereo_fusion->max_reproj_error);
-  AddAndRegisterDefaultOption("StereoFusion.max_depth_error",
-                              &stereo_fusion->max_depth_error);
-  AddAndRegisterDefaultOption("StereoFusion.max_normal_error",
-                              &stereo_fusion->max_normal_error);
-  AddAndRegisterDefaultOption("StereoFusion.check_num_images",
-                              &stereo_fusion->check_num_images);
-  AddAndRegisterDefaultOption("StereoFusion.cache_size",
-                              &stereo_fusion->cache_size);
-  AddAndRegisterDefaultOption("StereoFusion.use_cache",
-                              &stereo_fusion->use_cache);
+  //AddAndRegisterDefaultOption("StereoFusion.mask_path",
+  //                            &stereo_fusion->mask_path);
+  //AddAndRegisterDefaultOption("StereoFusion.num_threads",
+  //                            &stereo_fusion->num_threads);
+  //AddAndRegisterDefaultOption("StereoFusion.max_image_size",
+  //                            &stereo_fusion->max_image_size);
+  //AddAndRegisterDefaultOption("StereoFusion.min_num_pixels",
+  //                            &stereo_fusion->min_num_pixels);
+  //AddAndRegisterDefaultOption("StereoFusion.max_num_pixels",
+  //                            &stereo_fusion->max_num_pixels);
+  //AddAndRegisterDefaultOption("StereoFusion.max_traversal_depth",
+  //                            &stereo_fusion->max_traversal_depth);
+  //AddAndRegisterDefaultOption("StereoFusion.max_reproj_error",
+  //                            &stereo_fusion->max_reproj_error);
+  //AddAndRegisterDefaultOption("StereoFusion.max_depth_error",
+  //                            &stereo_fusion->max_depth_error);
+  //AddAndRegisterDefaultOption("StereoFusion.max_normal_error",
+  //                            &stereo_fusion->max_normal_error);
+  //AddAndRegisterDefaultOption("StereoFusion.check_num_images",
+  //                            &stereo_fusion->check_num_images);
+  //AddAndRegisterDefaultOption("StereoFusion.cache_size",
+  //                            &stereo_fusion->cache_size);
+  //AddAndRegisterDefaultOption("StereoFusion.use_cache",
+  //                            &stereo_fusion->use_cache);
 }
 
 void OptionManager::AddPoissonMeshingOptions() {
@@ -726,13 +697,13 @@ void OptionManager::AddPoissonMeshingOptions() {
   }
   added_poisson_meshing_options_ = true;
 
-  AddAndRegisterDefaultOption("PoissonMeshing.point_weight",
-                              &poisson_meshing->point_weight);
-  AddAndRegisterDefaultOption("PoissonMeshing.depth", &poisson_meshing->depth);
-  AddAndRegisterDefaultOption("PoissonMeshing.color", &poisson_meshing->color);
-  AddAndRegisterDefaultOption("PoissonMeshing.trim", &poisson_meshing->trim);
-  AddAndRegisterDefaultOption("PoissonMeshing.num_threads",
-                              &poisson_meshing->num_threads);
+  //AddAndRegisterDefaultOption("PoissonMeshing.point_weight",
+  //                            &poisson_meshing->point_weight);
+  //AddAndRegisterDefaultOption("PoissonMeshing.depth", &poisson_meshing->depth);
+  //AddAndRegisterDefaultOption("PoissonMeshing.color", &poisson_meshing->color);
+  //AddAndRegisterDefaultOption("PoissonMeshing.trim", &poisson_meshing->trim);
+  //AddAndRegisterDefaultOption("PoissonMeshing.num_threads",
+  //                            &poisson_meshing->num_threads);
 }
 
 void OptionManager::AddDelaunayMeshingOptions() {
@@ -741,22 +712,22 @@ void OptionManager::AddDelaunayMeshingOptions() {
   }
   added_delaunay_meshing_options_ = true;
 
-  AddAndRegisterDefaultOption("DelaunayMeshing.max_proj_dist",
-                              &delaunay_meshing->max_proj_dist);
-  AddAndRegisterDefaultOption("DelaunayMeshing.max_depth_dist",
-                              &delaunay_meshing->max_depth_dist);
-  AddAndRegisterDefaultOption("DelaunayMeshing.visibility_sigma",
-                              &delaunay_meshing->visibility_sigma);
-  AddAndRegisterDefaultOption("DelaunayMeshing.distance_sigma_factor",
-                              &delaunay_meshing->distance_sigma_factor);
-  AddAndRegisterDefaultOption("DelaunayMeshing.quality_regularization",
-                              &delaunay_meshing->quality_regularization);
-  AddAndRegisterDefaultOption("DelaunayMeshing.max_side_length_factor",
-                              &delaunay_meshing->max_side_length_factor);
-  AddAndRegisterDefaultOption("DelaunayMeshing.max_side_length_percentile",
-                              &delaunay_meshing->max_side_length_percentile);
-  AddAndRegisterDefaultOption("DelaunayMeshing.num_threads",
-                              &delaunay_meshing->num_threads);
+  //AddAndRegisterDefaultOption("DelaunayMeshing.max_proj_dist",
+  //                            &delaunay_meshing->max_proj_dist);
+  //AddAndRegisterDefaultOption("DelaunayMeshing.max_depth_dist",
+  //                            &delaunay_meshing->max_depth_dist);
+  //AddAndRegisterDefaultOption("DelaunayMeshing.visibility_sigma",
+  //                            &delaunay_meshing->visibility_sigma);
+  //AddAndRegisterDefaultOption("DelaunayMeshing.distance_sigma_factor",
+  //                            &delaunay_meshing->distance_sigma_factor);
+  //AddAndRegisterDefaultOption("DelaunayMeshing.quality_regularization",
+  //                            &delaunay_meshing->quality_regularization);
+  //AddAndRegisterDefaultOption("DelaunayMeshing.max_side_length_factor",
+  //                            &delaunay_meshing->max_side_length_factor);
+  //AddAndRegisterDefaultOption("DelaunayMeshing.max_side_length_percentile",
+  //                            &delaunay_meshing->max_side_length_percentile);
+  //AddAndRegisterDefaultOption("DelaunayMeshing.num_threads",
+  //                            &delaunay_meshing->num_threads);
 }
 
 void OptionManager::AddRenderOptions() {
@@ -765,15 +736,15 @@ void OptionManager::AddRenderOptions() {
   }
   added_render_options_ = true;
 
-  AddAndRegisterDefaultOption("Render.min_track_len", &render->min_track_len);
-  AddAndRegisterDefaultOption("Render.max_error", &render->max_error);
-  AddAndRegisterDefaultOption("Render.refresh_rate", &render->refresh_rate);
-  AddAndRegisterDefaultOption("Render.adapt_refresh_rate",
-                              &render->adapt_refresh_rate);
-  AddAndRegisterDefaultOption("Render.image_connections",
-                              &render->image_connections);
-  AddAndRegisterDefaultOption("Render.projection_type",
-                              &render->projection_type);
+  //AddAndRegisterDefaultOption("Render.min_track_len", &render->min_track_len);
+  //AddAndRegisterDefaultOption("Render.max_error", &render->max_error);
+  //AddAndRegisterDefaultOption("Render.refresh_rate", &render->refresh_rate);
+  //AddAndRegisterDefaultOption("Render.adapt_refresh_rate",
+  //                            &render->adapt_refresh_rate);
+  //AddAndRegisterDefaultOption("Render.image_connections",
+  //                            &render->image_connections);
+  //AddAndRegisterDefaultOption("Render.projection_type",
+  //                            &render->projection_type);
 }
 
 void OptionManager::Reset() {
@@ -827,11 +798,6 @@ void OptionManager::ResetOptions(const bool reset_paths) {
   *image_pairs_matching = ImagePairsMatchingOptions();
   *bundle_adjustment = BundleAdjustmentOptions();
   *mapper = IncrementalPipelineOptions();
-  *patch_match_stereo = mvs::PatchMatchOptions();
-  *stereo_fusion = mvs::StereoFusionOptions();
-  *poisson_meshing = mvs::PoissonMeshingOptions();
-  *delaunay_meshing = mvs::DelaunayMeshingOptions();
-  *render = RenderOptions();
 }
 
 bool OptionManager::Check() {
@@ -862,11 +828,6 @@ bool OptionManager::Check() {
   if (bundle_adjustment) success = success && bundle_adjustment->Check();
   if (mapper) success = success && mapper->Check();
 
-  if (patch_match_stereo) success = success && patch_match_stereo->Check();
-  if (stereo_fusion) success = success && stereo_fusion->Check();
-  if (poisson_meshing) success = success && poisson_meshing->Check();
-  if (delaunay_meshing) success = success && delaunay_meshing->Check();
-
 #if defined(COLMAP_GUI_ENABLED)
   if (render) success = success && render->Check();
 #endif
@@ -882,7 +843,7 @@ void OptionManager::Parse(const int argc, char** argv) {
 
     if (vmap.count("help")) {
       LOG(INFO) << StringPrintf(
-          "%s (%s)", GetVersionInfo().c_str(), GetBuildInfo().c_str());
+          "%s (%s)", "1", "1");
       LOG(INFO)
           << "Options can either be specified via command-line or by defining "
              "them in a .ini project file passed to `--project_path`.\n"

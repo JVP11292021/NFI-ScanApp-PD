@@ -27,12 +27,11 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/scene/database.h"
+#include "database.h"
 
-#include "colmap/util/endian.h"
-#include "colmap/util/sqlite3_utils.h"
-#include "colmap/util/string.h"
-#include "colmap/util/version.h"
+#include "../util/endian.h"
+#include "../util/sqlite3_utils.h"
+#include "../util/string.h"
 
 #include <fstream>
 #include <memory>

@@ -29,8 +29,8 @@
 
 #pragma once
 
-#include "colmap/retrieval/geometry.h"
-#include "colmap/util/endian.h"
+#include "../retrieval/geometry.h"
+#include "../util/endian.h"
 
 #include <bitset>
 #include <fstream>

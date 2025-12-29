@@ -27,13 +27,11 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/geometry/homography_matrix.h"
-
-#include "colmap/geometry/pose.h"
-#include "colmap/geometry/triangulation.h"
-#include "colmap/math/math.h"
-#include "colmap/util/eigen_alignment.h"
-#include "colmap/util/logging.h"
+#include "homography_matrix.h"
+#include "../geometry/pose.h"
+#include "../geometry/triangulation.h"
+#include "../math/math.h"
+#include "../util/logging.h"
 
 #include <array>
 #include <iomanip>

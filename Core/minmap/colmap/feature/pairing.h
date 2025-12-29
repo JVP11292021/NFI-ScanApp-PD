@@ -29,12 +29,12 @@
 
 #pragma once
 
-#include "colmap/feature/matcher.h"
-#include "colmap/retrieval/resources.h"
-#include "colmap/retrieval/visual_index.h"
-#include "colmap/scene/database.h"
-#include "colmap/util/threading.h"
-#include "colmap/util/types.h"
+#include "../feature/matcher.h"
+#include "../retrieval/resources.h"
+#include "../retrieval/visual_index.h"
+#include "../scene/database.h"
+#include "../util/threading.h"
+#include "../util/types.h"
 
 #include <unordered_set>
 

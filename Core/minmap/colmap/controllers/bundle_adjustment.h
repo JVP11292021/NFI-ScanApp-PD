@@ -30,8 +30,8 @@
 #pragma once
 
 #include "option_manager.h"
-#include "../../colmap/scene/reconstruction.h"
-#include "../../colmap/util/base_controller.h"
+#include "../scene/reconstruction.h"
+#include "../util/base_controller.h"
 
 namespace colmap {
 

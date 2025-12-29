@@ -30,12 +30,12 @@
 #include "feature_matching.h"
 
 #include "feature_matching_utils.h"
-#include "../../colmap/estimators/two_view_geometry.h"
-#include "../../colmap/feature/matcher.h"
-#include "../../colmap/feature/utils.h"
-#include "../../colmap/util/file.h"
-#include "../../colmap/util/misc.h"
-#include "../../colmap/util/timer.h"
+#include "../estimators/two_view_geometry.h"
+#include "../feature/matcher.h"
+#include "../feature/utils.h"
+#include "../util/file.h"
+#include "../util/misc.h"
+#include "../util/timer.h"
 
 #include <fstream>
 #include <numeric>

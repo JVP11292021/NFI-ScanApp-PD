@@ -158,21 +158,13 @@ class LogMessageFatalThrow : public google::LogMessage {
         prefix_(__MakeExceptionPrefix(file, line)) {}
   LogMessageFatalThrow(const char* file,
                        int line,
-#if defined(GLOG_VERSION_MAJOR) && \
-    (GLOG_VERSION_MAJOR > 0 || GLOG_VERSION_MINOR >= 7)
                        const google::logging::internal::CheckOpString& result)
-#else
-                       const google::CheckOpString& result)
-#endif
+
       : google::LogMessage(file, line, google::GLOG_ERROR, &message_),
         prefix_(__MakeExceptionPrefix(file, line)) {
     stream() << "Check failed: " << (*result.str_) << " ";
     // On LOG(FATAL) glog<0.7.0 does not bother cleaning up CheckOpString
     // so we do it here.
-#if !(defined(GLOG_VERSION_MAJOR) && \
-      (GLOG_VERSION_MAJOR > 0 || GLOG_VERSION_MINOR >= 7))
-    delete result.str_;
-#endif
   }
   ~LogMessageFatalThrow() noexcept(false) {
     Flush();
@@ -200,7 +192,7 @@ using LogMessageFatalThrowDefault = LogMessageFatalThrow<std::invalid_argument>;
 
 template <typename T>
 T ThrowCheckNotNull(const char* file, int line, const char* names, T&& t) {
-  if (COLMAP_PREDICT_FALSE(t == nullptr)) {
+  if (t == nullptr) {
     LogMessageFatalThrowDefault(file, line).stream() << names;
   }
   return std::forward<T>(t);

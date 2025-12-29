@@ -29,9 +29,8 @@
 
 #pragma once
 
-#include "colmap/optim/ransac.h"
-#include "colmap/util/eigen_alignment.h"
-#include "colmap/util/types.h"
+#include "../optim/ransac.h"
+#include "../util/types.h"
 
 #include <vector>
 

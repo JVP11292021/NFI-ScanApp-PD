@@ -29,16 +29,15 @@
 
 #pragma once
 
-#include "colmap/geometry/gps.h"
-#include "colmap/geometry/rigid3.h"
-#include "colmap/math/math.h"
-#include "colmap/scene/camera.h"
-#include "colmap/scene/frame.h"
-#include "colmap/scene/point2d.h"
-#include "colmap/scene/visibility_pyramid.h"
-#include "colmap/util/eigen_alignment.h"
-#include "colmap/util/logging.h"
-#include "colmap/util/types.h"
+#include "../geometry/gps.h"
+#include "../geometry/rigid3.h"
+#include "../math/math.h"
+#include "../scene/camera.h"
+#include "../scene/frame.h"
+#include "../scene/point2d.h"
+#include "../scene/visibility_pyramid.h"
+#include "../util/logging.h"
+#include "../util/types.h"
 
 #include <optional>
 #include <string>

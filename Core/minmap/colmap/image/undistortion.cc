@@ -27,14 +27,14 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/image/undistortion.h"
+#include "undistortion.h"
 
-#include "colmap/geometry/pose.h"
-#include "colmap/image/warp.h"
-#include "colmap/scene/reconstruction_io.h"
-#include "colmap/sensor/models.h"
-#include "colmap/util/misc.h"
-#include "colmap/util/threading.h"
+#include "../geometry/pose.h"
+#include "../image/warp.h"
+#include "../scene/reconstruction_io.h"
+#include "../sensor/models.h"
+#include "../util/misc.h"
+#include "../util/threading.h"
 
 #include <fstream>
 

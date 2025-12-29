@@ -29,15 +29,15 @@
 
 #pragma once
 
-#include "colmap/feature/index.h"
-#include "colmap/feature/types.h"
-#include "colmap/geometry/gps.h"
-#include "colmap/scene/camera.h"
-#include "colmap/scene/database.h"
-#include "colmap/scene/image.h"
-#include "colmap/scene/two_view_geometry.h"
-#include "colmap/util/cache.h"
-#include "colmap/util/types.h"
+#include "../feature/index.h"
+#include "../feature/types.h"
+#include "../geometry/gps.h"
+#include "../scene/camera.h"
+#include "../scene/database.h"
+#include "../scene/image.h"
+#include "../scene/two_view_geometry.h"
+#include "../util/cache.h"
+#include "../util/types.h"
 
 #include <memory>
 #include <mutex>

@@ -29,9 +29,9 @@
 
 #include "image_reader.h"
 
-#include "../../colmap/sensor/models.h"
-#include "../../colmap/util/file.h"
-#include "../../colmap/util/misc.h"
+#include "../sensor/models.h"
+#include "../util/file.h"
+#include "../util/misc.h"
 
 namespace colmap {
 

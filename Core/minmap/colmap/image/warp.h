@@ -29,8 +29,8 @@
 
 #pragma once
 
-#include "colmap/scene/camera.h"
-#include "colmap/sensor/bitmap.h"
+#include "../scene/camera.h"
+#include "../sensor/bitmap.h"
 
 namespace colmap {
 

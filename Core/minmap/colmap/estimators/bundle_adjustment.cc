@@ -27,17 +27,16 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/estimators/bundle_adjustment.h"
+#include "bundle_adjustment.h"
 
-#include "colmap/estimators/alignment.h"
-#include "colmap/estimators/cost_functions.h"
-#include "colmap/estimators/manifold.h"
-#include "colmap/scene/projection.h"
-#include "colmap/sensor/models.h"
-#include "colmap/util/cuda.h"
-#include "colmap/util/misc.h"
-#include "colmap/util/threading.h"
-#include "colmap/util/timer.h"
+#include "../estimators/alignment.h"
+#include "../estimators/cost_functions.h"
+#include "../estimators/manifold.h"
+#include "../scene/projection.h"
+#include "../sensor/models.h"
+#include "../util/misc.h"
+#include "../util/threading.h"
+#include "../util/timer.h"
 
 #include <iomanip>
 

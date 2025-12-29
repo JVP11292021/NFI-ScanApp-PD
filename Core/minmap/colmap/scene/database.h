@@ -29,14 +29,13 @@
 
 #pragma once
 
-#include "colmap/feature/types.h"
-#include "colmap/geometry/pose_prior.h"
-#include "colmap/scene/camera.h"
-#include "colmap/scene/image.h"
-#include "colmap/scene/two_view_geometry.h"
-#include "colmap/sensor/rig.h"
-#include "colmap/util/eigen_alignment.h"
-#include "colmap/util/types.h"
+#include "../feature/types.h"
+#include "../geometry/pose_prior.h"
+#include "../scene/camera.h"
+#include "../scene/image.h"
+#include "../scene/two_view_geometry.h"
+#include "../sensor/rig.h"
+#include "../util/types.h"
 
 #include <mutex>
 #include <unordered_map>

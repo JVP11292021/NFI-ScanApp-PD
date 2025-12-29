@@ -27,11 +27,10 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/estimators/affine_transform.h"
+#include "../estimators/affine_transform.h"
 
-#include "colmap/optim/loransac.h"
-#include "colmap/util/eigen_alignment.h"
-#include "colmap/util/logging.h"
+#include "../optim/loransac.h"
+#include "../util/logging.h"
 
 #include <Eigen/Geometry>
 #include <Eigen/SVD>

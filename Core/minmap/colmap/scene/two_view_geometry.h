@@ -29,8 +29,8 @@
 
 #pragma once
 
-#include "colmap/feature/types.h"
-#include "colmap/geometry/rigid3.h"
+#include "../feature/types.h"
+#include "../geometry/rigid3.h"
 
 namespace colmap {
 

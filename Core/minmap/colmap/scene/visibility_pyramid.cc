@@ -27,10 +27,10 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/scene/visibility_pyramid.h"
+#include "visibility_pyramid.h"
 
-#include "colmap/math/math.h"
-#include "colmap/util/logging.h"
+#include "../math/math.h"
+#include "../util/logging.h"
 
 namespace colmap {
 

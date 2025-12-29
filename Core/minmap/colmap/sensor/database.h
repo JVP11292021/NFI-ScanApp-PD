@@ -29,7 +29,7 @@
 
 #pragma once
 
-#include "colmap/sensor/specs.h"
+#include "specs.h"
 
 #include <string>
 

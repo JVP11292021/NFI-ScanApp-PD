@@ -27,14 +27,14 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/sfm/observation_manager.h"
+#include "observation_manager.h"
 
-#include "colmap/estimators/alignment.h"
-#include "colmap/geometry/triangulation.h"
-#include "colmap/scene/camera.h"
-#include "colmap/scene/projection.h"
-#include "colmap/util/logging.h"
-#include "colmap/util/misc.h"
+#include "../estimators/alignment.h"
+#include "../geometry/triangulation.h"
+#include "../scene/camera.h"
+#include "../scene/projection.h"
+#include "../util/logging.h"
+#include "../util/misc.h"
 
 namespace colmap {
 

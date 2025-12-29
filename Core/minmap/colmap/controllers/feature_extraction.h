@@ -30,8 +30,8 @@
 #pragma once
 
 #include "image_reader.h"
-#include "../../colmap/feature/sift.h"
-#include "../../colmap/util/threading.h"
+#include "../feature/sift.h"
+#include "../util/threading.h"
 
 namespace colmap {
 

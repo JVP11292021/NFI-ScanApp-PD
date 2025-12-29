@@ -38,7 +38,7 @@
 #include <QWaitCondition>
 #endif
 
-#include "colmap/util/threading.h"
+#include "threading.h"
 
 namespace colmap {
 

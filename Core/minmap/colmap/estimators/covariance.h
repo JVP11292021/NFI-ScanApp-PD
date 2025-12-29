@@ -29,9 +29,9 @@
 
 #pragma once
 
-#include "colmap/estimators/bundle_adjustment.h"
-#include "colmap/geometry/rigid3.h"
-#include "colmap/scene/reconstruction.h"
+#include "../estimators/bundle_adjustment.h"
+#include "../geometry/rigid3.h"
+#include "../scene/reconstruction.h"
 
 #include <optional>
 #include <unordered_map>

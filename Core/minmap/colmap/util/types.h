@@ -57,8 +57,7 @@ typedef unsigned __int64 uint64_t;
 // NOLINTNEXTLINE(bugprone-macro-parentheses)
 #define NON_MOVABLE(class_name) class_name(class_name&&) = delete;
 
-#include "colmap/util/eigen_alignment.h"
-#include "colmap/util/enum_utils.h"
+#include "../util/enum_utils.h"
 
 #include <Eigen/Core>
 

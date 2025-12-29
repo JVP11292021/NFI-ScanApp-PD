@@ -29,8 +29,6 @@
 
 #pragma once
 
-#include "colmap/util/eigen_alignment.h"
-
 #include <Eigen/Core>
 
 namespace colmap {

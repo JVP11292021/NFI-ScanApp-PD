@@ -35,9 +35,6 @@
 #include "option_manager.h"
 
 #include "../../colmap/image/undistortion.h"
-#include "../../colmap/mvs/fusion.h"
-#include "../../colmap/mvs/meshing.h"
-#include "../../colmap/mvs/patch_match.h"
 #include "../../colmap/util/logging.h"
 #include "../../colmap/util/misc.h"
 

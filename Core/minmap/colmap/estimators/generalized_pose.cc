@@ -27,22 +27,21 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/estimators/generalized_pose.h"
+#include "generalized_pose.h"
 
-#include "colmap/estimators/bundle_adjustment.h"
-#include "colmap/estimators/cost_functions.h"
-#include "colmap/estimators/generalized_absolute_pose.h"
-#include "colmap/estimators/generalized_relative_pose.h"
-#include "colmap/estimators/manifold.h"
-#include "colmap/estimators/pose.h"
-#include "colmap/geometry/rigid3.h"
-#include "colmap/math/matrix.h"
-#include "colmap/optim/ransac.h"
-#include "colmap/optim/support_measurement.h"
-#include "colmap/scene/camera.h"
-#include "colmap/sensor/models.h"
-#include "colmap/util/eigen_alignment.h"
-#include "colmap/util/logging.h"
+#include "../estimators/bundle_adjustment.h"
+#include "../estimators/cost_functions.h"
+#include "../estimators/generalized_absolute_pose.h"
+#include "../estimators/generalized_relative_pose.h"
+#include "../estimators/manifold.h"
+#include "../estimators/pose.h"
+#include "../geometry/rigid3.h"
+#include "../math/matrix.h"
+#include "../optim/ransac.h"
+#include "../optim/support_measurement.h"
+#include "../scene/camera.h"
+#include "../sensor/models.h"
+#include "../util/logging.h"
 
 #include <Eigen/Core>
 #include <ceres/ceres.h>

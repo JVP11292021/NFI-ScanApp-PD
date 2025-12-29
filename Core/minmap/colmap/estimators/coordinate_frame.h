@@ -29,8 +29,7 @@
 
 #pragma once
 
-#include "colmap/scene/reconstruction.h"
-#include "colmap/util/eigen_alignment.h"
+#include "../scene/reconstruction.h"
 
 #include <Eigen/Core>
 

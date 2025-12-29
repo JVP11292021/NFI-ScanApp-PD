@@ -29,8 +29,8 @@
 
 #pragma once
 
-#include "colmap/feature/types.h"
-#include "colmap/util/types.h"
+#include "../feature/types.h"
+#include "../util/types.h"
 
 #include <memory>
 

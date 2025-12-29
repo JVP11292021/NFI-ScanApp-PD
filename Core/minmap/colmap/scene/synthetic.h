@@ -29,10 +29,10 @@
 
 #pragma once
 
-#include "colmap/scene/database.h"
-#include "colmap/scene/reconstruction.h"
-#include "colmap/sensor/models.h"
-#include "colmap/util/types.h"
+#include "../scene/database.h"
+#include "../scene/reconstruction.h"
+#include "../sensor/models.h"
+#include "../util/types.h"
 
 namespace colmap {
 

@@ -1,6 +1,8 @@
 #include <iostream>
 
-#include <minmap.hpp>
+#include <Feature.hpp>
+#include <MapModel.hpp>
+#include <SfM.hpp>
 #include <Ray.hpp>
 
 #include <CameraSystem.hpp>

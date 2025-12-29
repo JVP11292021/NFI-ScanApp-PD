@@ -29,9 +29,8 @@
 
 #pragma once
 
-#include "colmap/util/eigen_alignment.h"
-#include "colmap/util/logging.h"
-#include "colmap/util/types.h"
+#include "../util/logging.h"
+#include "../util/types.h"
 
 #include <vector>
 

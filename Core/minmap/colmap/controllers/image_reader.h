@@ -29,10 +29,10 @@
 
 #pragma once
 
-#include "../../colmap/geometry/gps.h"
-#include "../../colmap/scene/database.h"
-#include "../../colmap/sensor/bitmap.h"
-#include "../../colmap/util/threading.h"
+#include "../geometry/gps.h"
+#include "../scene/database.h"
+#include "../sensor/bitmap.h"
+#include "../util/threading.h"
 
 #include <unordered_map>
 #include <unordered_set>

@@ -29,14 +29,13 @@
 
 #pragma once
 
-#include "colmap/geometry/rigid3.h"
-#include "colmap/optim/loransac.h"
-#include "colmap/scene/camera.h"
-#include "colmap/sensor/models.h"
-#include "colmap/util/eigen_alignment.h"
-#include "colmap/util/logging.h"
-#include "colmap/util/threading.h"
-#include "colmap/util/types.h"
+#include "../geometry/rigid3.h"
+#include "../optim/loransac.h"
+#include "../scene/camera.h"
+#include "../sensor/models.h"
+#include "../util/logging.h"
+#include "../util/threading.h"
+#include "../util/types.h"
 
 #include <vector>
 

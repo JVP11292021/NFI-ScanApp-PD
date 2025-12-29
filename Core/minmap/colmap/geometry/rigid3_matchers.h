@@ -29,9 +29,7 @@
 
 #pragma once
 
-#include "colmap/geometry/rigid3.h"
-
-#include <gmock/gmock.h>
+#include "../geometry/rigid3.h"
 
 namespace colmap {
 
@@ -57,12 +55,6 @@ class Rigid3dEqMatcher : public testing::MatcherInterface<T> {
  private:
   const Rigid3d rhs_;
 };
-
-template <typename T>
-testing::PolymorphicMatcher<Rigid3dEqMatcher<T>> Rigid3dEq(T rhs) {
-  return testing::MakePolymorphicMatcher(
-      Rigid3dEqMatcher<T>(std::forward<T>(rhs)));
-}
 
 template <typename T>
 class Rigid3dNearMatcher : public testing::MatcherInterface<T> {
@@ -92,13 +84,5 @@ class Rigid3dNearMatcher : public testing::MatcherInterface<T> {
   const double ttol_;
 };
 
-template <typename T>
-testing::PolymorphicMatcher<Rigid3dNearMatcher<T>> Rigid3dNear(
-    T rhs,
-    double rtol = Eigen::NumTraits<double>::dummy_precision(),
-    double ttol = Eigen::NumTraits<double>::dummy_precision()) {
-  return testing::MakePolymorphicMatcher(
-      Rigid3dNearMatcher<T>(std::forward<T>(rhs), rtol, ttol));
-}
 
 }  // namespace colmap

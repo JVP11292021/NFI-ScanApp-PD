@@ -27,7 +27,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/math/graph_cut.h"
+#include "graph_cut.h"
 
 #include <unordered_map>
 
@@ -46,7 +46,7 @@ extern "C" {
 #pragma warning(pop)
 #endif
 
-#include "colmap/util/logging.h"
+#include "../util/logging.h"
 
 namespace colmap {
 namespace {

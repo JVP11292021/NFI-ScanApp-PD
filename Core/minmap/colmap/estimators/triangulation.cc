@@ -27,16 +27,15 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/estimators/triangulation.h"
+#include "triangulation.h"
 
-#include "colmap/estimators/essential_matrix.h"
-#include "colmap/geometry/triangulation.h"
-#include "colmap/math/math.h"
-#include "colmap/optim/combination_sampler.h"
-#include "colmap/optim/loransac.h"
-#include "colmap/scene/projection.h"
-#include "colmap/util/eigen_alignment.h"
-#include "colmap/util/logging.h"
+#include "../estimators/essential_matrix.h"
+#include "../geometry/triangulation.h"
+#include "../math/math.h"
+#include "../optim/combination_sampler.h"
+#include "../optim/loransac.h"
+#include "../scene/projection.h"
+#include "../util/logging.h"
 
 #include <Eigen/Geometry>
 

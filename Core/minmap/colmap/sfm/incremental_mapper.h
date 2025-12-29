@@ -29,12 +29,12 @@
 
 #pragma once
 
-#include "colmap/estimators/bundle_adjustment.h"
-#include "colmap/scene/database.h"
-#include "colmap/scene/database_cache.h"
-#include "colmap/scene/reconstruction.h"
-#include "colmap/sfm/incremental_triangulator.h"
-#include "colmap/sfm/observation_manager.h"
+#include "incremental_triangulator.h"
+#include "observation_manager.h"
+#include "../estimators/bundle_adjustment.h"
+#include "../scene/database.h"
+#include "../scene/database_cache.h"
+#include "../scene/reconstruction.h"
 
 namespace colmap {
 

@@ -29,13 +29,12 @@
 
 #pragma once
 
-#include "colmap/math/math.h"
-#include "colmap/retrieval/geometry.h"
-#include "colmap/retrieval/inverted_file_entry.h"
-#include "colmap/retrieval/utils.h"
-#include "colmap/util/eigen_alignment.h"
-#include "colmap/util/endian.h"
-#include "colmap/util/logging.h"
+#include "../math/math.h"
+#include "../retrieval/geometry.h"
+#include "../retrieval/inverted_file_entry.h"
+#include "../retrieval/utils.h"
+#include "../util/endian.h"
+#include "../util/logging.h"
 
 #include <algorithm>
 #include <bitset>

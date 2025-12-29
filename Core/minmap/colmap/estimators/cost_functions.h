@@ -29,10 +29,9 @@
 
 #pragma once
 
-#include "colmap/geometry/rigid3.h"
-#include "colmap/sensor/models.h"
-#include "colmap/util/eigen_alignment.h"
-#include "colmap/util/logging.h"
+#include "../geometry/rigid3.h"
+#include "../sensor/models.h"
+#include "../util/logging.h"
 
 #include <Eigen/Core>
 #include <ceres/ceres.h>

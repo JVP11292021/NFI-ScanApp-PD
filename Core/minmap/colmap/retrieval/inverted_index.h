@@ -29,10 +29,9 @@
 
 #pragma once
 
-#include "colmap/math/random.h"
-#include "colmap/retrieval/inverted_file.h"
-#include "colmap/util/eigen_alignment.h"
-#include "colmap/util/endian.h"
+#include "../math/random.h"
+#include "../retrieval/inverted_file.h"
+#include "../util/endian.h"
 
 #include <algorithm>
 #include <bitset>

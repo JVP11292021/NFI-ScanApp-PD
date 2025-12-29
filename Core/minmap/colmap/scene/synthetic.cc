@@ -27,12 +27,11 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/scene/synthetic.h"
+#include "synthetic.h"
 
-#include "colmap/geometry/essential_matrix.h"
-#include "colmap/geometry/gps.h"
-#include "colmap/math/random.h"
-#include "colmap/util/eigen_alignment.h"
+#include "../geometry/essential_matrix.h"
+#include "../geometry/gps.h"
+#include "../math/random.h"
 
 #include <Eigen/Geometry>
 

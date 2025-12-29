@@ -27,18 +27,18 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/geometry/rigid3.h"
-#include "colmap/scene/camera.h"
-#include "colmap/scene/image.h"
-#include "colmap/scene/point2d.h"
-#include "colmap/scene/point3d.h"
-#include "colmap/scene/reconstruction.h"
-#include "colmap/scene/reconstruction_io.h"
-#include "colmap/scene/reconstruction_io_utils.h"
-#include "colmap/scene/track.h"
-#include "colmap/util/file.h"
-#include "colmap/util/misc.h"
-#include "colmap/util/types.h"
+#include "../geometry/rigid3.h"
+#include "../scene/camera.h"
+#include "../scene/image.h"
+#include "../scene/point2d.h"
+#include "../scene/point3d.h"
+#include "../scene/reconstruction.h"
+#include "../scene/reconstruction_io.h"
+#include "../scene/reconstruction_io_utils.h"
+#include "../scene/track.h"
+#include "../util/file.h"
+#include "../util/misc.h"
+#include "../util/types.h"
 
 #include <fstream>
 

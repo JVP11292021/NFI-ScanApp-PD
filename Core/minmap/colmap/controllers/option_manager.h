@@ -29,7 +29,7 @@
 
 #pragma once
 
-#include "../../colmap/util/logging.h"
+#include "../util/logging.h"
 
 #include <memory>
 
@@ -49,14 +49,6 @@ struct TransitiveMatchingOptions;
 struct ImagePairsMatchingOptions;
 struct BundleAdjustmentOptions;
 struct IncrementalPipelineOptions;
-struct RenderOptions;
-
-namespace mvs {
-struct PatchMatchOptions;
-struct StereoFusionOptions;
-struct PoissonMeshingOptions;
-struct DelaunayMeshingOptions;
-}  // namespace mvs
 
 class OptionManager {
  public:
@@ -135,13 +127,6 @@ class OptionManager {
 
   std::shared_ptr<BundleAdjustmentOptions> bundle_adjustment;
   std::shared_ptr<IncrementalPipelineOptions> mapper;
-
-  std::shared_ptr<mvs::PatchMatchOptions> patch_match_stereo;
-  std::shared_ptr<mvs::StereoFusionOptions> stereo_fusion;
-  std::shared_ptr<mvs::PoissonMeshingOptions> poisson_meshing;
-  std::shared_ptr<mvs::DelaunayMeshingOptions> delaunay_meshing;
-
-  std::shared_ptr<RenderOptions> render;
 
  private:
   template <typename T>

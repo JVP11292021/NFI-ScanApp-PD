@@ -29,11 +29,11 @@
 
 #include "hierarchical_pipeline.h"
 
-#include "../../colmap/estimators/alignment.h"
-#include "../../colmap/scene/scene_clustering.h"
-#include "../../colmap/sfm/observation_manager.h"
-#include "../../colmap/util/misc.h"
-#include "../../colmap/util/threading.h"
+#include "../estimators/alignment.h"
+#include "../scene/scene_clustering.h"
+#include "../sfm/observation_manager.h"
+#include "../util/misc.h"
+#include "../util/threading.h"
 
 namespace colmap {
 namespace {

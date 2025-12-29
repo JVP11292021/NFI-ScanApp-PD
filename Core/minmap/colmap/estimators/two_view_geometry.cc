@@ -27,20 +27,20 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/estimators/two_view_geometry.h"
+#include "two_view_geometry.h"
 
-#include "colmap/estimators/essential_matrix.h"
-#include "colmap/estimators/fundamental_matrix.h"
-#include "colmap/estimators/homography_matrix.h"
-#include "colmap/estimators/translation_transform.h"
-#include "colmap/geometry/essential_matrix.h"
-#include "colmap/geometry/homography_matrix.h"
-#include "colmap/geometry/pose.h"
-#include "colmap/geometry/triangulation.h"
-#include "colmap/math/random.h"
-#include "colmap/optim/loransac.h"
-#include "colmap/optim/ransac.h"
-#include "colmap/scene/camera.h"
+#include "../estimators/essential_matrix.h"
+#include "../estimators/fundamental_matrix.h"
+#include "../estimators/homography_matrix.h"
+#include "../estimators/translation_transform.h"
+#include "../geometry/essential_matrix.h"
+#include "../geometry/homography_matrix.h"
+#include "../geometry/pose.h"
+#include "../geometry/triangulation.h"
+#include "../math/random.h"
+#include "../optim/loransac.h"
+#include "../optim/ransac.h"
+#include "../scene/camera.h"
 
 #include <unordered_set>
 

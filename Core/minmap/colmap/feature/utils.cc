@@ -29,7 +29,7 @@
 
 #include "utils.h"
 
-#include "../../colmap/math/math.h"
+#include "../math/math.h"
 
 namespace colmap {
 

@@ -29,9 +29,9 @@
 
 #pragma once
 
-#include "colmap/geometry/rigid3.h"
-#include "colmap/util/enum_utils.h"
-#include "colmap/util/types.h"
+#include "../geometry/rigid3.h"
+#include "../util/enum_utils.h"
+#include "../util/types.h"
 
 #include <map>
 #include <optional>

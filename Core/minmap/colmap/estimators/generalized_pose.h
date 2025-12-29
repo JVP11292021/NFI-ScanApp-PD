@@ -29,11 +29,10 @@
 
 #pragma once
 
-#include "colmap/estimators/pose.h"
-#include "colmap/geometry/rigid3.h"
-#include "colmap/optim/ransac.h"
-#include "colmap/scene/camera.h"
-#include "colmap/util/eigen_alignment.h"
+#include "../estimators/pose.h"
+#include "../geometry/rigid3.h"
+#include "../optim/ransac.h"
+#include "../scene/camera.h"
 
 #include <vector>
 

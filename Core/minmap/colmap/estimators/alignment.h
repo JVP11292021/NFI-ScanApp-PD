@@ -29,9 +29,9 @@
 
 #pragma once
 
-#include "colmap/geometry/sim3.h"
-#include "colmap/optim/ransac.h"
-#include "colmap/scene/reconstruction.h"
+#include "../geometry/sim3.h"
+#include "../optim/ransac.h"
+#include "../scene/reconstruction.h"
 
 namespace colmap {
 

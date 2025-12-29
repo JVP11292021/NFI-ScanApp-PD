@@ -28,9 +28,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/util/endian.h"
-
-#include "colmap/util/logging.h"
+#include "endian.h"
+#include "logging.h"
 
 #include <boost/predef/other/endian.h>
 

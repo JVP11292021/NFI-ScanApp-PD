@@ -29,8 +29,8 @@
 
 #pragma once
 
-#include "colmap/scene/database.h"
-#include "colmap/util/types.h"
+#include "../scene/database.h"
+#include "../util/types.h"
 
 #include <memory>
 #include <vector>

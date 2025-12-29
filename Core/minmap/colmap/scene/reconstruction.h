@@ -29,16 +29,15 @@
 
 #pragma once
 
-#include "colmap/geometry/sim3.h"
-#include "colmap/scene/camera.h"
-#include "colmap/scene/database.h"
-#include "colmap/scene/image.h"
-#include "colmap/scene/point2d.h"
-#include "colmap/scene/point3d.h"
-#include "colmap/scene/track.h"
-#include "colmap/sensor/rig.h"
-#include "colmap/util/eigen_alignment.h"
-#include "colmap/util/types.h"
+#include "../geometry/sim3.h"
+#include "../scene/camera.h"
+#include "../scene/database.h"
+#include "../scene/image.h"
+#include "../scene/point2d.h"
+#include "../scene/point3d.h"
+#include "../scene/track.h"
+#include "../sensor/rig.h"
+#include "../util/types.h"
 
 #include <memory>
 #include <set>

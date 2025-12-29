@@ -27,14 +27,14 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/sfm/incremental_mapper_impl.h"
+#include "incremental_mapper_impl.h"
 
-#include "colmap/estimators/generalized_pose.h"
-#include "colmap/estimators/pose.h"
-#include "colmap/estimators/two_view_geometry.h"
-#include "colmap/geometry/triangulation.h"
-#include "colmap/scene/projection.h"
-#include "colmap/util/misc.h"
+#include "../estimators/generalized_pose.h"
+#include "../estimators/pose.h"
+#include "../estimators/two_view_geometry.h"
+#include "../geometry/triangulation.h"
+#include "../scene/projection.h"
+#include "../util/misc.h"
 
 #include <array>
 #include <fstream>

@@ -29,14 +29,13 @@
 
 #include "feature_extraction.h"
 
-#include "../../colmap/feature/sift.h"
-#include "../../colmap/geometry/gps.h"
-#include "../../colmap/scene/database.h"
-#include "../../colmap/util/cuda.h"
-#include "../../colmap/util/file.h"
-#include "../../colmap/util/misc.h"
-#include "../../colmap/util/opengl_utils.h"
-#include "../../colmap/util/timer.h"
+#include "../feature/sift.h"
+#include "../geometry/gps.h"
+#include "../scene/database.h"
+#include "../util/file.h"
+#include "../util/misc.h"
+#include "../util/opengl_utils.h"
+#include "../util/timer.h"
 
 #include <numeric>
 
@@ -160,9 +159,9 @@ class SiftFeatureExtractorThread : public Thread {
     THROW_CHECK(sift_options_.Check());
 
 #if !defined(COLMAP_CUDA_ENABLED)
-    if (sift_options_.use_gpu) {
-      opengl_context_ = std::make_unique<OpenGLContextManager>();
-    }
+    //if (sift_options_.use_gpu) {
+    //  opengl_context_ = std::make_unique<OpenGLContextManager>();
+    //}
 #endif
   }
 

@@ -27,10 +27,10 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/estimators/generalized_absolute_pose.h"
+#include "generalized_absolute_pose.h"
 
-#include "colmap/math/polynomial.h"
-#include "colmap/util/logging.h"
+#include "../math/polynomial.h"
+#include "../util/logging.h"
 
 #include <array>
 

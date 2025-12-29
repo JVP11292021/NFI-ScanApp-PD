@@ -29,9 +29,9 @@
 
 #pragma once
 
-#include "colmap/optim/random_sampler.h"
-#include "colmap/optim/support_measurement.h"
-#include "colmap/util/logging.h"
+#include "random_sampler.h"
+#include "../optim/support_measurement.h"
+#include "../util/logging.h"
 
 #include <cfloat>
 #include <optional>

@@ -27,12 +27,11 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/estimators/absolute_pose.h"
+#include "absolute_pose.h"
 
-#include "colmap/estimators/utils.h"
-#include "colmap/math/polynomial.h"
-#include "colmap/util/eigen_alignment.h"
-#include "colmap/util/logging.h"
+#include "utils.h"
+#include "../math/polynomial.h"
+#include "../util/logging.h"
 
 #include <Eigen/Geometry>
 #include <PoseLib/solvers/p3p.h>

@@ -29,9 +29,9 @@
 
 #pragma once
 
-#include "../../colmap/math/math.h"
-#include "../../colmap/util/enum_utils.h"
-#include "../../colmap/util/types.h"
+#include "../math/math.h"
+#include "../util/enum_utils.h"
+#include "../util/types.h"
 
 #include <array>
 #include <cfloat>

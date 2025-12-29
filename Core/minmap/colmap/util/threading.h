@@ -29,7 +29,7 @@
 
 #pragma once
 
-#include "colmap/util/timer.h"
+#include "timer.h"
 
 #include <climits>
 #include <functional>

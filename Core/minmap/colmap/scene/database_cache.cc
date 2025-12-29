@@ -27,10 +27,10 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/scene/database_cache.h"
+#include "database_cache.h"
 
-#include "colmap/util/string.h"
-#include "colmap/util/timer.h"
+#include "../util/string.h"
+#include "../util/timer.h"
 
 namespace colmap {
 namespace {

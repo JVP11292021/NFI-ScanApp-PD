@@ -27,18 +27,18 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/scene/reconstruction.h"
+#include "reconstruction.h"
 
-#include "colmap/geometry/gps.h"
-#include "colmap/geometry/normalization.h"
-#include "colmap/geometry/pose.h"
-#include "colmap/geometry/triangulation.h"
-#include "colmap/scene/database_cache.h"
-#include "colmap/scene/projection.h"
-#include "colmap/scene/reconstruction_io.h"
-#include "colmap/sensor/bitmap.h"
-#include "colmap/util/file.h"
-#include "colmap/util/ply.h"
+#include "../geometry/gps.h"
+#include "../geometry/normalization.h"
+#include "../geometry/pose.h"
+#include "../geometry/triangulation.h"
+#include "../scene/database_cache.h"
+#include "../scene/projection.h"
+#include "../scene/reconstruction_io.h"
+#include "../sensor/bitmap.h"
+#include "../util/file.h"
+#include "../util/ply.h"
 
 namespace colmap {
 

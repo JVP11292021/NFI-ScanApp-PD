@@ -29,11 +29,11 @@
 
 #pragma once
 
-#include "colmap/scene/correspondence_graph.h"
-#include "colmap/scene/image.h"
-#include "colmap/scene/reconstruction.h"
-#include "colmap/scene/track.h"
-#include "colmap/util/types.h"
+#include "../scene/correspondence_graph.h"
+#include "../scene/image.h"
+#include "../scene/reconstruction.h"
+#include "../scene/track.h"
+#include "../util/types.h"
 
 namespace colmap {
 

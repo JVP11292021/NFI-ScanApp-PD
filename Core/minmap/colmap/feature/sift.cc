@@ -30,11 +30,10 @@
 #include "sift.h"
 
 #include "utils.h"
-#include "../../colmap/math/math.h"
-#include "../../colmap/util/cuda.h"
-#include "../../colmap/util/file.h"
-#include "../../colmap/util/logging.h"
-#include "../../colmap/util/misc.h"
+#include "../math/math.h"
+#include "../util/file.h"
+#include "../util/logging.h"
+#include "../util/misc.h"
 
 #include "../../thirdparty/VLFeat/covdet.h"
 #include "../../thirdparty/VLFeat/sift.h"
@@ -508,196 +507,6 @@ class CovariantSiftCPUFeatureExtractor : public FeatureExtractor {
   const SiftExtractionOptions options_;
 };
 
-#if defined(COLMAP_GPU_ENABLED)
-// Mutexes that ensure that only one thread extracts/matches on the same GPU
-// at the same time, since SiftGPU internally uses static variables.
-static std::map<int, std::unique_ptr<std::mutex>> sift_gpu_mutexes_;
-
-class SiftGPUFeatureExtractor : public FeatureExtractor {
- public:
-  explicit SiftGPUFeatureExtractor(const SiftExtractionOptions& options)
-      : options_(options) {
-    THROW_CHECK(options_.Check());
-    THROW_CHECK(!options_.estimate_affine_shape);
-    THROW_CHECK(!options_.domain_size_pooling);
-  }
-
-  static std::unique_ptr<FeatureExtractor> Create(
-      const SiftExtractionOptions& options) {
-    // SiftGPU uses many global static state variables and the initialization
-    // must be thread-safe in order to work correctly. This is enforced here.
-    static std::mutex mutex;
-    std::lock_guard<std::mutex> lock(mutex);
-
-    std::vector<int> gpu_indices = CSVToVector<int>(options.gpu_index);
-    THROW_CHECK_EQ(gpu_indices.size(), 1) << "SiftGPU can only run on one GPU";
-
-    std::vector<std::string> sift_gpu_args;
-
-    sift_gpu_args.push_back("./sift_gpu");
-
-#if defined(COLMAP_CUDA_ENABLED)
-    // Use CUDA version by default if darkness adaptivity is disabled.
-    if (!options.darkness_adaptivity && gpu_indices[0] < 0) {
-      gpu_indices[0] = 0;
-    }
-
-    if (gpu_indices[0] >= 0) {
-      sift_gpu_args.push_back("-cuda");
-      sift_gpu_args.push_back(std::to_string(gpu_indices[0]));
-    }
-#endif  // COLMAP_CUDA_ENABLED
-
-    // Darkness adaptivity (hidden feature). Significantly improves
-    // distribution of features. Only available in GLSL version.
-    if (options.darkness_adaptivity) {
-      if (gpu_indices[0] >= 0) {
-        WarnDarknessAdaptivityNotAvailable();
-      }
-      sift_gpu_args.push_back("-da");
-    }
-
-    // No verbose logging.
-    sift_gpu_args.push_back("-v");
-    sift_gpu_args.push_back("0");
-
-    // Set maximum image dimension.
-    // Note the max dimension of SiftGPU is the maximum dimension of the
-    // first octave in the pyramid (which is the 'first_octave').
-    const int compensation_factor = 1 << -std::min(0, options.first_octave);
-    sift_gpu_args.push_back("-maxd");
-    sift_gpu_args.push_back(
-        std::to_string(options.max_image_size * compensation_factor));
-
-    // Keep the highest level features.
-    sift_gpu_args.push_back("-tc2");
-    sift_gpu_args.push_back(std::to_string(options.max_num_features));
-
-    // First octave level.
-    sift_gpu_args.push_back("-fo");
-    sift_gpu_args.push_back(std::to_string(options.first_octave));
-
-    // Number of octave levels.
-    sift_gpu_args.push_back("-d");
-    sift_gpu_args.push_back(std::to_string(options.octave_resolution));
-
-    // Peak threshold.
-    sift_gpu_args.push_back("-t");
-    sift_gpu_args.push_back(std::to_string(options.peak_threshold));
-
-    // Edge threshold.
-    sift_gpu_args.push_back("-e");
-    sift_gpu_args.push_back(std::to_string(options.edge_threshold));
-
-    if (options.upright) {
-      // Fix the orientation to 0 for upright features.
-      sift_gpu_args.push_back("-ofix");
-      // Maximum number of orientations.
-      sift_gpu_args.push_back("-mo");
-      sift_gpu_args.push_back("1");
-    } else {
-      // Maximum number of orientations.
-      sift_gpu_args.push_back("-mo");
-      sift_gpu_args.push_back(std::to_string(options.max_num_orientations));
-    }
-
-    std::vector<const char*> sift_gpu_args_cstr;
-    sift_gpu_args_cstr.reserve(sift_gpu_args.size());
-    for (const auto& arg : sift_gpu_args) {
-      sift_gpu_args_cstr.push_back(arg.c_str());
-    }
-
-    auto extractor = std::make_unique<SiftGPUFeatureExtractor>(options);
-
-    // Note that the SiftGPU object is not movable (for whatever reason).
-    // If we instead create the object here and move it to the constructor, the
-    // program segfaults inside SiftGPU.
-
-    extractor->sift_gpu_.ParseParam(sift_gpu_args_cstr.size(),
-                                    sift_gpu_args_cstr.data());
-
-    extractor->sift_gpu_.gpu_index = gpu_indices[0];
-    if (sift_gpu_mutexes_.count(gpu_indices[0]) == 0) {
-      sift_gpu_mutexes_.emplace(gpu_indices[0], std::make_unique<std::mutex>());
-    }
-
-    if (extractor->sift_gpu_.VerifyContextGL() !=
-        SiftGPU::SIFTGPU_FULL_SUPPORTED) {
-      return nullptr;
-    }
-
-    return extractor;
-  }
-
-  bool Extract(const Bitmap& bitmap,
-               FeatureKeypoints* keypoints,
-               FeatureDescriptors* descriptors) override {
-    THROW_CHECK(bitmap.IsGrey());
-    THROW_CHECK_NOTNULL(keypoints);
-    THROW_CHECK_NOTNULL(descriptors);
-
-    // Note the max dimension of SiftGPU is the maximum dimension of the
-    // first octave in the pyramid (which is the 'first_octave').
-    const int compensation_factor = 1 << -std::min(0, options_.first_octave);
-    THROW_CHECK_EQ(options_.max_image_size * compensation_factor,
-                   sift_gpu_.GetMaxDimension());
-
-    std::lock_guard<std::mutex> lock(*sift_gpu_mutexes_[sift_gpu_.gpu_index]);
-
-    // Note, that this produces slightly different results than using SiftGPU
-    // directly for RGB->GRAY conversion, since it uses different weights.
-    const std::vector<uint8_t> bitmap_raw_bits = bitmap.ConvertToRawBits();
-    const int code = sift_gpu_.RunSIFT(bitmap.Pitch(),
-                                       bitmap.Height(),
-                                       bitmap_raw_bits.data(),
-                                       GL_LUMINANCE,
-                                       GL_UNSIGNED_BYTE);
-
-    const int kSuccessCode = 1;
-    if (code != kSuccessCode) {
-      return false;
-    }
-
-    const size_t num_features = static_cast<size_t>(sift_gpu_.GetFeatureNum());
-
-    keypoints_buffer_.resize(num_features);
-
-    FeatureDescriptorsFloat descriptors_float(num_features, 128);
-
-    // Download the extracted keypoints and descriptors.
-    sift_gpu_.GetFeatureVector(keypoints_buffer_.data(),
-                               descriptors_float.data());
-
-    keypoints->resize(num_features);
-    for (size_t i = 0; i < num_features; ++i) {
-      (*keypoints)[i] = FeatureKeypoint(keypoints_buffer_[i].x,
-                                        keypoints_buffer_[i].y,
-                                        keypoints_buffer_[i].s,
-                                        keypoints_buffer_[i].o);
-    }
-
-    // Save and normalize the descriptors.
-    if (options_.normalization == SiftExtractionOptions::Normalization::L2) {
-      L2NormalizeFeatureDescriptors(&descriptors_float);
-    } else if (options_.normalization ==
-               SiftExtractionOptions::Normalization::L1_ROOT) {
-      L1RootNormalizeFeatureDescriptors(&descriptors_float);
-    } else {
-      LOG(FATAL_THROW) << "Normalization type not supported";
-    }
-
-    *descriptors = FeatureDescriptorsToUnsignedByte(descriptors_float);
-
-    return true;
-  }
-
- private:
-  const SiftExtractionOptions options_;
-  SiftGPU sift_gpu_;
-  std::vector<SiftKeypoint> keypoints_buffer_;
-};
-#endif  // COLMAP_GPU_ENABLED
-
 }  // namespace
 
 std::unique_ptr<FeatureExtractor> CreateSiftFeatureExtractor(
@@ -706,13 +515,6 @@ std::unique_ptr<FeatureExtractor> CreateSiftFeatureExtractor(
       options.force_covariant_extractor) {
     LOG(INFO) << "Creating Covariant SIFT CPU feature extractor";
     return CovariantSiftCPUFeatureExtractor::Create(options);
-  } else if (options.use_gpu) {
-#if defined(COLMAP_GPU_ENABLED)
-    LOG(INFO) << "Creating SIFT GPU feature extractor";
-    return SiftGPUFeatureExtractor::Create(options);
-#else
-    return nullptr;
-#endif  // COLMAP_GPU_ENABLED
   } else {
     LOG(INFO) << "Creating SIFT CPU feature extractor";
     return SiftCPUFeatureExtractor::Create(options);

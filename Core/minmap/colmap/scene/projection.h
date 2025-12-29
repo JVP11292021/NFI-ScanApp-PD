@@ -29,9 +29,8 @@
 
 #pragma once
 
-#include "colmap/geometry/rigid3.h"
-#include "colmap/scene/camera.h"
-#include "colmap/util/eigen_alignment.h"
+#include "../geometry/rigid3.h"
+#include "../scene/camera.h"
 
 #include <limits>
 #include <vector>

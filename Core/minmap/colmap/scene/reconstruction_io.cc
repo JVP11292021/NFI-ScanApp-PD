@@ -27,12 +27,12 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/scene/reconstruction_io.h"
+#include "reconstruction_io.h"
 
-#include "colmap/util/file.h"
-#include "colmap/util/misc.h"
-#include "colmap/util/ply.h"
-#include "colmap/util/types.h"
+#include "../util/file.h"
+#include "../util/misc.h"
+#include "../util/ply.h"
+#include "../util/types.h"
 
 #include <fstream>
 

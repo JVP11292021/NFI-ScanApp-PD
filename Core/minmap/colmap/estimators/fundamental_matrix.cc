@@ -27,12 +27,11 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/estimators/fundamental_matrix.h"
+#include "fundamental_matrix.h"
 
-#include "colmap/estimators/utils.h"
-#include "colmap/math/polynomial.h"
-#include "colmap/util/eigen_alignment.h"
-#include "colmap/util/logging.h"
+#include "../estimators/utils.h"
+#include "../math/polynomial.h"
+#include "../util/logging.h"
 
 #include <cfloat>
 #include <complex>

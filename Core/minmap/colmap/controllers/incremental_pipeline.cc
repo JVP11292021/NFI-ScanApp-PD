@@ -29,10 +29,10 @@
 
 #include "incremental_pipeline.h"
 
-#include "../../colmap/estimators/alignment.h"
-#include "../../colmap/util/file.h"
-#include "../../colmap/util/misc.h"
-#include "../../colmap/util/timer.h"
+#include "../estimators/alignment.h"
+#include "../util/file.h"
+#include "../util/misc.h"
+#include "../util/timer.h"
 
 namespace colmap {
 namespace {

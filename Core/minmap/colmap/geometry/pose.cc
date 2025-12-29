@@ -27,11 +27,10 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/geometry/pose.h"
+#include "pose.h"
 
-#include "colmap/geometry/triangulation.h"
-#include "colmap/math/matrix.h"
-#include "colmap/util/eigen_alignment.h"
+#include "../geometry/triangulation.h"
+#include "../math/matrix.h"
 
 #include <Eigen/Eigenvalues>
 

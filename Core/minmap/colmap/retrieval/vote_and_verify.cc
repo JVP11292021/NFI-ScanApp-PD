@@ -27,13 +27,13 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/retrieval/vote_and_verify.h"
+#include "vote_and_verify.h"
 
-#include "colmap/estimators/affine_transform.h"
-#include "colmap/math/math.h"
-#include "colmap/optim/ransac.h"
-#include "colmap/util/eigen_alignment.h"
-#include "colmap/util/logging.h"
+#include "geometry.h"
+#include "../estimators/affine_transform.h"
+#include "../math/math.h"
+#include "../optim/ransac.h"
+#include "../util/logging.h"
 
 #include <array>
 #include <unordered_map>

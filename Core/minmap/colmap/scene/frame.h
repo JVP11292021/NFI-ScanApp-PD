@@ -29,9 +29,9 @@
 
 #pragma once
 
-#include "colmap/geometry/rigid3.h"
-#include "colmap/sensor/rig.h"
-#include "colmap/util/types.h"
+#include "../geometry/rigid3.h"
+#include "../sensor/rig.h"
+#include "../util/types.h"
 
 #include <cstdint>
 #include <memory>

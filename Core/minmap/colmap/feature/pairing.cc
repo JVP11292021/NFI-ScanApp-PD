@@ -27,14 +27,14 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/feature/pairing.h"
+#include "pairing.h"
 
-#include "colmap/feature/utils.h"
-#include "colmap/geometry/gps.h"
-#include "colmap/util/file.h"
-#include "colmap/util/logging.h"
-#include "colmap/util/misc.h"
-#include "colmap/util/timer.h"
+#include "../feature/utils.h"
+#include "../geometry/gps.h"
+#include "../util/file.h"
+#include "../util/logging.h"
+#include "../util/misc.h"
+#include "../util/timer.h"
 
 #include <fstream>
 #include <numeric>

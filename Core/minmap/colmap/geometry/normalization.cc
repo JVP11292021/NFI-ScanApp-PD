@@ -27,9 +27,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/geometry/normalization.h"
-
-#include "colmap/util/logging.h"
+#include "normalization.h"
+#include "../util/logging.h"
 
 #include <algorithm>
 

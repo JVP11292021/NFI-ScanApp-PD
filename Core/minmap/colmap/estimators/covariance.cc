@@ -27,9 +27,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/estimators/covariance.h"
-
-#include "colmap/estimators/manifold.h"
+#include "../estimators/covariance.h"
+#include "../estimators/manifold.h"
 
 #include <unordered_set>
 

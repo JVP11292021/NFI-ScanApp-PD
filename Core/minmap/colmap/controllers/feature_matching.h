@@ -29,10 +29,10 @@
 
 #pragma once
 
-#include "../../colmap/estimators/two_view_geometry.h"
-#include "../../colmap/feature/pairing.h"
-#include "../../colmap/feature/sift.h"
-#include "../../colmap/util/threading.h"
+#include "../estimators/two_view_geometry.h"
+#include "../feature/pairing.h"
+#include "../feature/sift.h"
+#include "../util/threading.h"
 
 #include <memory>
 #include <string>

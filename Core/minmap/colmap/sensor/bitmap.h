@@ -29,7 +29,7 @@
 
 #pragma once
 
-#include "colmap/util/string.h"
+#include "../util/string.h"
 
 #include <algorithm>
 #include <cmath>

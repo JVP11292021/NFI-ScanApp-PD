@@ -29,9 +29,8 @@
 
 #pragma once
 
-#include "colmap/scene/reconstruction.h"
-#include "colmap/util/eigen_alignment.h"
-#include "colmap/util/enum_utils.h"
+#include "../scene/reconstruction.h"
+#include "../util/enum_utils.h"
 
 #include <memory>
 #include <unordered_set>
