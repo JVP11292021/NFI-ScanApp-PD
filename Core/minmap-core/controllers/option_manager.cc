@@ -32,12 +32,12 @@
 #include "feature_extraction.h"
 #include "image_reader.h"
 #include "incremental_pipeline.h"
-#include "../../colmap/estimators/bundle_adjustment.h"
-#include "../../colmap/estimators/two_view_geometry.h"
-#include "../../colmap/feature/pairing.h"
-#include "../../colmap/feature/sift.h"
-#include "../../colmap/math/random.h"
-#include "../../colmap/util/file.h"
+#include "../estimators/bundle_adjustment.h"
+#include "../estimators/two_view_geometry.h"
+#include "../feature/pairing.h"
+#include "../feature/sift.h"
+#include "../math/random.h"
+#include "../util/file.h"
 
 #include <boost/property_tree/ini_parser.hpp>
 
