@@ -3,12 +3,12 @@
 //#include "colmap/controllers/automatic_reconstruction.h"
 //#include "colmap/controllers/bundle_adjustment.h"
 //#include "colmap/controllers/hierarchical_pipeline.h"
-#include "colmap/controllers/option_manager.h"
-#include "colmap/estimators/similarity_transform.h"
+#include <controllers/option_manager.h>
+#include <estimators/similarity_transform.h>
 //#include "colmap/scene/reconstruction.h"
 //#include "colmap/scene/rig.h"
-#include "colmap/sfm/observation_manager.h"
-#include "colmap/util/file.h"
+#include <sfm/observation_manager.h>
+#include <util/file.h>
 //#include "colmap/util/misc.h"
 //#include "colmap/util/opengl_utils.h"
 

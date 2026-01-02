@@ -1,15 +1,15 @@
 #include "VocabTree.hpp"
 
-#include "colmap/controllers/feature_matching.h"
-#include "colmap/controllers/option_manager.h"
-#include "colmap/feature/sift.h"
-#include "colmap/feature/utils.h"
-#include "colmap/optim/random_sampler.h"
-#include "colmap/retrieval/resources.h"
-#include "colmap/retrieval/visual_index.h"
-#include "colmap/scene/database.h"
-#include "colmap/util/file.h"
-#include "colmap/util/opengl_utils.h"
+#include <controllers/feature_matching.h>
+#include <controllers/option_manager.h>
+#include <feature/sift.h>
+#include <feature/utils.h>
+#include <optim/random_sampler.h>
+#include <retrieval/resources.h>
+#include <retrieval/visual_index.h>
+#include <scene/database.h>
+#include <util/file.h>
+#include <util/opengl_utils.h>
 
 MM_NS_B
 

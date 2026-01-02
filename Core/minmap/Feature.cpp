@@ -1,12 +1,12 @@
 #include "Feature.hpp"
 
-#include "colmap/controllers/feature_extraction.h" // Dependencies: sift.h, extractor.h, matcher.h, image_reader.h, threading.h, index.h, types.h, gps.h, camera.h, database.h, image.h, two_view_geoem try.h, cache.h, types.h
-#include "colmap/controllers/option_manager.h" // Needs te be refactored
+#include <controllers/feature_extraction.h> // Dependencies: sift.h, extractor.h, matcher.h, image_reader.h, threading.h, index.h, types.h, gps.h, camera.h, database.h, image.h, two_view_geoem try.h, cache.h, types.h
+#include <controllers/option_manager.h> // Needs te be refactored
 //#include "colmap/feature/sift.h" // Has multiple dependencies
 //#include "colmap/feature/utils.h" // Dependencies: types.h
 //#include "colmap/sensor/models.h" // Dependencies: math.h, enum_utils.h, types.h (all colmap)
-#include "colmap/util/file.h"  // Dependencies: endian.h, types.h, logging.h (all colmap)
-#include "colmap/util/misc.h" // Dependencies: logging.h
+#include <util/file.h>  // Dependencies: endian.h, types.h, logging.h (all colmap)
+#include <util/misc.h> // Dependencies: logging.h
 //#include "colmap/util/threading.h" // Dependencies: timer.h
 
 MM_NS_B

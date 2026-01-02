@@ -35,8 +35,8 @@
 #include "../util/logging.h"
 #include "../util/misc.h"
 
-#include "../../thirdparty/VLFeat/covdet.h"
-#include "../../thirdparty/VLFeat/sift.h"
+#include "../thirdparty/VLFeat/covdet.h"
+#include "../thirdparty/VLFeat/sift.h"
 
 #include <array>
 #include <fstream>

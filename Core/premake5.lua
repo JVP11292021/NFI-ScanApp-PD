@@ -385,8 +385,8 @@ project "GSplats"
 		optimize "on"
 		runtime "Release"
 
-project "minmap"
-	location "minmap"
+project "minmap-core"
+	location "minmap-core"
 	kind "staticlib"
 	language "C++"
 	cppdialect "C++17"
@@ -413,6 +413,69 @@ project "minmap"
 	links {
         "ceres.lib",
         "glog.lib"
+	}
+
+	dependson {}
+
+	if vulkan_sdk ~= nil then
+        includedirs {
+            vulkan_sdk .. "/Include"
+        }
+
+        libdirs {
+            vulkan_sdk .. "/Lib"
+        }
+
+        links {
+            "vulkan-1.lib"
+        }
+
+        defines {
+            "USE_VULKAN"
+        }
+    end
+
+	filter "system:windows"
+		systemversion "latest"
+		defines { "_CRT_SECURE_NO_WARNINGS", "GLOG_NO_ABBREVIATED_SEVERITIES", "GLOG_USE_GLOG_EXPORT" }
+		buildoptions { "/permissive-" }  -- <-- important
+
+	filter "configurations:Debug"
+		defines "APP_DEBUG"
+		symbols "on"
+		runtime "Debug"
+
+project "minmap"
+	location "minmap"
+	kind "staticlib"
+	language "C++"
+	cppdialect "C++17"
+
+	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+
+	files {
+		"%{prj.name}/**.h",
+		"%{prj.name}/**.hpp",
+		"%{prj.name}/**.inl",
+		"%{prj.name}/**.cpp",
+		"%{prj.name}/**.cc",
+	}
+
+	includedirs {
+		"Libraries/include",
+		"minmap-core",
+	}
+
+	libdirs {
+		"Libraries/lib",
+		"minmap-core",
+	}
+
+	links {
+        "ceres.lib",
+        "glog.lib",
+		"minmap-core",
 	}
 
 	dependson {}

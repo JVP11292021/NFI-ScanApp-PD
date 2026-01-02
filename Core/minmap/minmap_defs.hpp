@@ -8,14 +8,14 @@
 #define GLOG_USE_GLOG_EXPORT
 #endif
 #include <glog/logging.h>
-#include "colmap/util/logging.h"
+#include <util/logging.h>
 
 #define MM_NS_B namespace minmap {
 #define MM_NS_E }
 
 MM_NS_B
 
-#if defined(COLMAP_CUDA_ENABLED) || !defined(COLMAP_GUI_ENABLED)
+#if defined(MINMAP_CUDA_ENABLED) || !defined(MINMAP_GUI_ENABLED)
 const bool kUseOpenGL = true;
 #else
 const bool kUseOpenGL = true;

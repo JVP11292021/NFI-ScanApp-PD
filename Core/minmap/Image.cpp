@@ -1,14 +1,14 @@
 #include "Image.hpp"
 
-#include "colmap/controllers/incremental_pipeline.h"
-#include "colmap/controllers/option_manager.h"
-#include "colmap/image/undistortion.h"
-#include "colmap/scene/reconstruction.h"
-#include "colmap/sfm/incremental_mapper.h"
-#include "colmap/sfm/observation_manager.h"
-#include "colmap/util/base_controller.h"
-#include "colmap/util/misc.h"
-#include "colmap/util/timer.h"
+#include <controllers/incremental_pipeline.h>
+#include <controllers/option_manager.h>
+#include <image/undistortion.h>
+#include <scene/reconstruction.h>
+#include <sfm/incremental_mapper.h>
+#include <sfm/observation_manager.h>
+#include <util/base_controller.h>
+#include <util/misc.h>
+#include <util/timer.h>
 
 MM_NS_B
 

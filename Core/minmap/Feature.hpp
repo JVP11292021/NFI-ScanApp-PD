@@ -3,9 +3,9 @@
 
 #include "minmap_defs.hpp"
 
-#include "colmap/feature/pairing.h" // Dependencies: matcher.h, resources.h, visual_index.h, database.h, threading.h, types.h
-#include "colmap/controllers/feature_matching.h"
-#include "colmap/controllers/image_reader.h" // Dependencies: gps.h, database.h, bitmap.h, threading.h
+#include <feature/pairing.h> // Dependencies: matcher.h, resources.h, visual_index.h, database.h, threading.h, types.h
+#include <controllers/feature_matching.h>
+#include <controllers/image_reader.h> // Dependencies: gps.h, database.h, bitmap.h, threading.h
 
 MM_NS_B
 
