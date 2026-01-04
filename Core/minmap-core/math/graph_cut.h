@@ -34,10 +34,10 @@
 #include <unordered_map>
 #include <vector>
 
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/boykov_kolmogorov_max_flow.hpp>
-#include <boost/graph/graph_traits.hpp>
-#include <boost/graph/one_bit_color_map.hpp>
+//#include <boost/graph/adjacency_list.hpp>
+//#include <boost/graph/boykov_kolmogorov_max_flow.hpp>
+//#include <boost/graph/graph_traits.hpp>
+//#include <boost/graph/one_bit_color_map.hpp>
 
 namespace colmap {
 
@@ -78,11 +78,11 @@ class MinSTGraphCut {
       adjacency_list<boost::vecS, boost::vecS, boost::directedS, size_t, Edge>
           graph_t;
 
-  explicit MinSTGraphCut(size_t num_nodes);
+  //explicit MinSTGraphCut(size_t num_nodes);
 
-  // Count the number of nodes and edges in the graph.
-  size_t NumNodes() const;
-  size_t NumEdges() const;
+  //// Count the number of nodes and edges in the graph.
+  //size_t NumNodes() const;
+  //size_t NumEdges() const;
 
   // Add node to the graph.
   void AddNode(node_t node_idx, value_t source_capacity, value_t sink_capacity);
@@ -111,19 +111,19 @@ class MinSTGraphCut {
 // Implementation
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename node_t, typename value_t>
-MinSTGraphCut<node_t, value_t>::MinSTGraphCut(const size_t num_nodes)
-    : S_node_(num_nodes), T_node_(num_nodes + 1), graph_(num_nodes + 2) {}
-
-template <typename node_t, typename value_t>
-size_t MinSTGraphCut<node_t, value_t>::NumNodes() const {
-  return boost::num_vertices(graph_) - 2;
-}
-
-template <typename node_t, typename value_t>
-size_t MinSTGraphCut<node_t, value_t>::NumEdges() const {
-  return boost::num_edges(graph_);
-}
+//template <typename node_t, typename value_t>
+//MinSTGraphCut<node_t, value_t>::MinSTGraphCut(const size_t num_nodes)
+//    : S_node_(num_nodes), T_node_(num_nodes + 1), graph_(num_nodes + 2) {}
+//
+//template <typename node_t, typename value_t>
+//size_t MinSTGraphCut<node_t, value_t>::NumNodes() const {
+//  return boost::num_vertices(graph_) - 2;
+//}
+//
+//template <typename node_t, typename value_t>
+//size_t MinSTGraphCut<node_t, value_t>::NumEdges() const {
+//  return boost::num_edges(graph_);
+//}
 
 template <typename node_t, typename value_t>
 void MinSTGraphCut<node_t, value_t>::AddNode(const node_t node_idx,

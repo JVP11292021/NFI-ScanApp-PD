@@ -249,6 +249,7 @@ project "RayTracing"
 		"%{prj.name}/**.hpp",
 		"%{prj.name}/**.inl",
 		"%{prj.name}/**.cpp",
+		"%{prj.name}/**.c",
 	}
 
 	includedirs {
@@ -310,81 +311,6 @@ project "RayTracing"
 		optimize "on"
 		runtime "Release"
 
-project "GSplats"
-	location "GSplats"
-	kind "staticlib"
-	language "C++"
-	cppdialect "C++17"
-
-	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
-
-	files {
-		"%{prj.name}/**.h",
-		"%{prj.name}/**.hpp",
-		"%{prj.name}/**.inl",
-		"%{prj.name}/**.cpp",
-	}
-
-	includedirs {
-		"Libraries/include",
-		"Engine/Engine/EngineBackend",
-		"Engine/Engine/EngineUtils",
-		"Engine/Engine/Systems"
-	}
-
-	libdirs {
-		"Libraries/lib",
-	}
-
-	links {
-		"EngineBackend",
-		"EngineUtils",
-		"EngineSystems"
-	}
-
-	dependson { 
-		"EngineBackend", 
-		"EngineUtils",
-		"EngineSystems"
-	}
-
-	if vulkan_sdk ~= nil then
-        includedirs {
-            vulkan_sdk .. "/Include"
-        }
-
-        libdirs {
-            vulkan_sdk .. "/Lib"
-        }
-
-        links {
-            "vulkan-1.lib"
-        }
-
-        defines {
-            "USE_VULKAN"
-        }
-    end
-
-	filter "system:windows"
-		systemversion "latest"
-
-	filter "configurations:Debug"
-		defines "APP_DEBUG"
-		symbols "on"
-		runtime "Debug"
-
-	filter "configurations:Release"
-		defines "APP_RELEASE"
-		optimize "on"
-		runtime "Release"
-
-	filter "configurations:Dist"
-		defines "APP_DIST"
-		optimize "on"
-		runtime "Release"
-
 project "minmap-core"
 	location "minmap-core"
 	kind "staticlib"
@@ -400,6 +326,7 @@ project "minmap-core"
 		"%{prj.name}/**.inl",
 		"%{prj.name}/**.cpp",
 		"%{prj.name}/**.cc",
+		"%{prj.name}/**.c",
 	}
 
 	includedirs {
@@ -412,7 +339,10 @@ project "minmap-core"
 
 	links {
         "ceres.lib",
-        "glog.lib"
+        "glog.lib",
+		"sqlite3.lib",
+		"FreeImage.lib",
+		"FreeImagePlus.lib"
 	}
 
 	dependson {}
@@ -460,6 +390,7 @@ project "minmap"
 		"%{prj.name}/**.inl",
 		"%{prj.name}/**.cpp",
 		"%{prj.name}/**.cc",
+		"%{prj.name}/**.c",
 	}
 
 	includedirs {
@@ -469,7 +400,6 @@ project "minmap"
 
 	libdirs {
 		"Libraries/lib",
-		"minmap-core",
 	}
 
 	links {
@@ -478,7 +408,9 @@ project "minmap"
 		"minmap-core",
 	}
 
-	dependson {}
+	dependson {
+		"minmap-core"
+	}
 
 	if vulkan_sdk ~= nil then
         includedirs {
@@ -532,6 +464,7 @@ project "TestApp"
 		"%{prj.name}/**.hpp",
 		"%{prj.name}/**.inl",
 		"%{prj.name}/**.cpp",
+		"%{prj.name}/**.c",
 	}
 
 	includedirs {

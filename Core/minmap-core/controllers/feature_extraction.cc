@@ -148,22 +148,17 @@ class ImageResizerThread : public Thread {
 
 class SiftFeatureExtractorThread : public Thread {
  public:
-  SiftFeatureExtractorThread(const SiftExtractionOptions& sift_options,
-                             const std::shared_ptr<Bitmap>& camera_mask,
-                             JobQueue<ImageData>* input_queue,
-                             JobQueue<ImageData>* output_queue)
-      : sift_options_(sift_options),
-        camera_mask_(camera_mask),
-        input_queue_(input_queue),
-        output_queue_(output_queue) {
-    THROW_CHECK(sift_options_.Check());
-
-#if !defined(COLMAP_CUDA_ENABLED)
-    //if (sift_options_.use_gpu) {
-    //  opengl_context_ = std::make_unique<OpenGLContextManager>();
-    //}
-#endif
-  }
+     SiftFeatureExtractorThread(const SiftExtractionOptions& sift_options,
+         const std::shared_ptr<Bitmap>& camera_mask,
+         JobQueue<ImageData>* input_queue,
+         JobQueue<ImageData>* output_queue)
+         : sift_options_(sift_options),
+         camera_mask_(camera_mask),
+         input_queue_(input_queue),
+         output_queue_(output_queue
+     ) {
+         THROW_CHECK(sift_options_.Check());
+     }
 
  private:
   void Run() override {
@@ -372,19 +367,11 @@ class FeatureExtractorController : public Thread {
       }
     }
 
+    // GPU
     if (!sift_options_.domain_size_pooling &&
         !sift_options_.estimate_affine_shape && sift_options_.use_gpu) {
       std::vector<int> gpu_indices = CSVToVector<int>(sift_options_.gpu_index);
       THROW_CHECK_GT(gpu_indices.size(), 0);
-
-#if defined(COLMAP_CUDA_ENABLED)
-      if (gpu_indices.size() == 1 && gpu_indices[0] == -1) {
-        const int num_cuda_devices = GetNumCudaDevices();
-        THROW_CHECK_GT(num_cuda_devices, 0);
-        gpu_indices.resize(num_cuda_devices);
-        std::iota(gpu_indices.begin(), gpu_indices.end(), 0);
-      }
-#endif  // COLMAP_CUDA_ENABLED
 
       auto sift_gpu_options = sift_options_;
       for (const auto& gpu_index : gpu_indices) {
@@ -395,11 +382,12 @@ class FeatureExtractorController : public Thread {
                                                          extractor_queue_.get(),
                                                          writer_queue_.get()));
       }
-    } else {
+    } else { // NO GPU
       if (sift_options_.num_threads == -1 &&
           sift_options_.max_image_size ==
               SiftExtractionOptions().max_image_size &&
-          sift_options_.first_octave == SiftExtractionOptions().first_octave) {
+          sift_options_.first_octave == SiftExtractionOptions().first_octave
+          ) {
         LOG(WARNING)
             << "Your current options use the maximum number of "
                "threads on the machine to extract features. Extracting SIFT "

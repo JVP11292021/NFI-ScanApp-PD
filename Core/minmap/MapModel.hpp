@@ -3,13 +3,20 @@
 
 #include "minmap_defs.hpp"
 
+#include <filesystem>
+#include <string>
+
 //#include "colmap/estimators/alignment.h"
 //#include "colmap/geometry/sim3.h"
 //#include "colmap/scene/reconstruction.h"
 
 MM_NS_B
 
-int RunModelConverter(int argc, char** argv);
+int RunModelConverter(
+    const std::filesystem::path& input_path,
+    const std::filesystem::path& output_path,
+    const std::string& output_type,
+    bool skip_distortion = false);
 
 //bool CompareModels(const colmap::Reconstruction& reconstruction1,
 //    const colmap::Reconstruction& reconstruction2,

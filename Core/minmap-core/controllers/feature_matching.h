@@ -101,11 +101,11 @@ std::unique_ptr<Thread> CreateSequentialFeatureMatcher(
 
 // Match images against spatial nearest neighbors using prior location
 // information, e.g. provided manually or extracted from EXIF.
-std::unique_ptr<Thread> CreateSpatialFeatureMatcher(
-    const SpatialMatchingOptions& options,
-    const SiftMatchingOptions& matching_options,
-    const TwoViewGeometryOptions& geometry_options,
-    const std::string& database_path);
+//std::unique_ptr<Thread> CreateSpatialFeatureMatcher(
+//    const SpatialMatchingOptions& options,
+//    const SiftMatchingOptions& matching_options,
+//    const TwoViewGeometryOptions& geometry_options,
+//    const std::string& database_path);
 
 // Match transitive image pairs in a database with existing feature matches.
 // This matcher transitively closes loops/triplets. For example, if image pairs

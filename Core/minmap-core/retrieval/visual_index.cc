@@ -40,50 +40,50 @@
 #include "../util/threading.h"
 
 #include <Eigen/Core>
-#include <boost/heap/fibonacci_heap.hpp>
-#include <faiss/Clustering.h>
-#include <faiss/IndexFlat.h>
-#include <faiss/IndexIVF.h>
-#include <faiss/index_factory.h>
-#include <faiss/index_io.h>
+//#include <boost/heap/fibonacci_heap.hpp>
+//#include <faiss/Clustering.h>
+//#include <faiss/IndexFlat.h>
+//#include <faiss/IndexIVF.h>
+//#include <faiss/index_factory.h>
+//#include <faiss/index_io.h>
 #include <omp.h>
 
 namespace colmap {
 namespace retrieval {
 namespace {
 
-std::unique_ptr<faiss::IndexIVF> BuildFaissIndex(
-    const VisualIndex::BuildOptions& options,
-    const Eigen::RowMajorMatrixXf& visual_words) {
-  const int64_t num_centroids = std::min<int64_t>(
-      visual_words.rows(), 2 * std::sqrt(visual_words.rows()));
-  const int64_t spectral_hash_dim =
-      std::min<int64_t>(visual_words.rows(), visual_words.cols() / 2);
-  std::ostringstream index_type;
-  index_type << "IVF" << num_centroids << ",ITQ" << spectral_hash_dim << ",SH";
-  VLOG(2) << "Training " << index_type.str()
-          << " search index for visual words";
-  const auto index_factory_verbose = faiss::index_factory_verbose;
-  faiss::index_factory_verbose = VLOG_IS_ON(3);
-  auto index = std::unique_ptr<faiss::IndexIVF>(dynamic_cast<faiss::IndexIVF*>(
-      faiss::index_factory(visual_words.cols(), index_type.str().c_str())));
-  faiss::index_factory_verbose = index_factory_verbose;
-
-#pragma omp parallel num_threads(1)
-  {
-    omp_set_num_threads(GetEffectiveNumThreads(options.num_threads));
-#ifdef _MSC_VER
-    omp_set_nested(1);
-#else
-    omp_set_max_active_levels(1);
-#endif
-
-    index->train(visual_words.rows(), visual_words.data());
-    index->add(visual_words.rows(), visual_words.data());
-  }
-
-  return index;
-}
+//std::unique_ptr<faiss::IndexIVF> BuildFaissIndex(
+//    const VisualIndex::BuildOptions& options,
+//    const Eigen::RowMajorMatrixXf& visual_words) {
+//  const int64_t num_centroids = std::min<int64_t>(
+//      visual_words.rows(), 2 * std::sqrt(visual_words.rows()));
+//  const int64_t spectral_hash_dim =
+//      std::min<int64_t>(visual_words.rows(), visual_words.cols() / 2);
+//  std::ostringstream index_type;
+//  index_type << "IVF" << num_centroids << ",ITQ" << spectral_hash_dim << ",SH";
+//  VLOG(2) << "Training " << index_type.str()
+//          << " search index for visual words";
+//  const auto index_factory_verbose = faiss::index_factory_verbose;
+//  faiss::index_factory_verbose = VLOG_IS_ON(3);
+//  auto index = std::unique_ptr<faiss::IndexIVF>(dynamic_cast<faiss::IndexIVF*>(
+//      faiss::index_factory(visual_words.cols(), index_type.str().c_str())));
+//  faiss::index_factory_verbose = index_factory_verbose;
+//
+//#pragma omp parallel num_threads(1)
+//  {
+//    omp_set_num_threads(GetEffectiveNumThreads(options.num_threads));
+//#ifdef _MSC_VER
+//    omp_set_nested(1);
+//#else
+//    omp_set_max_active_levels(1);
+//#endif
+//
+//    index->train(visual_words.rows(), visual_words.data());
+//    index->add(visual_words.rows(), visual_words.data());
+//  }
+//
+//  return index;
+//}
 
 template <int kDescDim = 128, int kEmbeddingDim = 64>
 class FaissVisualIndex : public VisualIndex {

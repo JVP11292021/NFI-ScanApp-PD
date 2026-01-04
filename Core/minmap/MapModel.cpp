@@ -202,56 +202,53 @@ void PrintComparisonSummary(std::ostream& out,
 }
 
 
-int RunModelConverter(int argc, char** argv) {
-    std::string input_path;
-    std::string output_path;
-    std::string output_type;
-    bool skip_distortion = false;
-
-    colmap::OptionManager options;
-    options.AddRequiredOption("input_path", &input_path);
-    options.AddRequiredOption("output_path", &output_path);
-    options.AddRequiredOption("output_type",
-        &output_type,
-        "{BIN, TXT, NVM, Bundler, VRML, PLY, R3D, CAM}");
-    options.AddDefaultOption("skip_distortion", &skip_distortion);
-    options.Parse(argc, argv);
-
+int RunModelConverter(
+    const std::filesystem::path& input_path,
+    const std::filesystem::path& output_path,
+    const std::string& output_type,
+    bool skip_distortion
+) {
     colmap::Reconstruction reconstruction;
-    reconstruction.Read(input_path);
+    reconstruction.Read(input_path.string());
 
-    colmap::StringToLower(&output_type);
-    if (output_type == "bin") {
-        reconstruction.WriteBinary(output_path);
+    std::string type = output_type;
+    colmap::StringToLower(&type);
+
+    if (type == "bin") {
+        reconstruction.WriteBinary(output_path.string());
     }
-    else if (output_type == "txt") {
-        reconstruction.WriteText(output_path);
+    else if (type == "txt") {
+        reconstruction.WriteText(output_path.string());
     }
-    else if (output_type == "nvm") {
-        colmap::ExportNVM(reconstruction, output_path, skip_distortion);
+    else if (type == "nvm") {
+        colmap::ExportNVM(reconstruction, output_path.string(), skip_distortion);
     }
-    else if (output_type == "bundler") {
-        colmap::ExportBundler(reconstruction,
-            output_path + ".bundle.out",
-            output_path + ".list.txt",
-            skip_distortion);
+    else if (type == "bundler") {
+        colmap::ExportBundler(
+            reconstruction,
+            output_path.string() + ".bundle.out",
+            output_path.string() + ".list.txt",
+            skip_distortion
+        );
     }
-    else if (output_type == "r3d") {
-        colmap::ExportRecon3D(reconstruction, output_path, skip_distortion);
+    else if (type == "r3d") {
+        colmap::ExportRecon3D(reconstruction, output_path.string(), skip_distortion);
     }
-    else if (output_type == "cam") {
-        colmap::ExportCam(reconstruction, output_path, skip_distortion);
+    else if (type == "cam") {
+        colmap::ExportCam(reconstruction, output_path.string(), skip_distortion);
     }
-    else if (output_type == "ply") {
-        colmap::ExportPLY(reconstruction, output_path);
+    else if (type == "ply") {
+        colmap::ExportPLY(reconstruction, output_path.string());
     }
-    else if (output_type == "vrml") {
-        const auto base_path = output_path.substr(0, output_path.find_last_of('.'));
-        colmap::ExportVRML(reconstruction,
+    else if (type == "vrml") {
+        const auto base_path = output_path.string().substr(0, output_path.string().find_last_of('.'));
+        colmap::ExportVRML(
+            reconstruction,
             base_path + ".images.wrl",
             base_path + ".points3D.wrl",
             1,
-            Eigen::Vector3d(1, 0, 0));
+            Eigen::Vector3d(1, 0, 0)
+        );
     }
     else {
         LOG(ERROR) << "Invalid `output_type`";

@@ -30,7 +30,6 @@
 #pragma once
 
 #include "../scene/reconstruction.h"
-#include "../util/enum_utils.h"
 
 #include <memory>
 #include <unordered_set>
@@ -40,8 +39,31 @@
 
 namespace colmap {
 
-MAKE_ENUM_CLASS_OVERLOAD_STREAM(
-    BundleAdjustmentGauge, -1, UNSPECIFIED, TWO_CAMS_FROM_WORLD, THREE_POINTS);
+enum class BundleAdjustmentGauge {
+    UNSPECIFIED = -1,
+    TWO_CAMS_FROM_WORLD = 0,
+    THREE_POINTS = 1,
+};
+
+constexpr std::string_view BundleAdjustmentGaugeToString(BundleAdjustmentGauge v) {
+    switch (v) {
+    case BundleAdjustmentGauge::UNSPECIFIED:         return "UNSPECIFIED";
+    case BundleAdjustmentGauge::TWO_CAMS_FROM_WORLD: return "TWO_CAMS_FROM_WORLD";
+    case BundleAdjustmentGauge::THREE_POINTS:        return "THREE_POINTS";
+    default: return "UNKNOWN";
+    }
+}
+
+inline BundleAdjustmentGauge BundleAdjustmentGaugeFromString(std::string_view s) {
+    if (s == "UNSPECIFIED")         return BundleAdjustmentGauge::UNSPECIFIED;
+    if (s == "TWO_CAMS_FROM_WORLD") return BundleAdjustmentGauge::TWO_CAMS_FROM_WORLD;
+    if (s == "THREE_POINTS")        return BundleAdjustmentGauge::THREE_POINTS;
+    throw std::runtime_error("Invalid BundleAdjustmentGauge: " + std::string(s));
+}
+
+inline std::ostream& operator<<(std::ostream& os, BundleAdjustmentGauge v) {
+    return os << BundleAdjustmentGaugeToString(v);
+}
 
 // Configuration container to setup bundle adjustment problems.
 class BundleAdjustmentConfig {

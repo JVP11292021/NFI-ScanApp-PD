@@ -99,7 +99,7 @@
 namespace colmap {
 
 // Initialize glog at the beginning of the program.
-void InitializeGlog(char** argv);
+void InitializeGlog(const char* argv);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Implementation

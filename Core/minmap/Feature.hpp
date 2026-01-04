@@ -3,6 +3,8 @@
 
 #include "minmap_defs.hpp"
 
+#include <filesystem>
+
 #include <feature/pairing.h> // Dependencies: matcher.h, resources.h, visual_index.h, database.h, threading.h, types.h
 #include <controllers/feature_matching.h>
 #include <controllers/image_reader.h> // Dependencies: gps.h, database.h, bitmap.h, threading.h
@@ -34,8 +36,13 @@ bool VerifySiftGPUParams(bool use_gpu);
 bool VerifyCameraParams(const std::string& camera_model,
     const std::string& params);
 
-int RunFeatureExtractor(int argc, char** argv);
-int RunExhaustiveMatcher(int argc, char** argv);
+int RunFeatureExtractor(
+    const std::filesystem::path& database_path,
+    const std::filesystem::path& image_path,
+    int camera_mode = -1,
+    const std::string& descriptor_normalization = "l1_root",
+    const std::string& image_list_path = "");
+int RunExhaustiveMatcher(const std::filesystem::path& database_path);
 //int RunFeatureImporter(int argc, char** argv);
 //int RunMatchesImporter(int argc, char** argv);
 //int RunSequentialMatcher(int argc, char** argv);

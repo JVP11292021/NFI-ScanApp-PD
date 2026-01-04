@@ -67,10 +67,10 @@ class ReconstructionService {
 public:
 	bool runSparse(
 		const std::filesystem::path& dataset,
-		char** argv,
 		bool cpuOnly = true
 	) {
-		colmap::InitializeGlog(argv);
+		std::string programName = "Visualization Program";
+		colmap::InitializeGlog(programName.c_str());
 
 		std::filesystem::path images = dataset / "images";
 		std::filesystem::path db = dataset / "database.db";
@@ -79,58 +79,30 @@ public:
 		std::filesystem::create_directories(sparse);
 
 		// 1. Feature extraction
-		{
-			std::vector<std::string> args = {
-				"feature_extractor",
-				"--database_path", db.string(),
-				"--image_path", images.string()
-			};
-
-			if (run(minmap::RunFeatureExtractor, args) != 0)
-				return false;
+		if (minmap::RunFeatureExtractor(db, images) != EXIT_SUCCESS) {
+			LOG(ERROR) << "Feature extraction failed.";
+			return false;
 		}
 
-		// 2. Matching
-		{
-			std::vector<std::string> args = {
-				"exhaustive_matcher",
-				"--database_path", db.string()
-			};
+		//// 2. Exhaustive matching
+		//if (minmap::RunExhaustiveMatcher(db) != EXIT_SUCCESS) {
+		//	LOG(ERROR) << "Exhaustive matching failed.";
+		//	return false;
+		//}
 
-			if (run(minmap::RunExhaustiveMatcher, args) != 0)
-				return false;
-		}
+		//// 3. Mapping (creates sparse reconstruction)
+		//if (minmap::RunMapper(db, images, sparse) != EXIT_SUCCESS) {
+		//	LOG(ERROR) << "Mapping failed.";
+		//	return false;
+		//}
 
-		// 3. Mapping
-		if (run(minmap::RunMapper, {
-			"mapper",
-			"--database_path", db.string(),
-			"--image_path", images.string(),
-			"--output_path", sparse.string()
-			}) != 0)
-			return false;
-
-		// 4. Export PLY
-		if (run(minmap::RunModelConverter, {
-			"model_converter",
-			"--input_path", (sparse / "0").string(),
-			"--output_path", (sparse / "sparse.ply").string(),
-			"--output_type", "PLY"
-			}) != 0)
-			return false;
+		//// 4. Export to PLY
+		//if (minmap::RunModelConverter(sparse / "0", sparse / "sparse.ply", "PLY") != EXIT_SUCCESS) {
+		//	LOG(ERROR) << "Model conversion to PLY failed.";
+		//	return false;
+		//}
 
 		return true;
-	}
-
-private:
-	int run(
-		int (*fn)(int, char**),
-		const std::vector<std::string>& args
-	) {
-		std::vector<char*> argv;
-		for (auto& s : args)
-			argv.push_back(const_cast<char*>(s.c_str()));
-		return fn((int)argv.size(), argv.data());
 	}
 };
 
@@ -385,7 +357,7 @@ private:
 
 int main(int argc, char** argv) {
 	ReconstructionService recon{};
-	if (!recon.runSparse("pointclouds/well", argv))
+	if (!recon.runSparse("pointclouds/well"))
 		return EXIT_FAILURE;
 
 	FirstApp app;

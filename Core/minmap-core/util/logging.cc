@@ -31,11 +31,11 @@
 
 namespace colmap {
 
-void InitializeGlog(char** argv) {
+void InitializeGlog(const char* argv) {
 #ifndef _MSC_VER  // Broken in MSVC
   google::InstallFailureSignalHandler();
 #endif
-  google::InitGoogleLogging(argv[0]);
+  google::InitGoogleLogging(argv);
 }
 
 const char* __GetConstFileBaseName(const char* file) {

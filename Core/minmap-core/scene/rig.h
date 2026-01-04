@@ -118,7 +118,7 @@ struct RigConfig {
   };
   std::vector<RigCamera> cameras;
 };
-std::vector<RigConfig> ReadRigConfig(const std::string& path);
+//std::vector<RigConfig> ReadRigConfig(const std::string& path);
 
 // Applies the given rig configuration to the database and optionally derives
 // camera rig extrinsics and intrinsics from the reconstruction, if not defined

@@ -160,24 +160,24 @@ struct SequentialMatchingOptions {
   }
 };
 
-struct SpatialMatchingOptions {
-  // Whether to ignore the Z-component of the location prior.
-  bool ignore_z = true;
-
-  // The maximum number of nearest neighbors to match.
-  int max_num_neighbors = 50;
-
-  // The maximum distance between the query and nearest neighbor. For GPS
-  // coordinates the unit is Euclidean distance in meters.
-  double max_distance = 100;
-
-  // Number of threads for indexing and retrieval.
-  int num_threads = -1;
-
-  bool Check() const;
-
-  inline size_t CacheSize() const { return 5 * max_num_neighbors; }
-};
+//struct SpatialMatchingOptions {
+//  // Whether to ignore the Z-component of the location prior.
+//  bool ignore_z = true;
+//
+//  // The maximum number of nearest neighbors to match.
+//  int max_num_neighbors = 50;
+//
+//  // The maximum distance between the query and nearest neighbor. For GPS
+//  // coordinates the unit is Euclidean distance in meters.
+//  double max_distance = 100;
+//
+//  // Number of threads for indexing and retrieval.
+//  int num_threads = -1;
+//
+//  bool Check() const;
+//
+//  inline size_t CacheSize() const { return 5 * max_num_neighbors; }
+//};
 
 struct TransitiveMatchingOptions {
   // The maximum number of image pairs to process in one batch.
@@ -322,35 +322,35 @@ class SequentialPairGenerator : public PairGenerator {
   size_t image_idx_ = 0;
 };
 
-class SpatialPairGenerator : public PairGenerator {
- public:
-  using PairOptions = SpatialMatchingOptions;
-
-  SpatialPairGenerator(const SpatialMatchingOptions& options,
-                       const std::shared_ptr<FeatureMatcherCache>& cache);
-
-  SpatialPairGenerator(const SpatialMatchingOptions& options,
-                       const std::shared_ptr<Database>& database);
-
-  void Reset() override;
-
-  bool HasFinished() const override;
-
-  std::vector<std::pair<image_t, image_t>> Next() override;
-
-  Eigen::RowMajorMatrixXf ReadPositionPriorData(FeatureMatcherCache& cache);
-
- private:
-  const SpatialMatchingOptions options_;
-  std::vector<std::pair<image_t, image_t>> image_pairs_;
-  Eigen::Matrix<int64_t, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
-      index_matrix_;
-  Eigen::RowMajorMatrixXf distance_matrix_;
-  std::vector<image_t> image_ids_;
-  std::vector<size_t> position_idxs_;
-  size_t current_idx_ = 0;
-  int knn_ = 0;
-};
+//class SpatialPairGenerator : public PairGenerator {
+// public:
+//  using PairOptions = SpatialMatchingOptions;
+//
+//  SpatialPairGenerator(const SpatialMatchingOptions& options,
+//                       const std::shared_ptr<FeatureMatcherCache>& cache);
+//
+//  SpatialPairGenerator(const SpatialMatchingOptions& options,
+//                       const std::shared_ptr<Database>& database);
+//
+//  void Reset() override;
+//
+//  bool HasFinished() const override;
+//
+//  std::vector<std::pair<image_t, image_t>> Next() override;
+//
+//  Eigen::RowMajorMatrixXf ReadPositionPriorData(FeatureMatcherCache& cache);
+//
+// private:
+//  const SpatialMatchingOptions options_;
+//  std::vector<std::pair<image_t, image_t>> image_pairs_;
+//  Eigen::Matrix<int64_t, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
+//      index_matrix_;
+//  Eigen::RowMajorMatrixXf distance_matrix_;
+//  std::vector<image_t> image_ids_;
+//  std::vector<size_t> position_idxs_;
+//  size_t current_idx_ = 0;
+//  int knn_ = 0;
+//};
 
 class TransitivePairGenerator : public PairGenerator {
  public:

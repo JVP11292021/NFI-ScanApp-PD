@@ -57,8 +57,6 @@ typedef unsigned __int64 uint64_t;
 // NOLINTNEXTLINE(bugprone-macro-parentheses)
 #define NON_MOVABLE(class_name) class_name(class_name&&) = delete;
 
-#include "../util/enum_utils.h"
-
 #include <Eigen/Core>
 
 namespace Eigen {
@@ -113,16 +111,31 @@ constexpr point2D_t kInvalidPoint2DIdx = std::numeric_limits<point2D_t>::max();
 typedef uint64_t point3D_t;
 constexpr point3D_t kInvalidPoint3DId = std::numeric_limits<point3D_t>::max();
 
-// Sensor type.
-#ifdef __CUDACC__
 enum class SensorType {
-  INVALID = -1,
-  CAMERA = 0,
-  IMU = 1,
+    INVALID = -1,
+    CAMERA = 0,
+    IMU = 1,
 };
-#else
-MAKE_ENUM_CLASS_OVERLOAD_STREAM(SensorType, -1, INVALID, CAMERA, IMU);
-#endif
+
+constexpr std::string_view SensorTypeToString(SensorType v) {
+    switch (v) {
+    case SensorType::INVALID: return "INVALID";
+    case SensorType::CAMERA:  return "CAMERA";
+    case SensorType::IMU:     return "IMU";
+    default: return "UNKNOWN";
+    }
+}
+
+inline SensorType SensorTypeFromString(std::string_view s) {
+    if (s == "INVALID") return SensorType::INVALID;
+    if (s == "CAMERA")  return SensorType::CAMERA;
+    if (s == "IMU")     return SensorType::IMU;
+    throw std::runtime_error("Invalid SensorType: " + std::string(s));
+}
+
+inline std::ostream& operator<<(std::ostream& os, SensorType v) {
+    return os << SensorTypeToString(v);
+}
 
 struct sensor_t {
   // Type of the sensor (INVALID / CAMERA / IMU)

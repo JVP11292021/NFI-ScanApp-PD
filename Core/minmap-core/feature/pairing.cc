@@ -42,8 +42,8 @@
 #include <unordered_set>
 #include <vector>
 
-#include <faiss/IndexFlat.h>
-#include <omp.h>
+//#include <faiss/IndexFlat.h>
+//#include <omp.h>
 
 namespace colmap {
 namespace {
@@ -131,11 +131,11 @@ VocabTreeMatchingOptions SequentialMatchingOptions::VocabTreeOptions() const {
   return options;
 }
 
-bool SpatialMatchingOptions::Check() const {
-  CHECK_OPTION_GT(max_num_neighbors, 0);
-  CHECK_OPTION_GT(max_distance, 0.0);
-  return true;
-}
+//bool SpatialMatchingOptions::Check() const {
+//  CHECK_OPTION_GT(max_num_neighbors, 0);
+//  CHECK_OPTION_GT(max_distance, 0.0);
+//  return true;
+//}
 
 bool TransitiveMatchingOptions::Check() const {
   CHECK_OPTION_GT(batch_size, 0);
@@ -543,154 +543,154 @@ std::vector<image_t> SequentialPairGenerator::GetOrderedImageIds() const {
   return ordered_image_ids;
 }
 
-SpatialPairGenerator::SpatialPairGenerator(
-    const SpatialMatchingOptions& options,
-    const std::shared_ptr<FeatureMatcherCache>& cache)
-    : options_(options), image_ids_(THROW_CHECK_NOTNULL(cache)->GetImageIds()) {
-  LOG(INFO) << "Generating spatial image pairs...";
-  THROW_CHECK(options.Check());
-
-  Timer timer;
-  timer.Start();
-  LOG(INFO) << "Indexing images...";
-
-  Eigen::RowMajorMatrixXf position_matrix = ReadPositionPriorData(*cache);
-  const size_t num_positions = position_idxs_.size();
-
-  LOG(INFO) << StringPrintf(" in %.3fs", timer.ElapsedSeconds());
-  if (num_positions == 0) {
-    LOG(INFO) << "=> No images with location data.";
-    return;
-  }
-
-  timer.Restart();
-  LOG(INFO) << "Building search index...";
-
-  faiss::IndexFlatL2 search_index(/*d=*/3);
-  search_index.add(position_matrix.rows(), position_matrix.data());
-
-  LOG(INFO) << StringPrintf(" in %.3fs", timer.ElapsedSeconds());
-
-  timer.Restart();
-  LOG(INFO) << "Searching for nearest neighbors...";
-
-  knn_ = std::min<int>(options_.max_num_neighbors + 1, num_positions);
-  image_pairs_.reserve(knn_);
-
-  index_matrix_.resize(num_positions, knn_);
-  distance_matrix_.resize(num_positions, knn_);
-
-  omp_set_num_threads(GetEffectiveNumThreads(options_.num_threads));
-
-  search_index.search(position_matrix.rows(),
-                      position_matrix.data(),
-                      knn_,
-                      distance_matrix_.data(),
-                      index_matrix_.data());
-
-  LOG(INFO) << StringPrintf(" in %.3fs", timer.ElapsedSeconds());
-}
-
-SpatialPairGenerator::SpatialPairGenerator(
-    const SpatialMatchingOptions& options,
-    const std::shared_ptr<Database>& database)
-    : SpatialPairGenerator(
-          options,
-          std::make_shared<FeatureMatcherCache>(
-              options.CacheSize(), THROW_CHECK_NOTNULL(database))) {}
-
-void SpatialPairGenerator::Reset() { current_idx_ = 0; }
-
-bool SpatialPairGenerator::HasFinished() const {
-  return current_idx_ >= position_idxs_.size();
-}
-
-std::vector<std::pair<image_t, image_t>> SpatialPairGenerator::Next() {
-  image_pairs_.clear();
-  if (HasFinished()) {
-    return image_pairs_;
-  }
-
-  LOG(INFO) << StringPrintf(
-      "Matching image [%d/%d]", current_idx_ + 1, position_idxs_.size());
-  const float max_distance =
-      static_cast<float>(options_.max_distance * options_.max_distance);
-  for (int j = 0; j < knn_; ++j) {
-    // Check if query equals result.
-    if (index_matrix_(current_idx_, j) == static_cast<int>(current_idx_)) {
-      continue;
-    }
-
-    // Since the nearest neighbors are sorted by distance, we can break.
-    if (distance_matrix_(current_idx_, j) > max_distance) {
-      break;
-    }
-
-    const image_t image_id = image_ids_.at(position_idxs_[current_idx_]);
-    const size_t nn_idx = position_idxs_.at(index_matrix_(current_idx_, j));
-    const image_t nn_image_id = image_ids_.at(nn_idx);
-    image_pairs_.emplace_back(image_id, nn_image_id);
-  }
-  ++current_idx_;
-  return image_pairs_;
-}
-
-Eigen::RowMajorMatrixXf SpatialPairGenerator::ReadPositionPriorData(
-    FeatureMatcherCache& cache) {
-  GPSTransform gps_transform;
-  std::vector<Eigen::Vector3d> ells(1);
-
-  Eigen::RowMajorMatrixXd position_matrix(image_ids_.size(), 3);
-  position_idxs_.clear();
-  position_idxs_.reserve(image_ids_.size());
-
-  for (size_t i = 0; i < image_ids_.size(); ++i) {
-    const PosePrior* pose_prior = cache.GetPosePriorOrNull(image_ids_[i]);
-    if (pose_prior == nullptr) {
-      continue;
-    }
-
-    const Eigen::Vector3d& position_prior = pose_prior->position;
-    if ((position_prior(0) == 0 && position_prior(1) == 0 &&
-         position_prior(2) == 0) ||
-        (options_.ignore_z && position_prior(0) == 0 &&
-         position_prior(1) == 0)) {
-      continue;
-    }
-
-    const size_t position_idx = position_idxs_.size();
-    position_idxs_.push_back(i);
-
-    switch (pose_prior->coordinate_system) {
-      case PosePrior::CoordinateSystem::WGS84: {
-        ells[0](0) = position_prior(0);
-        ells[0](1) = position_prior(1);
-        ells[0](2) = options_.ignore_z ? 0 : position_prior(2);
-
-        const std::vector<Eigen::Vector3d> xyzs =
-            gps_transform.EllipsoidToECEF(ells);
-        position_matrix(position_idx, 0) = xyzs[0](0);
-        position_matrix(position_idx, 1) = xyzs[0](1);
-        position_matrix(position_idx, 2) = xyzs[0](2);
-      } break;
-      case PosePrior::CoordinateSystem::UNDEFINED:
-      default:
-        LOG(WARNING) << "Unknown coordinate system for image " << image_ids_[i]
-                     << ", assuming cartesian.";
-      case PosePrior::CoordinateSystem::CARTESIAN:
-        position_matrix(position_idx, 0) = position_prior(0);
-        position_matrix(position_idx, 1) = position_prior(1);
-        position_matrix(position_idx, 2) =
-            options_.ignore_z ? 0 : position_prior(2);
-    }
-  }
-
-  // Subtract the mean coordinate before casting to float for better numerical
-  // precision when dealing with large coordinates (e.g. GPS). For even better
-  // precision, we could also rescale the coordinates.
-  position_matrix.rowwise() -= position_matrix.colwise().mean();
-  return position_matrix.topRows(position_idxs_.size()).cast<float>();
-}
+//SpatialPairGenerator::SpatialPairGenerator(
+//    const SpatialMatchingOptions& options,
+//    const std::shared_ptr<FeatureMatcherCache>& cache)
+//    : options_(options), image_ids_(THROW_CHECK_NOTNULL(cache)->GetImageIds()) {
+//  LOG(INFO) << "Generating spatial image pairs...";
+//  THROW_CHECK(options.Check());
+//
+//  Timer timer;
+//  timer.Start();
+//  LOG(INFO) << "Indexing images...";
+//
+//  Eigen::RowMajorMatrixXf position_matrix = ReadPositionPriorData(*cache);
+//  const size_t num_positions = position_idxs_.size();
+//
+//  LOG(INFO) << StringPrintf(" in %.3fs", timer.ElapsedSeconds());
+//  if (num_positions == 0) {
+//    LOG(INFO) << "=> No images with location data.";
+//    return;
+//  }
+//
+//  timer.Restart();
+//  LOG(INFO) << "Building search index...";
+//
+//  faiss::IndexFlatL2 search_index(/*d=*/3);
+//  search_index.add(position_matrix.rows(), position_matrix.data());
+//
+//  LOG(INFO) << StringPrintf(" in %.3fs", timer.ElapsedSeconds());
+//
+//  timer.Restart();
+//  LOG(INFO) << "Searching for nearest neighbors...";
+//
+//  knn_ = std::min<int>(options_.max_num_neighbors + 1, num_positions);
+//  image_pairs_.reserve(knn_);
+//
+//  index_matrix_.resize(num_positions, knn_);
+//  distance_matrix_.resize(num_positions, knn_);
+//
+//  omp_set_num_threads(GetEffectiveNumThreads(options_.num_threads));
+//
+//  search_index.search(position_matrix.rows(),
+//                      position_matrix.data(),
+//                      knn_,
+//                      distance_matrix_.data(),
+//                      index_matrix_.data());
+//
+//  LOG(INFO) << StringPrintf(" in %.3fs", timer.ElapsedSeconds());
+//}
+//
+//SpatialPairGenerator::SpatialPairGenerator(
+//    const SpatialMatchingOptions& options,
+//    const std::shared_ptr<Database>& database)
+//    : SpatialPairGenerator(
+//          options,
+//          std::make_shared<FeatureMatcherCache>(
+//              options.CacheSize(), THROW_CHECK_NOTNULL(database))) {}
+//
+//void SpatialPairGenerator::Reset() { current_idx_ = 0; }
+//
+//bool SpatialPairGenerator::HasFinished() const {
+//  return current_idx_ >= position_idxs_.size();
+//}
+//
+////std::vector<std::pair<image_t, image_t>> SpatialPairGenerator::Next() {
+//  image_pairs_.clear();
+//  if (HasFinished()) {
+//    return image_pairs_;
+//  }
+//
+//  LOG(INFO) << StringPrintf(
+//      "Matching image [%d/%d]", current_idx_ + 1, position_idxs_.size());
+//  const float max_distance =
+//      static_cast<float>(options_.max_distance * options_.max_distance);
+//  for (int j = 0; j < knn_; ++j) {
+//    // Check if query equals result.
+//    if (index_matrix_(current_idx_, j) == static_cast<int>(current_idx_)) {
+//      continue;
+//    }
+//
+//    // Since the nearest neighbors are sorted by distance, we can break.
+//    if (distance_matrix_(current_idx_, j) > max_distance) {
+//      break;
+//    }
+//
+//    const image_t image_id = image_ids_.at(position_idxs_[current_idx_]);
+//    const size_t nn_idx = position_idxs_.at(index_matrix_(current_idx_, j));
+//    const image_t nn_image_id = image_ids_.at(nn_idx);
+//    image_pairs_.emplace_back(image_id, nn_image_id);
+//  }
+//  ++current_idx_;
+//  return image_pairs_;
+//}
+//
+//Eigen::RowMajorMatrixXf SpatialPairGenerator::ReadPositionPriorData(
+//    FeatureMatcherCache& cache) {
+//  GPSTransform gps_transform;
+//  std::vector<Eigen::Vector3d> ells(1);
+//
+//  Eigen::RowMajorMatrixXd position_matrix(image_ids_.size(), 3);
+//  position_idxs_.clear();
+//  position_idxs_.reserve(image_ids_.size());
+//
+//  for (size_t i = 0; i < image_ids_.size(); ++i) {
+//    const PosePrior* pose_prior = cache.GetPosePriorOrNull(image_ids_[i]);
+//    if (pose_prior == nullptr) {
+//      continue;
+//    }
+//
+//    const Eigen::Vector3d& position_prior = pose_prior->position;
+//    if ((position_prior(0) == 0 && position_prior(1) == 0 &&
+//         position_prior(2) == 0) ||
+//        (options_.ignore_z && position_prior(0) == 0 &&
+//         position_prior(1) == 0)) {
+//      continue;
+//    }
+//
+//    const size_t position_idx = position_idxs_.size();
+//    position_idxs_.push_back(i);
+//
+//    switch (pose_prior->coordinate_system) {
+//      case PosePrior::CoordinateSystem::WGS84: {
+//        ells[0](0) = position_prior(0);
+//        ells[0](1) = position_prior(1);
+//        ells[0](2) = options_.ignore_z ? 0 : position_prior(2);
+//
+//        const std::vector<Eigen::Vector3d> xyzs =
+//            gps_transform.EllipsoidToECEF(ells);
+//        position_matrix(position_idx, 0) = xyzs[0](0);
+//        position_matrix(position_idx, 1) = xyzs[0](1);
+//        position_matrix(position_idx, 2) = xyzs[0](2);
+//      } break;
+//      case PosePrior::CoordinateSystem::UNDEFINED:
+//      default:
+//        LOG(WARNING) << "Unknown coordinate system for image " << image_ids_[i]
+//                     << ", assuming cartesian.";
+//      case PosePrior::CoordinateSystem::CARTESIAN:
+//        position_matrix(position_idx, 0) = position_prior(0);
+//        position_matrix(position_idx, 1) = position_prior(1);
+//        position_matrix(position_idx, 2) =
+//            options_.ignore_z ? 0 : position_prior(2);
+//    }
+//  }
+//
+//  // Subtract the mean coordinate before casting to float for better numerical
+//  // precision when dealing with large coordinates (e.g. GPS). For even better
+//  // precision, we could also rescale the coordinates.
+//  position_matrix.rowwise() -= position_matrix.colwise().mean();
+//  return position_matrix.topRows(position_idxs_.size()).cast<float>();
+//}
 
 TransitivePairGenerator::TransitivePairGenerator(
     const TransitiveMatchingOptions& options,

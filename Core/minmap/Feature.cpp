@@ -66,89 +66,97 @@ void UpdateImageReaderOptionsFromCameraMode(colmap::ImageReaderOptions& options,
     }
 }
 
-int RunFeatureExtractor(int argc, char** argv) {
-    std::string image_list_path;
-    int camera_mode = -1;
-    std::string descriptor_normalization = "l1_root";
-
+int RunFeatureExtractor(
+    const std::filesystem::path& database_path,
+    const std::filesystem::path& image_path,
+    int camera_mode,
+    const std::string& descriptor_normalization,
+    const std::string& image_list_path
+) {
     colmap::OptionManager options;
+    *options.database_path = database_path.string();
+    *options.image_path = image_path.string();
     options.AddDatabaseOptions();
     options.AddImageOptions();
-    options.AddDefaultOption("camera_mode", &camera_mode);
-    options.AddDefaultOption("image_list_path", &image_list_path);
-    options.AddDefaultOption("descriptor_normalization",
-        &descriptor_normalization,
-        "{'l1_root', 'l2'}");
     options.AddExtractionOptions();
-    options.Parse(argc, argv);
 
-    colmap::ImageReaderOptions reader_options = *options.image_reader;
-    reader_options.image_path = *options.image_path;
+    // Copy reader options
+    //colmap::ImageReaderOptions reader_options = *options.image_reader;
+    //reader_options.image_path = *options.image_path;
 
-    if (camera_mode >= 0) {
-        UpdateImageReaderOptionsFromCameraMode(reader_options,
-            (CameraMode)camera_mode);
-    }
+    //// Apply camera mode if specified
+    //if (camera_mode >= 0) {
+    //    UpdateImageReaderOptionsFromCameraMode(reader_options,
+    //        static_cast<CameraMode>(camera_mode));
+    //}
 
-    options.sift_extraction->use_gpu = false;
-    colmap::StringToLower(&descriptor_normalization);
-    if (descriptor_normalization == "l1_root") {
-        options.sift_extraction->normalization =
-            colmap::SiftExtractionOptions::Normalization::L1_ROOT;
-    }
-    else if (descriptor_normalization == "l2") {
-        options.sift_extraction->normalization =
-            colmap::SiftExtractionOptions::Normalization::L2;
-    }
-    else {
-        LOG(ERROR) << "Invalid `descriptor_normalization`";
-        return EXIT_FAILURE;
-    }
+    //// SIFT options
+    //options.sift_extraction->use_gpu = false;
+    //std::string desc_norm = descriptor_normalization;
+    //colmap::StringToLower(&desc_norm);
+    //if (desc_norm == "l1_root") {
+    //    options.sift_extraction->normalization =
+    //        colmap::SiftExtractionOptions::Normalization::L1_ROOT;
+    //}
+    //else if (desc_norm == "l2") {
+    //    options.sift_extraction->normalization =
+    //        colmap::SiftExtractionOptions::Normalization::L2;
+    //}
+    //else {
+    //    LOG(ERROR) << "Invalid `descriptor_normalization`";
+    //    return EXIT_FAILURE;
+    //}
 
-    if (!image_list_path.empty()) {
-        reader_options.image_names = colmap::ReadTextFileLines(image_list_path);
-        if (reader_options.image_names.empty()) {
-            return EXIT_SUCCESS;
-        }
-    }
+    //// Optional image list
+    //if (!image_list_path.empty()) {
+    //    reader_options.image_names = colmap::ReadTextFileLines(image_list_path);
+    //    if (reader_options.image_names.empty()) {
+    //        return EXIT_SUCCESS;
+    //    }
+    //}
 
-    if (!colmap::ExistsCameraModelWithName(reader_options.camera_model)) {
-        LOG(ERROR) << "Camera model does not exist";
-    }
+    //// Check camera model & parameters
+    //if (!colmap::ExistsCameraModelWithName(reader_options.camera_model)) {
+    //    LOG(ERROR) << "Camera model does not exist";
+    //    return EXIT_FAILURE;
+    //}
 
-    if (!VerifyCameraParams(reader_options.camera_model,
-        reader_options.camera_params)) {
-        return EXIT_FAILURE;
-    }
+    //if (!VerifyCameraParams(reader_options.camera_model,
+    //    reader_options.camera_params)) {
+    //    return EXIT_FAILURE;
+    //}
 
-    if (!VerifySiftGPUParams(options.sift_extraction->use_gpu)) {
-        return EXIT_FAILURE;
-    }
+    //if (!VerifySiftGPUParams(options.sift_extraction->use_gpu)) {
+    //    return EXIT_FAILURE;
+    //}
 
-    auto feature_extractor = colmap::CreateFeatureExtractorController(
-        *options.database_path, reader_options, *options.sift_extraction);
+    //// Run feature extractor
+    //auto feature_extractor = colmap::CreateFeatureExtractorController(
+    //    *options.database_path, reader_options, *options.sift_extraction);
 
-    feature_extractor->Start();
-    feature_extractor->Wait();
+    //feature_extractor->Start();
+    //feature_extractor->Wait();
 
     return EXIT_SUCCESS;
 }
 
-int RunExhaustiveMatcher(int argc, char** argv) {
-    colmap::OptionManager options;
+int RunExhaustiveMatcher(const std::filesystem::path& database_path) {
+    colmap::OptionManager options(false);
+    *options.database_path = database_path.string();
     options.AddDatabaseOptions();
     options.AddExhaustiveMatchingOptions();
-    options.Parse(argc, argv);
 
     options.sift_matching->use_gpu = false;
     if (!VerifySiftGPUParams(options.sift_matching->use_gpu)) {
         return EXIT_FAILURE;
     }
 
-    auto matcher = colmap::CreateExhaustiveFeatureMatcher(*options.exhaustive_matching,
+    auto matcher = colmap::CreateExhaustiveFeatureMatcher(
+        *options.exhaustive_matching,
         *options.sift_matching,
         *options.two_view_geometry,
-        *options.database_path);
+        *options.database_path
+    );
 
     matcher->Start();
     matcher->Wait();

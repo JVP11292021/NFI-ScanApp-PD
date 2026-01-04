@@ -44,9 +44,9 @@
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
-#include <Windows.h>
+//#include <Windows.h>
 #endif
-#include <FreeImage.h>
+#include <FreeImage/FreeImage.h>
 
 namespace colmap {
 namespace {

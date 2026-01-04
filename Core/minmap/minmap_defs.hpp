@@ -8,7 +8,7 @@
 #define GLOG_USE_GLOG_EXPORT
 #endif
 #include <glog/logging.h>
-#include <util/logging.h>
+//#include <util/logging.h>
 
 #define MM_NS_B namespace minmap {
 #define MM_NS_E }

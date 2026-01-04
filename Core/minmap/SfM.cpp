@@ -47,70 +47,70 @@ static void UpdateDatabasePosePriorsCovariance(
     }
 }
 
-int RunMapper(int argc, char** argv) {
-    std::string input_path;
-    std::string output_path;
-    std::string image_list_path;
-
-    colmap::OptionManager options;
+int RunMapper(
+    const std::filesystem::path& database_path,
+    const std::filesystem::path& image_path,
+    const std::filesystem::path& output_path,
+    const std::string& input_path,
+    const std::string& image_list_path,
+    bool fix_existing_frames
+) {
+    colmap::OptionManager options(false);
+    *options.database_path = database_path.string();
+    *options.image_path = image_path.string();
     options.AddDatabaseOptions();
     options.AddImageOptions();
-    options.AddDefaultOption("input_path", &input_path);
-    options.AddRequiredOption("output_path", &output_path);
-    options.AddDefaultOption("image_list_path", &image_list_path);
     options.AddMapperOptions();
-    options.Parse(argc, argv);
 
-    if (!colmap::ExistsDir(output_path)) {
-        LOG(ERROR) << "`output_path` is not a directory.";
-        return EXIT_FAILURE;
-    }
-
+    // Optional image list
     if (!image_list_path.empty()) {
         options.mapper->image_names = colmap::ReadTextFileLines(image_list_path);
     }
 
+    options.mapper->fix_existing_frames = fix_existing_frames;
+
+    // Ensure output directory exists
+    if (!colmap::ExistsDir(output_path.string())) {
+        LOG(ERROR) << "`output_path` is not a directory.";
+        return EXIT_FAILURE;
+    }
+
+    // Reconstruction manager
     auto reconstruction_manager = std::make_shared<colmap::ReconstructionManager>();
-    if (input_path != "") {
+
+    std::vector<Eigen::Vector3d> orig_fixed_image_positions;
+    std::vector<colmap::image_t> fixed_image_ids;
+
+    if (!input_path.empty()) {
         if (!colmap::ExistsDir(input_path)) {
             LOG(ERROR) << "`input_path` is not a directory.";
             return EXIT_FAILURE;
         }
         reconstruction_manager->Read(input_path);
+
+        if (fix_existing_frames && reconstruction_manager->Size() > 0) {
+            std::tie(fixed_image_ids, orig_fixed_image_positions) =
+                ExtractExistingImages(*reconstruction_manager->Get(0));
+        }
     }
 
-    // If fix_existing_frames is enabled, we store the initial positions of
-    // existing images in order to transform them back to the original coordinate
-    // frame, as the reconstruction is normalized multiple times for numerical
-    // stability.
-    std::vector<Eigen::Vector3d> orig_fixed_image_positions;
-    std::vector<colmap::image_t> fixed_image_ids;
-    if (options.mapper->fix_existing_frames &&
-        reconstruction_manager->Size() > 0) {
-        std::tie(fixed_image_ids, orig_fixed_image_positions) =
-            ExtractExistingImages(*reconstruction_manager->Get(0));
-    }
-
+    // Run incremental mapper
     colmap::IncrementalPipeline mapper(options.mapper,
         *options.image_path,
         *options.database_path,
         reconstruction_manager);
 
-    // In case a new reconstruction is started, write results of individual sub-
-    // models to as their reconstruction finishes instead of writing all results
-    // after all reconstructions finished.
+    // Callback for writing intermediate reconstructions
     size_t prev_num_reconstructions = 0;
-    if (input_path == "") {
+    if (input_path.empty()) {
         mapper.AddCallback(colmap::IncrementalPipeline::LAST_IMAGE_REG_CALLBACK, [&]() {
-            // If the number of reconstructions has not changed, the last model
-            // was discarded for some reason.
             if (reconstruction_manager->Size() > prev_num_reconstructions) {
-                const std::string reconstruction_path =
+                const std::string reconstruction_dir =
                     colmap::JoinPaths(output_path, std::to_string(prev_num_reconstructions));
-                colmap::CreateDirIfNotExists(reconstruction_path);
+                colmap::CreateDirIfNotExists(reconstruction_dir);
                 reconstruction_manager->Get(prev_num_reconstructions)
-                    ->Write(reconstruction_path);
-                options.Write(colmap::JoinPaths(reconstruction_path, "project.ini"));
+                    ->Write(reconstruction_dir);
+                options.Write(colmap::JoinPaths(reconstruction_dir, "project.ini"));
                 prev_num_reconstructions = reconstruction_manager->Size();
             }
             });
@@ -119,24 +119,19 @@ int RunMapper(int argc, char** argv) {
     mapper.Run();
 
     if (reconstruction_manager->Size() == 0) {
-        LOG(ERROR) << "failed to create sparse model";
+        LOG(ERROR) << "Failed to create sparse model";
         return EXIT_FAILURE;
     }
 
-    // In case the reconstruction is continued from an existing reconstruction, do
-    // not create sub-folders but directly write the results.
-    if (input_path != "") {
-        const auto& reconstruction = reconstruction_manager->Get(0);
+    // Write final reconstruction if continuing from existing
+    if (!input_path.empty()) {
+        auto reconstruction = reconstruction_manager->Get(0);
 
-        // Transform the final reconstruction back to the original coordinate frame.
-        if (options.mapper->fix_existing_frames) {
-            if (fixed_image_ids.size() < 3) {
-                LOG(WARNING) << "Too few images to transform the reconstruction.";
-            }
-            else {
+        if (fix_existing_frames) {
+            if (fixed_image_ids.size() >= 3) {
                 std::vector<Eigen::Vector3d> new_fixed_image_positions;
                 new_fixed_image_positions.reserve(fixed_image_ids.size());
-                for (const colmap::image_t image_id : fixed_image_ids) {
+                for (colmap::image_t image_id : fixed_image_ids) {
                     new_fixed_image_positions.push_back(
                         reconstruction->Image(image_id).ProjectionCenter());
                 }
@@ -147,13 +142,15 @@ int RunMapper(int argc, char** argv) {
                     reconstruction->Transform(orig_from_new);
                 }
                 else {
-                    LOG(WARNING) << "Failed to transform the reconstruction back "
-                        "to the input coordinate frame.";
+                    LOG(WARNING) << "Failed to transform reconstruction to input frame.";
                 }
+            }
+            else {
+                LOG(WARNING) << "Too few images to transform reconstruction.";
             }
         }
 
-        reconstruction->Write(output_path);
+        reconstruction->Write(output_path.string());
     }
 
     return EXIT_SUCCESS;
