@@ -69,11 +69,11 @@ std::unique_ptr<Thread> CreateExhaustiveFeatureMatcher(
     const std::string& database_path);
 
 // Match each image against its nearest neighbors using a vocabulary tree.
-std::unique_ptr<Thread> CreateVocabTreeFeatureMatcher(
-    const VocabTreeMatchingOptions& options,
-    const SiftMatchingOptions& matching_options,
-    const TwoViewGeometryOptions& geometry_options,
-    const std::string& database_path);
+//std::unique_ptr<Thread> CreateVocabTreeFeatureMatcher(
+//    const VocabTreeMatchingOptions& options,
+//    const SiftMatchingOptions& matching_options,
+//    const TwoViewGeometryOptions& geometry_options,
+//    const std::string& database_path);
 
 // Sequentially match images within neighborhood:
 //
@@ -93,11 +93,11 @@ std::unique_ptr<Thread> CreateVocabTreeFeatureMatcher(
 // Invoke loop detection if `(i mod loop_detection_period) == 0`, retrieve
 // most similar `loop_detection_num_images` images from vocabulary tree,
 // and perform matching and verification.
-std::unique_ptr<Thread> CreateSequentialFeatureMatcher(
-    const SequentialMatchingOptions& options,
-    const SiftMatchingOptions& matching_options,
-    const TwoViewGeometryOptions& geometry_options,
-    const std::string& database_path);
+//std::unique_ptr<Thread> CreateSequentialFeatureMatcher(
+//    const SequentialMatchingOptions& options,
+//    const SiftMatchingOptions& matching_options,
+//    const TwoViewGeometryOptions& geometry_options,
+//    const std::string& database_path);
 
 // Match images against spatial nearest neighbors using prior location
 // information, e.g. provided manually or extracted from EXIF.

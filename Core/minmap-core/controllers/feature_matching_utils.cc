@@ -51,12 +51,6 @@ FeatureMatcherWorker::FeatureMatcherWorker(
       input_queue_(input_queue),
       output_queue_(output_queue) {
   THROW_CHECK(matching_options_.Check());
-
-  if (matching_options_.use_gpu) {
-#if !defined(COLMAP_CUDA_ENABLED)
-    opengl_context_ = std::make_unique<OpenGLContextManager>();
-#endif
-  }
 }
 
 void FeatureMatcherWorker::SetMaxNumMatches(int max_num_matches) {
@@ -64,13 +58,6 @@ void FeatureMatcherWorker::SetMaxNumMatches(int max_num_matches) {
 }
 
 void FeatureMatcherWorker::Run() {
-  if (matching_options_.use_gpu) {
-#if !defined(COLMAP_CUDA_ENABLED)
-    THROW_CHECK_NOTNULL(opengl_context_);
-    THROW_CHECK(opengl_context_->MakeCurrent());
-#endif
-  }
-
   matching_options_.cpu_descriptor_index_cache =
       &cache_->GetFeatureDescriptorIndexCache();
   THROW_CHECK_NOTNULL(matching_options_.cpu_descriptor_index_cache);

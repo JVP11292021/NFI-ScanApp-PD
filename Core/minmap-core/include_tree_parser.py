@@ -1,7 +1,7 @@
 import os
 import re
 
-project_root = r"C:/repo/NFI-ScanApp-PD/Core/minmap-core"
+project_root = r"../minmap-core"
 output_file = r"include_tree.txt"
 max_depth = 3  # Maximum recursion depth
 include_pattern = re.compile(r'^\s*#include\s*["<](.+)[">]')

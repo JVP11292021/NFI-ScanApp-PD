@@ -25,7 +25,6 @@ struct IncrementalPipelineOptions;
 class OptionManager {
  public:
   explicit OptionManager(bool add_project_options = true);
-  ~OptionManager() {}
 
   // Create "optimal" set of options for different reconstruction scenarios.
   // Note that the existing options are modified, so if your parameters are

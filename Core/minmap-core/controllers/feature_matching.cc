@@ -114,33 +114,33 @@ std::unique_ptr<Thread> CreateExhaustiveFeatureMatcher(
       });
 }
 
-std::unique_ptr<Thread> CreateVocabTreeFeatureMatcher(
-    const VocabTreeMatchingOptions& options,
-    const SiftMatchingOptions& matching_options,
-    const TwoViewGeometryOptions& geometry_options,
-    const std::string& database_path) {
-  auto database = std::make_shared<Database>(database_path);
-  auto cache =
-      std::make_shared<FeatureMatcherCache>(options.CacheSize(), database);
-  return std::make_unique<FeatureMatcherThread>(
-      matching_options, geometry_options, database, cache, [options, cache]() {
-        return std::make_unique<VocabTreePairGenerator>(options, cache);
-      });
-}
-
-std::unique_ptr<Thread> CreateSequentialFeatureMatcher(
-    const SequentialMatchingOptions& options,
-    const SiftMatchingOptions& matching_options,
-    const TwoViewGeometryOptions& geometry_options,
-    const std::string& database_path) {
-  auto database = std::make_shared<Database>(database_path);
-  auto cache =
-      std::make_shared<FeatureMatcherCache>(options.CacheSize(), database);
-  return std::make_unique<FeatureMatcherThread>(
-      matching_options, geometry_options, database, cache, [options, cache]() {
-        return std::make_unique<SequentialPairGenerator>(options, cache);
-      });
-}
+//std::unique_ptr<Thread> CreateVocabTreeFeatureMatcher(
+//    const VocabTreeMatchingOptions& options,
+//    const SiftMatchingOptions& matching_options,
+//    const TwoViewGeometryOptions& geometry_options,
+//    const std::string& database_path) {
+//  auto database = std::make_shared<Database>(database_path);
+//  auto cache =
+//      std::make_shared<FeatureMatcherCache>(options.CacheSize(), database);
+//  return std::make_unique<FeatureMatcherThread>(
+//      matching_options, geometry_options, database, cache, [options, cache]() {
+//        return std::make_unique<VocabTreePairGenerator>(options, cache);
+//      });
+//}
+//
+//std::unique_ptr<Thread> CreateSequentialFeatureMatcher(
+//    const SequentialMatchingOptions& options,
+//    const SiftMatchingOptions& matching_options,
+//    const TwoViewGeometryOptions& geometry_options,
+//    const std::string& database_path) {
+//  auto database = std::make_shared<Database>(database_path);
+//  auto cache =
+//      std::make_shared<FeatureMatcherCache>(options.CacheSize(), database);
+//  return std::make_unique<FeatureMatcherThread>(
+//      matching_options, geometry_options, database, cache, [options, cache]() {
+//        return std::make_unique<SequentialPairGenerator>(options, cache);
+//      });
+//}
 
 //std::unique_ptr<Thread> CreateSpatialFeatureMatcher(
 //    const SpatialMatchingOptions& options,

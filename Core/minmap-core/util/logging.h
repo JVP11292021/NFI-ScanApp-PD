@@ -29,7 +29,6 @@
 
 #pragma once
 
-#include "glog_macros.h"
 #include "string.h"
 
 #include <exception>

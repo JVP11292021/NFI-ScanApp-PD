@@ -32,8 +32,6 @@
 #include "../estimators/utils.h"
 #include "../geometry/gps.h"
 #include "../geometry/pose.h"
-#include "../image/line.h"
-#include "../image/undistortion.h"
 #include "../optim/ransac.h"
 #include "../util/logging.h"
 #include "../util/misc.h"

@@ -33,7 +33,6 @@
 #include "../feature/matcher.h"
 #include "../feature/sift.h"
 #include "../scene/database.h"
-#include "../util/opengl_utils.h"
 #include "../util/threading.h"
 
 #include <array>
@@ -72,7 +71,7 @@ class FeatureMatcherWorker : public Thread {
   JobQueue<Input>* input_queue_;
   JobQueue<Output>* output_queue_;
 
-  std::unique_ptr<OpenGLContextManager> opengl_context_;
+  //std::unique_ptr<OpenGLContextManager> opengl_context_;
 };
 
 // Multi-threaded and multi-GPU SIFT feature matcher, which writes the computed

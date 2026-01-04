@@ -32,6 +32,7 @@
 #include "../geometry/rigid3.h"
 #include "../sensor/rig.h"
 #include "../util/types.h"
+#include "../util/logging.h"
 
 #include <cstdint>
 #include <memory>

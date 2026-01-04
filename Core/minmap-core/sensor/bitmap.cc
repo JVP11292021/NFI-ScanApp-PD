@@ -35,7 +35,7 @@
 #include "../util/logging.h"
 #include "../util/misc.h"
 
-#include "../../thirdparty/VLFeat/imopv.h"
+#include "../thirdparty/VLFeat/imopv.h"
 
 #include <regex>
 #include <unordered_map>

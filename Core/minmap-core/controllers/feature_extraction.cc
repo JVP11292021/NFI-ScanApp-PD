@@ -34,7 +34,6 @@
 #include "../scene/database.h"
 #include "../util/file.h"
 #include "../util/misc.h"
-#include "../util/opengl_utils.h"
 #include "../util/timer.h"
 
 #include <numeric>
@@ -162,12 +161,6 @@ class SiftFeatureExtractorThread : public Thread {
 
  private:
   void Run() override {
-    if (sift_options_.use_gpu) {
-#if !defined(COLMAP_CUDA_ENABLED)
-      THROW_CHECK_NOTNULL(opengl_context_);
-      THROW_CHECK(opengl_context_->MakeCurrent());
-#endif
-    }
 
     std::unique_ptr<FeatureExtractor> extractor =
         CreateSiftFeatureExtractor(sift_options_);
@@ -220,8 +213,6 @@ class SiftFeatureExtractorThread : public Thread {
 
   const SiftExtractionOptions sift_options_;
   std::shared_ptr<Bitmap> camera_mask_;
-
-  std::unique_ptr<OpenGLContextManager> opengl_context_;
 
   JobQueue<ImageData>* input_queue_;
   JobQueue<ImageData>* output_queue_;

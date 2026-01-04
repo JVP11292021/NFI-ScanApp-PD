@@ -30,8 +30,8 @@
 #pragma once
 
 #include "../geometry/rigid3.h"
-#include "../util/enum_utils.h"
 #include "../util/types.h"
+#include "../util/logging.h"
 
 #include <map>
 #include <optional>

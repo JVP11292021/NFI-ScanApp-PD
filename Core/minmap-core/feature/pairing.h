@@ -35,6 +35,7 @@
 #include "../scene/database.h"
 #include "../util/threading.h"
 #include "../util/types.h"
+#include "../retrieval/utils.h"
 
 #include <unordered_set>
 
@@ -252,75 +253,75 @@ class ExhaustivePairGenerator : public PairGenerator {
   std::vector<std::pair<image_t, image_t>> image_pairs_;
 };
 
-class VocabTreePairGenerator : public PairGenerator {
- public:
-  using PairOptions = VocabTreeMatchingOptions;
+//class VocabTreePairGenerator : public PairGenerator {
+// public:
+//  using PairOptions = VocabTreeMatchingOptions;
+//
+//  VocabTreePairGenerator(const VocabTreeMatchingOptions& options,
+//                         const std::shared_ptr<FeatureMatcherCache>& cache,
+//                         const std::vector<image_t>& query_image_ids = {});
+//
+//  VocabTreePairGenerator(const VocabTreeMatchingOptions& options,
+//                         const std::shared_ptr<Database>& database,
+//                         const std::vector<image_t>& query_image_ids = {});
+//
+//  void Reset() override;
+//
+//  bool HasFinished() const override;
+//
+//  std::vector<std::pair<image_t, image_t>> Next() override;
+//
+// private:
+//  void IndexImages(const std::vector<image_t>& image_ids);
+//
+//  struct Retrieval {
+//    image_t image_id = kInvalidImageId;
+//    std::vector<retrieval::ImageScore> image_scores;
+//  };
+//
+//  void Query(image_t image_id);
+//
+//  const VocabTreeMatchingOptions options_;
+//  const std::shared_ptr<FeatureMatcherCache> cache_;
+//  ThreadPool thread_pool_;
+//  JobQueue<Retrieval> queue_;
+//  //std::unique_ptr<retrieval::VisualIndex> visual_index_;
+//  //retrieval::VisualIndex::QueryOptions query_options_;
+//  std::vector<image_t> query_image_ids_;
+//  std::vector<std::pair<image_t, image_t>> image_pairs_;
+//  size_t query_idx_ = 0;
+//  size_t result_idx_ = 0;
+//};
 
-  VocabTreePairGenerator(const VocabTreeMatchingOptions& options,
-                         const std::shared_ptr<FeatureMatcherCache>& cache,
-                         const std::vector<image_t>& query_image_ids = {});
-
-  VocabTreePairGenerator(const VocabTreeMatchingOptions& options,
-                         const std::shared_ptr<Database>& database,
-                         const std::vector<image_t>& query_image_ids = {});
-
-  void Reset() override;
-
-  bool HasFinished() const override;
-
-  std::vector<std::pair<image_t, image_t>> Next() override;
-
- private:
-  void IndexImages(const std::vector<image_t>& image_ids);
-
-  struct Retrieval {
-    image_t image_id = kInvalidImageId;
-    std::vector<retrieval::ImageScore> image_scores;
-  };
-
-  void Query(image_t image_id);
-
-  const VocabTreeMatchingOptions options_;
-  const std::shared_ptr<FeatureMatcherCache> cache_;
-  ThreadPool thread_pool_;
-  JobQueue<Retrieval> queue_;
-  std::unique_ptr<retrieval::VisualIndex> visual_index_;
-  retrieval::VisualIndex::QueryOptions query_options_;
-  std::vector<image_t> query_image_ids_;
-  std::vector<std::pair<image_t, image_t>> image_pairs_;
-  size_t query_idx_ = 0;
-  size_t result_idx_ = 0;
-};
-
-class SequentialPairGenerator : public PairGenerator {
- public:
-  using PairOptions = SequentialMatchingOptions;
-
-  SequentialPairGenerator(const SequentialMatchingOptions& options,
-                          const std::shared_ptr<FeatureMatcherCache>& cache);
-
-  SequentialPairGenerator(const SequentialMatchingOptions& options,
-                          const std::shared_ptr<Database>& database);
-
-  void Reset() override;
-
-  bool HasFinished() const override;
-
-  std::vector<std::pair<image_t, image_t>> Next() override;
-
- private:
-  std::vector<image_t> GetOrderedImageIds() const;
-
-  const SequentialMatchingOptions options_;
-  const std::shared_ptr<FeatureMatcherCache> cache_;
-  std::vector<image_t> image_ids_;
-  // Optional mapping from frames to images and vice versa.
-  std::unordered_map<frame_t, std::vector<image_t>> frame_to_image_ids_;
-  std::unordered_map<image_t, frame_t> image_to_frame_ids_;
-  std::unique_ptr<VocabTreePairGenerator> vocab_tree_pair_generator_;
-  std::vector<std::pair<image_t, image_t>> image_pairs_;
-  size_t image_idx_ = 0;
-};
+//class SequentialPairGenerator : public PairGenerator {
+// public:
+//  using PairOptions = SequentialMatchingOptions;
+//
+//  SequentialPairGenerator(const SequentialMatchingOptions& options,
+//                          const std::shared_ptr<FeatureMatcherCache>& cache);
+//
+//  SequentialPairGenerator(const SequentialMatchingOptions& options,
+//                          const std::shared_ptr<Database>& database);
+//
+//  void Reset() override;
+//
+//  bool HasFinished() const override;
+//
+//  std::vector<std::pair<image_t, image_t>> Next() override;
+//
+// private:
+//  std::vector<image_t> GetOrderedImageIds() const;
+//
+//  const SequentialMatchingOptions options_;
+//  const std::shared_ptr<FeatureMatcherCache> cache_;
+//  std::vector<image_t> image_ids_;
+//  // Optional mapping from frames to images and vice versa.
+//  std::unordered_map<frame_t, std::vector<image_t>> frame_to_image_ids_;
+//  std::unordered_map<image_t, frame_t> image_to_frame_ids_;
+//  std::unique_ptr<VocabTreePairGenerator> vocab_tree_pair_generator_;
+//  std::vector<std::pair<image_t, image_t>> image_pairs_;
+//  size_t image_idx_ = 0;
+//};
 
 //class SpatialPairGenerator : public PairGenerator {
 // public:

@@ -34,8 +34,6 @@
 #include <fstream>
 #include <sstream>
 
-#include <boost/algorithm/string.hpp>
-
 namespace colmap {
 namespace {
 
@@ -162,12 +160,38 @@ std::string StringGetAfter(const std::string& str, const std::string& key) {
   return "";
 }
 
-std::vector<std::string> StringSplit(const std::string& str,
-                                     const std::string& delim) {
-  std::vector<std::string> elems;
-  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks)
-  boost::split(elems, str, boost::is_any_of(delim), boost::token_compress_on);
-  return elems;
+std::vector<std::string> StringSplit(
+    const std::string& str,
+    const std::string& delim
+) {
+    std::vector<std::string> elems;
+
+    const size_t len = str.length();
+    const size_t delim_len = delim.length();
+
+    if (delim_len == 0)
+        return elems;
+
+    size_t i = 0;
+    while (i < len)
+    {
+        // Skip delimiter characters (token_compress_on)
+        while (i < len && delim.find(str[i]) != std::string::npos)
+            ++i;
+
+        if (i >= len)
+            break;
+
+        // Find next delimiter
+        size_t j = i;
+        while (j < len && delim.find(str[j]) == std::string::npos)
+            ++j;
+
+        elems.emplace_back(str.substr(i, j - i));
+        i = j;
+    }
+
+    return elems;
 }
 
 bool StringStartsWith(const std::string& str, const std::string& prefix) {

@@ -342,7 +342,8 @@ project "minmap-core"
         "glog.lib",
 		"sqlite3.lib",
 		"FreeImage.lib",
-		"FreeImagePlus.lib"
+		"FreeImagePlus.lib",
+		"faiss.lib"
 	}
 
 	dependson {}
@@ -364,6 +365,9 @@ project "minmap-core"
             "USE_VULKAN"
         }
     end
+
+	filter "toolset:msc*"
+        buildoptions { "/bigobj" }
 
 	filter "system:windows"
 		systemversion "latest"
@@ -472,9 +476,8 @@ project "TestApp"
 		"Engine/Engine/EngineBackend",
 		"Engine/Engine/EngineUtils",
 		"Engine/Engine/Systems",
-		"RayTracing",
-		"GSplats",
-		"minmap"
+		"minmap",
+		"minmap-core"
 	}
 
 	libdirs {
@@ -486,8 +489,8 @@ project "TestApp"
 		"EngineUtils",
 		"EngineSystems",
 		"RayTracing",
-		"GSplats",
 		"minmap",
+		"minmap-core"
 	}
 
 	dependson { 
@@ -495,7 +498,8 @@ project "TestApp"
 		"EngineUtils",
 		"EngineSystems",
 		"RayTracing",
-		"GSplats",
+		"minmap",
+		"minmap-core"
 	}
 
 	debugenvs {

@@ -27,13 +27,13 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "../feature/matcher.h"
+#include "matcher.h"
 
 #include <faiss/IndexFlat.h>
 #include <faiss/IndexIVFFlat.h>
 #include <faiss/IndexIVFPQ.h>
 #include <faiss/IndexPQ.h>
-//#include <omp.h>
+#include <omp.h>
 
 namespace colmap {
 namespace {
@@ -48,14 +48,13 @@ class FaissFeatureDescriptorIndex : public FeatureDescriptorIndex {
       index_ = nullptr;
       return;
     }
-
 #pragma omp parallel num_threads(1)
     {
-      omp_set_num_threads(num_threads_);
+        omp_set_num_threads(num_threads_);
 #ifdef _MSC_VER
-      omp_set_nested(1);
+        omp_set_nested(1);
 #else
-      omp_set_max_active_levels(1);
+        omp_set_max_active_levels(1);
 #endif
 
       if (index_descriptors.rows() >= 512) {
@@ -101,14 +100,13 @@ class FaissFeatureDescriptorIndex : public FeatureDescriptorIndex {
     l2_dists.resize(num_query_descriptors, num_eff_neighbors);
     Eigen::Matrix<int64_t, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
         indices_long(num_query_descriptors, num_eff_neighbors);
-
 #pragma omp parallel num_threads(1)
     {
-      omp_set_num_threads(num_threads_);
+        omp_set_num_threads(num_threads_);
 #ifdef _MSC_VER
-      omp_set_nested(1);
+        omp_set_nested(1);
 #else
-      omp_set_max_active_levels(1);
+        omp_set_max_active_levels(1);
 #endif
 
       faiss::SearchParametersIVF search_params;

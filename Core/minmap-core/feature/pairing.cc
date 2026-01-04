@@ -227,321 +227,321 @@ std::vector<std::pair<image_t, image_t>> ExhaustivePairGenerator::Next() {
   return image_pairs_;
 }
 
-VocabTreePairGenerator::VocabTreePairGenerator(
-    const VocabTreeMatchingOptions& options,
-    const std::shared_ptr<FeatureMatcherCache>& cache,
-    const std::vector<image_t>& query_image_ids)
-    : options_(options),
-      cache_(THROW_CHECK_NOTNULL(cache)),
-      thread_pool_(options_.num_threads),
-      queue_(options_.num_threads) {
-  THROW_CHECK(options.Check());
-  LOG(INFO) << "Generating image pairs with vocabulary tree...";
-
-  // Read the pre-trained vocabulary tree from disk.
-  visual_index_ = retrieval::VisualIndex::Read(options_.vocab_tree_path);
-
-  const std::vector<image_t> all_image_ids = cache_->GetImageIds();
-  if (query_image_ids.size() > 0) {
-    query_image_ids_ = query_image_ids;
-  } else if (options_.match_list_path == "") {
-    query_image_ids_ = cache_->GetImageIds();
-  } else {
-    // Map image names to image identifiers.
-    std::unordered_map<std::string, image_t> image_name_to_image_id;
-    image_name_to_image_id.reserve(all_image_ids.size());
-    for (const auto image_id : all_image_ids) {
-      const auto& image = cache_->GetImage(image_id);
-      image_name_to_image_id.emplace(image.Name(), image_id);
-    }
-
-    // Read the match list path.
-    std::ifstream file(options_.match_list_path);
-    THROW_CHECK_FILE_OPEN(file, options_.match_list_path);
-    std::string line;
-    while (std::getline(file, line)) {
-      StringTrim(&line);
-
-      if (line.empty() || line[0] == '#') {
-        continue;
-      }
-
-      if (image_name_to_image_id.count(line) == 0) {
-        LOG(ERROR) << "Image " << line << " does not exist.";
-      } else {
-        query_image_ids_.push_back(image_name_to_image_id.at(line));
-      }
-    }
-  }
-
-  IndexImages(all_image_ids);
-
-  // Since we parallelize over the query images, there is no need to parallelize
-  // the nearest neighbor search over the query descriptors.
-  query_options_.num_threads = 1;
-  query_options_.max_num_images = options_.num_images;
-  query_options_.num_neighbors = options_.num_nearest_neighbors;
-  query_options_.num_checks = options_.num_checks;
-  query_options_.num_images_after_verification =
-      options_.num_images_after_verification;
-}
-
-VocabTreePairGenerator::VocabTreePairGenerator(
-    const VocabTreeMatchingOptions& options,
-    const std::shared_ptr<Database>& database,
-    const std::vector<image_t>& query_image_ids)
-    : VocabTreePairGenerator(
-          options,
-          std::make_shared<FeatureMatcherCache>(options.CacheSize(),
-                                                THROW_CHECK_NOTNULL(database)),
-          query_image_ids) {}
-
-void VocabTreePairGenerator::Reset() {
-  query_idx_ = 0;
-  result_idx_ = 0;
-}
-
-bool VocabTreePairGenerator::HasFinished() const {
-  return result_idx_ >= query_image_ids_.size();
-}
-
-std::vector<std::pair<image_t, image_t>> VocabTreePairGenerator::Next() {
-  image_pairs_.clear();
-  if (HasFinished()) {
-    return {};
-  }
-  if (query_idx_ == 0) {
-    // Initially, make all retrieval threads busy and continue with the
-    // matching.
-    const size_t init_num_tasks =
-        std::min(query_image_ids_.size(), 2 * thread_pool_.NumThreads());
-    for (; query_idx_ < init_num_tasks; ++query_idx_) {
-      thread_pool_.AddTask(
-          &VocabTreePairGenerator::Query, this, query_image_ids_[query_idx_]);
-    }
-  }
-
-  LOG(INFO) << StringPrintf(
-      "Matching image [%d/%d]", result_idx_ + 1, query_image_ids_.size());
-
-  // Push the next image to the retrieval queue.
-  if (query_idx_ < query_image_ids_.size()) {
-    thread_pool_.AddTask(
-        &VocabTreePairGenerator::Query, this, query_image_ids_[query_idx_++]);
-  }
-
-  // Pop the next results from the retrieval queue.
-  auto retrieval = queue_.Pop();
-  THROW_CHECK(retrieval.IsValid());
-
-  const auto& image_id = retrieval.Data().image_id;
-  const auto& image_scores = retrieval.Data().image_scores;
-
-  // Compose the image pairs from the scores.
-  image_pairs_.reserve(image_scores.size());
-  for (const auto image_score : image_scores) {
-    image_pairs_.emplace_back(image_id, image_score.image_id);
-  }
-  ++result_idx_;
-  return image_pairs_;
-}
-
-void VocabTreePairGenerator::IndexImages(
-    const std::vector<image_t>& image_ids) {
-  retrieval::VisualIndex::IndexOptions index_options;
-  // We only assign each feature to a single visual word in the indexing phase.
-  // During the query phase, we check for overlap in possibly multiple nearest
-  // neighbor visual words. We could do it symmetrically but experiments showed
-  // only marginal improvements that do not justify the memory/compute increase.
-  index_options.num_neighbors = 1;
-  index_options.num_checks = options_.num_checks;
-  index_options.num_threads = options_.num_threads;
-
-  for (size_t i = 0; i < image_ids.size(); ++i) {
-    Timer timer;
-    timer.Start();
-    LOG(INFO) << StringPrintf(
-        "Indexing image [%d/%d]", i + 1, image_ids.size());
-    auto keypoints = *cache_->GetKeypoints(image_ids[i]);
-    auto descriptors = *cache_->GetDescriptors(image_ids[i]);
-    if (options_.max_num_features > 0 &&
-        descriptors.rows() > options_.max_num_features) {
-      ExtractTopScaleFeatures(
-          &keypoints, &descriptors, options_.max_num_features);
-    }
-    visual_index_->Add(
-        index_options, image_ids[i], keypoints, descriptors.cast<float>());
-    LOG(INFO) << StringPrintf(" in %.3fs", timer.ElapsedSeconds());
-  }
-
-  // Compute the TF-IDF weights, etc.
-  visual_index_->Prepare();
-}
-
-void VocabTreePairGenerator::Query(const image_t image_id) {
-  auto keypoints = *cache_->GetKeypoints(image_id);
-  auto descriptors = *cache_->GetDescriptors(image_id);
-  if (options_.max_num_features > 0 &&
-      descriptors.rows() > options_.max_num_features) {
-    ExtractTopScaleFeatures(
-        &keypoints, &descriptors, options_.max_num_features);
-  }
-
-  Retrieval retrieval;
-  retrieval.image_id = image_id;
-  visual_index_->Query(query_options_,
-                       keypoints,
-                       descriptors.cast<float>(),
-                       &retrieval.image_scores);
-
-  THROW_CHECK(queue_.Push(std::move(retrieval)));
-}
-
-SequentialPairGenerator::SequentialPairGenerator(
-    const SequentialMatchingOptions& options,
-    const std::shared_ptr<FeatureMatcherCache>& cache)
-    : options_(options), cache_(THROW_CHECK_NOTNULL(cache)) {
-  THROW_CHECK(options.Check());
-  LOG(INFO) << "Generating sequential image pairs...";
-  image_ids_ = GetOrderedImageIds();
-  image_pairs_.reserve(options_.overlap);
-
-  if (options_.loop_detection) {
-    std::vector<image_t> query_image_ids;
-    for (size_t i = 0; i < image_ids_.size();
-         i += options_.loop_detection_period) {
-      query_image_ids.push_back(image_ids_[i]);
-    }
-    vocab_tree_pair_generator_ = std::make_unique<VocabTreePairGenerator>(
-        options_.VocabTreeOptions(), cache_, query_image_ids);
-  }
-
-  if (options_.expand_rig_images) {
-    const std::vector<frame_t> frame_ids = cache_->GetFrameIds();
-    frame_to_image_ids_.reserve(frame_ids.size());
-    image_to_frame_ids_.reserve(image_ids_.size());
-    for (const frame_t frame_id : frame_ids) {
-      const Frame& frame = cache_->GetFrame(frame_id);
-      auto& frame_image_ids = frame_to_image_ids_[frame_id];
-      for (const data_t& data_id : frame.ImageIds()) {
-        frame_image_ids.push_back(data_id.id);
-        image_to_frame_ids_[data_id.id] = frame_id;
-      }
-    }
-  }
-}
-
-SequentialPairGenerator::SequentialPairGenerator(
-    const SequentialMatchingOptions& options,
-    const std::shared_ptr<Database>& database)
-    : SequentialPairGenerator(
-          options,
-          std::make_shared<FeatureMatcherCache>(
-              options.CacheSize(), THROW_CHECK_NOTNULL(database))) {}
-
-void SequentialPairGenerator::Reset() {
-  image_idx_ = 0;
-  if (vocab_tree_pair_generator_) {
-    vocab_tree_pair_generator_->Reset();
-  }
-}
-
-bool SequentialPairGenerator::HasFinished() const {
-  return image_idx_ >= image_ids_.size() &&
-         (vocab_tree_pair_generator_ ? vocab_tree_pair_generator_->HasFinished()
-                                     : true);
-}
-
-std::vector<std::pair<image_t, image_t>> SequentialPairGenerator::Next() {
-  image_pairs_.clear();
-  if (image_idx_ >= image_ids_.size()) {
-    if (vocab_tree_pair_generator_) {
-      return vocab_tree_pair_generator_->Next();
-    }
-    return image_pairs_;
-  }
-  LOG(INFO) << StringPrintf(
-      "Matching image [%d/%d]", image_idx_ + 1, image_ids_.size());
-
-  const auto image_id1 = image_ids_.at(image_idx_);
-
-  // If image is part of a rig, then pair the other images in the same frame.
-  if (options_.expand_rig_images) {
-    if (const auto frame_id1_it = image_to_frame_ids_.find(image_id1);
-        frame_id1_it != image_to_frame_ids_.end()) {
-      for (const image_t frame_image_id2 :
-           frame_to_image_ids_.at(frame_id1_it->second)) {
-        if (image_id1 != frame_image_id2) {
-          image_pairs_.emplace_back(image_id1, frame_image_id2);
-        }
-      }
-    }
-  }
-
-  auto MaybeExpandRigImages = [this](image_t image_id1, image_t image_id2) {
-    if (!options_.expand_rig_images) {
-      return;
-    }
-    const auto frame_id2_it = image_to_frame_ids_.find(image_id2);
-    if (frame_id2_it != image_to_frame_ids_.end()) {
-      // Pair with all images in second frame.
-      for (const image_t frame_image_id2 :
-           frame_to_image_ids_.at(frame_id2_it->second)) {
-        if (image_id1 != frame_image_id2 && image_id2 != frame_image_id2) {
-          image_pairs_.emplace_back(image_id1, frame_image_id2);
-        }
-      }
-    }
-  };
-
-  for (int i = 0; i < options_.overlap; ++i) {
-    if (options_.quadratic_overlap) {
-      const size_t image_idx_2_quadratic = image_idx_ + (1ull << i);
-      if (image_idx_2_quadratic < image_ids_.size()) {
-        const image_t image_id2 = image_ids_.at(image_idx_2_quadratic);
-        image_pairs_.emplace_back(image_id1, image_id2);
-        MaybeExpandRigImages(image_id1, image_id2);
-      } else {
-        break;
-      }
-    } else {
-      const size_t image_idx_2 = image_idx_ + i + 1;
-      if (image_idx_2 < image_ids_.size()) {
-        const image_t image_id2 = image_ids_.at(image_idx_2);
-        image_pairs_.emplace_back(image_id1, image_id2);
-        MaybeExpandRigImages(image_id1, image_id2);
-      } else {
-        break;
-      }
-    }
-  }
-  ++image_idx_;
-  return image_pairs_;
-}
-
-std::vector<image_t> SequentialPairGenerator::GetOrderedImageIds() const {
-  const std::vector<image_t> image_ids = cache_->GetImageIds();
-
-  std::vector<Image> ordered_images;
-  ordered_images.reserve(image_ids.size());
-  for (const auto image_id : image_ids) {
-    ordered_images.push_back(cache_->GetImage(image_id));
-  }
-
-  std::sort(ordered_images.begin(),
-            ordered_images.end(),
-            [](const Image& image1, const Image& image2) {
-              return image1.Name() < image2.Name();
-            });
-
-  std::vector<image_t> ordered_image_ids;
-  ordered_image_ids.reserve(image_ids.size());
-  for (const auto& image : ordered_images) {
-    ordered_image_ids.push_back(image.ImageId());
-  }
-
-  return ordered_image_ids;
-}
+//VocabTreePairGenerator::VocabTreePairGenerator(
+//    const VocabTreeMatchingOptions& options,
+//    const std::shared_ptr<FeatureMatcherCache>& cache,
+//    const std::vector<image_t>& query_image_ids)
+//    : options_(options),
+//      cache_(THROW_CHECK_NOTNULL(cache)),
+//      thread_pool_(options_.num_threads),
+//      queue_(options_.num_threads) {
+//  THROW_CHECK(options.Check());
+//  LOG(INFO) << "Generating image pairs with vocabulary tree...";
+//
+//  // Read the pre-trained vocabulary tree from disk.
+//  visual_index_ = retrieval::VisualIndex::Read(options_.vocab_tree_path);
+//
+//  const std::vector<image_t> all_image_ids = cache_->GetImageIds();
+//  if (query_image_ids.size() > 0) {
+//    query_image_ids_ = query_image_ids;
+//  } else if (options_.match_list_path == "") {
+//    query_image_ids_ = cache_->GetImageIds();
+//  } else {
+//    // Map image names to image identifiers.
+//    std::unordered_map<std::string, image_t> image_name_to_image_id;
+//    image_name_to_image_id.reserve(all_image_ids.size());
+//    for (const auto image_id : all_image_ids) {
+//      const auto& image = cache_->GetImage(image_id);
+//      image_name_to_image_id.emplace(image.Name(), image_id);
+//    }
+//
+//    // Read the match list path.
+//    std::ifstream file(options_.match_list_path);
+//    THROW_CHECK_FILE_OPEN(file, options_.match_list_path);
+//    std::string line;
+//    while (std::getline(file, line)) {
+//      StringTrim(&line);
+//
+//      if (line.empty() || line[0] == '#') {
+//        continue;
+//      }
+//
+//      if (image_name_to_image_id.count(line) == 0) {
+//        LOG(ERROR) << "Image " << line << " does not exist.";
+//      } else {
+//        query_image_ids_.push_back(image_name_to_image_id.at(line));
+//      }
+//    }
+//  }
+//
+//  IndexImages(all_image_ids);
+//
+//  // Since we parallelize over the query images, there is no need to parallelize
+//  // the nearest neighbor search over the query descriptors.
+//  query_options_.num_threads = 1;
+//  query_options_.max_num_images = options_.num_images;
+//  query_options_.num_neighbors = options_.num_nearest_neighbors;
+//  query_options_.num_checks = options_.num_checks;
+//  query_options_.num_images_after_verification =
+//      options_.num_images_after_verification;
+//}
+//
+//VocabTreePairGenerator::VocabTreePairGenerator(
+//    const VocabTreeMatchingOptions& options,
+//    const std::shared_ptr<Database>& database,
+//    const std::vector<image_t>& query_image_ids)
+//    : VocabTreePairGenerator(
+//          options,
+//          std::make_shared<FeatureMatcherCache>(options.CacheSize(),
+//                                                THROW_CHECK_NOTNULL(database)),
+//          query_image_ids) {}
+//
+//void VocabTreePairGenerator::Reset() {
+//  query_idx_ = 0;
+//  result_idx_ = 0;
+//}
+//
+//bool VocabTreePairGenerator::HasFinished() const {
+//  return result_idx_ >= query_image_ids_.size();
+//}
+//
+//std::vector<std::pair<image_t, image_t>> VocabTreePairGenerator::Next() {
+//  image_pairs_.clear();
+//  if (HasFinished()) {
+//    return {};
+//  }
+//  if (query_idx_ == 0) {
+//    // Initially, make all retrieval threads busy and continue with the
+//    // matching.
+//    const size_t init_num_tasks =
+//        std::min(query_image_ids_.size(), 2 * thread_pool_.NumThreads());
+//    for (; query_idx_ < init_num_tasks; ++query_idx_) {
+//      thread_pool_.AddTask(
+//          &VocabTreePairGenerator::Query, this, query_image_ids_[query_idx_]);
+//    }
+//  }
+//
+//  LOG(INFO) << StringPrintf(
+//      "Matching image [%d/%d]", result_idx_ + 1, query_image_ids_.size());
+//
+//  // Push the next image to the retrieval queue.
+//  if (query_idx_ < query_image_ids_.size()) {
+//    thread_pool_.AddTask(
+//        &VocabTreePairGenerator::Query, this, query_image_ids_[query_idx_++]);
+//  }
+//
+//  // Pop the next results from the retrieval queue.
+//  auto retrieval = queue_.Pop();
+//  THROW_CHECK(retrieval.IsValid());
+//
+//  const auto& image_id = retrieval.Data().image_id;
+//  const auto& image_scores = retrieval.Data().image_scores;
+//
+//  // Compose the image pairs from the scores.
+//  image_pairs_.reserve(image_scores.size());
+//  for (const auto image_score : image_scores) {
+//    image_pairs_.emplace_back(image_id, image_score.image_id);
+//  }
+//  ++result_idx_;
+//  return image_pairs_;
+//}
+//
+//void VocabTreePairGenerator::IndexImages(
+//    const std::vector<image_t>& image_ids) {
+//  retrieval::VisualIndex::IndexOptions index_options;
+//  // We only assign each feature to a single visual word in the indexing phase.
+//  // During the query phase, we check for overlap in possibly multiple nearest
+//  // neighbor visual words. We could do it symmetrically but experiments showed
+//  // only marginal improvements that do not justify the memory/compute increase.
+//  index_options.num_neighbors = 1;
+//  index_options.num_checks = options_.num_checks;
+//  index_options.num_threads = options_.num_threads;
+//
+//  for (size_t i = 0; i < image_ids.size(); ++i) {
+//    Timer timer;
+//    timer.Start();
+//    LOG(INFO) << StringPrintf(
+//        "Indexing image [%d/%d]", i + 1, image_ids.size());
+//    auto keypoints = *cache_->GetKeypoints(image_ids[i]);
+//    auto descriptors = *cache_->GetDescriptors(image_ids[i]);
+//    if (options_.max_num_features > 0 &&
+//        descriptors.rows() > options_.max_num_features) {
+//      ExtractTopScaleFeatures(
+//          &keypoints, &descriptors, options_.max_num_features);
+//    }
+//    visual_index_->Add(
+//        index_options, image_ids[i], keypoints, descriptors.cast<float>());
+//    LOG(INFO) << StringPrintf(" in %.3fs", timer.ElapsedSeconds());
+//  }
+//
+//  // Compute the TF-IDF weights, etc.
+//  visual_index_->Prepare();
+//}
+//
+//void VocabTreePairGenerator::Query(const image_t image_id) {
+//  auto keypoints = *cache_->GetKeypoints(image_id);
+//  auto descriptors = *cache_->GetDescriptors(image_id);
+//  if (options_.max_num_features > 0 &&
+//      descriptors.rows() > options_.max_num_features) {
+//    ExtractTopScaleFeatures(
+//        &keypoints, &descriptors, options_.max_num_features);
+//  }
+//
+//  Retrieval retrieval;
+//  retrieval.image_id = image_id;
+//  visual_index_->Query(query_options_,
+//                       keypoints,
+//                       descriptors.cast<float>(),
+//                       &retrieval.image_scores);
+//
+//  THROW_CHECK(queue_.Push(std::move(retrieval)));
+//}
+//
+//SequentialPairGenerator::SequentialPairGenerator(
+//    const SequentialMatchingOptions& options,
+//    const std::shared_ptr<FeatureMatcherCache>& cache)
+//    : options_(options), cache_(THROW_CHECK_NOTNULL(cache)) {
+//  THROW_CHECK(options.Check());
+//  LOG(INFO) << "Generating sequential image pairs...";
+//  image_ids_ = GetOrderedImageIds();
+//  image_pairs_.reserve(options_.overlap);
+//
+//  if (options_.loop_detection) {
+//    std::vector<image_t> query_image_ids;
+//    for (size_t i = 0; i < image_ids_.size();
+//         i += options_.loop_detection_period) {
+//      query_image_ids.push_back(image_ids_[i]);
+//    }
+//    vocab_tree_pair_generator_ = std::make_unique<VocabTreePairGenerator>(
+//        options_.VocabTreeOptions(), cache_, query_image_ids);
+//  }
+//
+//  if (options_.expand_rig_images) {
+//    const std::vector<frame_t> frame_ids = cache_->GetFrameIds();
+//    frame_to_image_ids_.reserve(frame_ids.size());
+//    image_to_frame_ids_.reserve(image_ids_.size());
+//    for (const frame_t frame_id : frame_ids) {
+//      const Frame& frame = cache_->GetFrame(frame_id);
+//      auto& frame_image_ids = frame_to_image_ids_[frame_id];
+//      for (const data_t& data_id : frame.ImageIds()) {
+//        frame_image_ids.push_back(data_id.id);
+//        image_to_frame_ids_[data_id.id] = frame_id;
+//      }
+//    }
+//  }
+//}
+//
+//SequentialPairGenerator::SequentialPairGenerator(
+//    const SequentialMatchingOptions& options,
+//    const std::shared_ptr<Database>& database)
+//    : SequentialPairGenerator(
+//          options,
+//          std::make_shared<FeatureMatcherCache>(
+//              options.CacheSize(), THROW_CHECK_NOTNULL(database))) {}
+//
+//void SequentialPairGenerator::Reset() {
+//  image_idx_ = 0;
+//  if (vocab_tree_pair_generator_) {
+//    vocab_tree_pair_generator_->Reset();
+//  }
+//}
+//
+//bool SequentialPairGenerator::HasFinished() const {
+//  return image_idx_ >= image_ids_.size() &&
+//         (vocab_tree_pair_generator_ ? vocab_tree_pair_generator_->HasFinished()
+//                                     : true);
+//}
+//
+//std::vector<std::pair<image_t, image_t>> SequentialPairGenerator::Next() {
+//  image_pairs_.clear();
+//  if (image_idx_ >= image_ids_.size()) {
+//    if (vocab_tree_pair_generator_) {
+//      return vocab_tree_pair_generator_->Next();
+//    }
+//    return image_pairs_;
+//  }
+//  LOG(INFO) << StringPrintf(
+//      "Matching image [%d/%d]", image_idx_ + 1, image_ids_.size());
+//
+//  const auto image_id1 = image_ids_.at(image_idx_);
+//
+//  // If image is part of a rig, then pair the other images in the same frame.
+//  if (options_.expand_rig_images) {
+//    if (const auto frame_id1_it = image_to_frame_ids_.find(image_id1);
+//        frame_id1_it != image_to_frame_ids_.end()) {
+//      for (const image_t frame_image_id2 :
+//           frame_to_image_ids_.at(frame_id1_it->second)) {
+//        if (image_id1 != frame_image_id2) {
+//          image_pairs_.emplace_back(image_id1, frame_image_id2);
+//        }
+//      }
+//    }
+//  }
+//
+//  auto MaybeExpandRigImages = [this](image_t image_id1, image_t image_id2) {
+//    if (!options_.expand_rig_images) {
+//      return;
+//    }
+//    const auto frame_id2_it = image_to_frame_ids_.find(image_id2);
+//    if (frame_id2_it != image_to_frame_ids_.end()) {
+//      // Pair with all images in second frame.
+//      for (const image_t frame_image_id2 :
+//           frame_to_image_ids_.at(frame_id2_it->second)) {
+//        if (image_id1 != frame_image_id2 && image_id2 != frame_image_id2) {
+//          image_pairs_.emplace_back(image_id1, frame_image_id2);
+//        }
+//      }
+//    }
+//  };
+//
+//  for (int i = 0; i < options_.overlap; ++i) {
+//    if (options_.quadratic_overlap) {
+//      const size_t image_idx_2_quadratic = image_idx_ + (1ull << i);
+//      if (image_idx_2_quadratic < image_ids_.size()) {
+//        const image_t image_id2 = image_ids_.at(image_idx_2_quadratic);
+//        image_pairs_.emplace_back(image_id1, image_id2);
+//        MaybeExpandRigImages(image_id1, image_id2);
+//      } else {
+//        break;
+//      }
+//    } else {
+//      const size_t image_idx_2 = image_idx_ + i + 1;
+//      if (image_idx_2 < image_ids_.size()) {
+//        const image_t image_id2 = image_ids_.at(image_idx_2);
+//        image_pairs_.emplace_back(image_id1, image_id2);
+//        MaybeExpandRigImages(image_id1, image_id2);
+//      } else {
+//        break;
+//      }
+//    }
+//  }
+//  ++image_idx_;
+//  return image_pairs_;
+//}
+//
+//std::vector<image_t> SequentialPairGenerator::GetOrderedImageIds() const {
+//  const std::vector<image_t> image_ids = cache_->GetImageIds();
+//
+//  std::vector<Image> ordered_images;
+//  ordered_images.reserve(image_ids.size());
+//  for (const auto image_id : image_ids) {
+//    ordered_images.push_back(cache_->GetImage(image_id));
+//  }
+//
+//  std::sort(ordered_images.begin(),
+//            ordered_images.end(),
+//            [](const Image& image1, const Image& image2) {
+//              return image1.Name() < image2.Name();
+//            });
+//
+//  std::vector<image_t> ordered_image_ids;
+//  ordered_image_ids.reserve(image_ids.size());
+//  for (const auto& image : ordered_images) {
+//    ordered_image_ids.push_back(image.ImageId());
+//  }
+//
+//  return ordered_image_ids;
+//}
 
 //SpatialPairGenerator::SpatialPairGenerator(
 //    const SpatialMatchingOptions& options,

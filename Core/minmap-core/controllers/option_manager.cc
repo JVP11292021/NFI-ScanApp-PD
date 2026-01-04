@@ -24,7 +24,6 @@ OptionManager::OptionManager(bool add_project_options) {
   exhaustive_matching = std::make_shared<ExhaustiveMatchingOptions>();
   sequential_matching = std::make_shared<SequentialMatchingOptions>();
   vocab_tree_matching = std::make_shared<VocabTreeMatchingOptions>();
-  spatial_matching = std::make_shared<SpatialMatchingOptions>();
   transitive_matching = std::make_shared<TransitiveMatchingOptions>();
   image_pairs_matching = std::make_shared<ImagePairsMatchingOptions>();
   bundle_adjustment = std::make_shared<BundleAdjustmentOptions>();
@@ -110,7 +109,6 @@ void OptionManager::AddAllOptions() {
   AddExhaustiveMatchingOptions();
   AddSequentialMatchingOptions();
   AddVocabTreeMatchingOptions();
-  AddSpatialMatchingOptions();
   AddTransitiveMatchingOptions();
   AddImagePairsMatchingOptions();
   AddBundleAdjustmentOptions();
