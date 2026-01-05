@@ -1,4 +1,4 @@
-package com.example.ipmedth_nfi.ui.components
+package com.example.ipmedth_nfi.ui.components.navbar
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ModalDrawerSheet

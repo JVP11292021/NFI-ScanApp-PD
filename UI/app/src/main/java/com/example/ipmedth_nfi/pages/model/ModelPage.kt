@@ -9,8 +9,14 @@ import androidx.compose.ui.Modifier
 import com.example.ipmedth_nfi.viewmodel.SessionViewModel
 
 @Composable
-fun ModelPage(viewModel: SessionViewModel) {
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+fun ModelPage(
+    viewModel: SessionViewModel,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
         Text("3D model placeholder")
     }
 }
