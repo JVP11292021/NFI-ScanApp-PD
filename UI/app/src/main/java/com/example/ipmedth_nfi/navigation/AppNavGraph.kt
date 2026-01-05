@@ -5,6 +5,7 @@ import androidx.compose.material3.DrawerState
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -12,7 +13,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.ipmedth_nfi.pages.app.AppPage
 import com.example.ipmedth_nfi.pages.model.ModelPage
 import com.example.ipmedth_nfi.pages.scan.ScanPage
-import com.example.ipmedth_nfi.ui.components.AppTopbar
+import com.example.ipmedth_nfi.ui.components.navbar.AppTopbar
 import com.example.ipmedth_nfi.ui.navigation.AssessmentAwareTopBar
 import com.example.ipmedth_nfi.viewmodel.SessionViewModel
 import kotlinx.coroutines.launch
@@ -54,14 +55,20 @@ fun AppNavGraph(
         NavHost(
             navController = navController,
             startDestination = MainRoute.SCAN.route,
-            modifier = Modifier.padding(paddingValues)
+            modifier = Modifier.padding(top = paddingValues.calculateTopPadding())
         ) {
             composable(MainRoute.SCAN.route) {
-                ScanPage(viewModel)
+                ScanPage(
+                    viewModel = viewModel,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
             }
 
             composable(MainRoute.MODEL.route) {
-                ModelPage(viewModel)
+                ModelPage(
+                    viewModel = viewModel,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
             }
 
             composable(MainRoute.APP.route) {

@@ -9,8 +9,14 @@ import androidx.compose.ui.Modifier
 import com.example.ipmedth_nfi.viewmodel.SessionViewModel
 
 @Composable
-fun ScanPage(viewModel: SessionViewModel) {
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+fun ScanPage(
+    viewModel: SessionViewModel,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
         Text("Scan page placeholder")
     }
 }

@@ -1,13 +1,15 @@
 package com.example.ipmedth_nfi.pages.app
 
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
-import com.example.ipmedth_nfi.pages.app.tabs.*
-import com.example.ipmedth_nfi.ui.components.BottomNavBar
+import androidx.compose.ui.unit.dp
+import com.example.ipmedth_nfi.ui.components.navbar.BottomNavBar
 import com.example.ipmedth_nfi.ui.navigation.AssessmentPage
 import com.example.ipmedth_nfi.viewmodel.SessionViewModel
 
@@ -24,20 +26,21 @@ fun AppPage(
         onPageChanged(page)
     }
 
-    Column() {
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        bottomBar = { BottomNavBar(pagerState) }
+    ) { innerPadding ->
         HorizontalPager(
             state = pagerState,
-            modifier = Modifier.weight(1f)
-        ) { page ->
-            when (AssessmentPage.all[page]) {
-                AssessmentPage.Info -> InfoTab(viewModel)
-                AssessmentPage.Observations -> ObservationsTab(viewModel)
-                AssessmentPage.Themes -> ThemesTab(viewModel)
-                AssessmentPage.Attention -> AttentionTab(viewModel)
-                AssessmentPage.Plan -> PlanTab(viewModel)
-                AssessmentPage.Finish -> FinishTab(viewModel)
-            }
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(horizontal = 16.dp)
+        ) { pageIndex ->
+            AssessmentContent(
+                page = AssessmentPage.all[pageIndex],
+                viewModel = viewModel
+            )
         }
-        BottomNavBar(pagerState)
     }
 }
