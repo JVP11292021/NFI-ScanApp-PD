@@ -4,7 +4,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.example.ipmedth_nfi.model.ExportData
@@ -24,6 +23,10 @@ class SessionViewModel : ViewModel() {
     var roomModel: RoomModel? by mutableStateOf(null)
     var currentAssessmentPage by mutableStateOf<AssessmentPage>(AssessmentPage.Info)
         private set
+
+    // New lists for InfoTab
+    val infoVooraf = mutableStateListOf<String>()
+    val infoTerPlaatse = mutableStateListOf<String>()
 
     fun setAssessmentPage(page: AssessmentPage) {
         currentAssessmentPage = page

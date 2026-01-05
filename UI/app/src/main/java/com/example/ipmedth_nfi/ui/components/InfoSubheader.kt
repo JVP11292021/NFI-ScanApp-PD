@@ -16,7 +16,11 @@ import androidx.compose.ui.unit.sp
 import com.example.ipmedth_nfi.ui.components.buttons.SubheaderButton
 
 @Composable
-fun InfoSubheader(subject: String, details: String) {
+fun InfoSubheader(
+    subject: String,
+    details: String,
+    onAddClick: () -> Unit
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
@@ -37,7 +41,8 @@ fun InfoSubheader(subject: String, details: String) {
         }
         SubheaderButton(
             title = "+ Nieuw",
-            onClick = { /* TODO */ },
+            onClick = onAddClick,
+            modifier = Modifier.weight(1f) // Fills the other half of the max width
         )
     }
 }
