@@ -1,5 +1,6 @@
 package com.example.ipmedth_nfi.viewmodel
 
+import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
@@ -45,5 +46,10 @@ class SessionViewModel : ViewModel() {
             .filterKeys { it != AssessmentPage.Finish }
             .values
             .all { it }
+    }
+
+    fun onPhotoCaptured(uri: Uri) {
+        // TODO: Forward to ExportManager
+        println("Captured photo: $uri")
     }
 }
