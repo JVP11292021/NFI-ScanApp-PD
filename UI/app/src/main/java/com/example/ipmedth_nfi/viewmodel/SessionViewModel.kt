@@ -1,6 +1,8 @@
 package com.example.ipmedth_nfi.viewmodel
 
 import android.net.Uri
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
@@ -9,8 +11,10 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.example.ipmedth_nfi.model.ExportData
 import com.example.ipmedth_nfi.model.Marker
+import com.example.ipmedth_nfi.model.Observation
 import com.example.ipmedth_nfi.model.RoomModel
 import com.example.ipmedth_nfi.ui.navigation.AssessmentPage
+import java.time.Instant
 
 class SessionViewModel : ViewModel() {
     val pageCompletion = mutableStateMapOf<AssessmentPage, Boolean>().apply {
@@ -51,5 +55,35 @@ class SessionViewModel : ViewModel() {
     fun onPhotoCaptured(uri: Uri) {
         // TODO: Forward to ExportManager
         println("Captured photo: $uri")
+    }
+
+    val observations = mutableStateListOf<Observation>()
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun addObservation(
+        beschrijving: String,
+        locatie: String,
+        notities: String
+    ) {
+        observations += Observation(
+            createdAt = Instant.now(),
+            beschrijving = beschrijving,
+            locatie = locatie,
+            notities = notities
+        )
+    }
+
+    fun deleteObservation(id: String) {
+        observations.removeAll { it.id == id }
+    }
+
+    fun toggleBookmark(id: String) {
+        val index = observations.indexOfFirst { it.id == id }
+        if (index != -1) {
+            observations[index] =
+                observations[index].copy(
+                    isBookmarked = !observations[index].isBookmarked
+                )
+        }
     }
 }

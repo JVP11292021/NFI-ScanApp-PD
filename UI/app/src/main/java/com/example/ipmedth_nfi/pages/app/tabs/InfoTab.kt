@@ -46,6 +46,7 @@ fun InfoTab(viewModel: SessionViewModel) {
         InfoSubheader(
             subject = "Informatie", 
             details = "$countVooraf vooraf - $countTerPlaatse ter plaatse",
+            actionTitle = "+ Nieuw",
             onAddClick = { showBottomSheet = true }
         )
         
