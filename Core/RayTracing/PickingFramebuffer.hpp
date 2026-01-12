@@ -1,6 +1,7 @@
 #ifndef RT_PICKING_FRAMEBUFFER_HPP
 #define RT_PICKING_FRAMEBUFFER_HPP
 
+#include <defs.hpp>
 #include <Device.hpp>
 #include <memory>
 #include <array>
