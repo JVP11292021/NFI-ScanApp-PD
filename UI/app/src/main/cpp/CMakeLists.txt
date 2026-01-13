@@ -26,7 +26,6 @@ set(ASSIMP_LIB_DIR ${ASSIMP_ROOT}/lib/${ANDROID_ABI})  # ABI-specific
 # Include headers
 #include_directories(${ASSIMP_INCLUDE_DIR})
 
-# Add prebuilt shared library
 add_library(assimp SHARED IMPORTED)
 set_target_properties(assimp PROPERTIES
         IMPORTED_LOCATION ${ASSIMP_LIB_DIR}/libassimp.so
@@ -114,13 +113,16 @@ target_include_directories(engineSystem PUBLIC
 #
 #)
 
-# -------------------- SURFACE --------------------
+# -------------------- ENGINE BACKEND BRIDGE --------------------
 
-add_library(vulkanCore SHARED
-        native-lib.cpp
+add_library(engineBackendBridge SHARED
+        bridge/EngineBackend/Buffer_bridge.cpp
+        bridge/EngineBackend/Descriptors_bridge.cpp
+        bridge/EngineBackend/NativeConstants_bridge.cpp
+        bridge/EngineBackend/Window_bridge.cpp
 )
 
-target_include_directories(vulkanCore PUBLIC
+target_include_directories(engineBackendBridge PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/VulkanLiteEngine/Engine
 )
 
@@ -128,7 +130,7 @@ target_include_directories(vulkanCore PUBLIC
 find_library(vulkan-lib vulkan)
 
 target_link_libraries(
-        vulkanCore
+        engineBackendBridge
         engineBackend
         engineUtils
         engineSystem
