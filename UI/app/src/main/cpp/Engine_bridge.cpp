@@ -55,7 +55,7 @@ Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_surfaceChanged(
         jint height
 ) {
     if (!engine) {
-        VLE_LOGF("Could not activate window change detection 'AndroidEngine' undefined. Make sure to init the RenderEngine!");
+        VLE_LOGF("Could not activate window change detection 'AndroidEngine' undefined. Make sure to init the AndroidEngine!");
         return 0;
     }
 
@@ -72,6 +72,9 @@ Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_destroyRenderEngine(
     if (engine) {
         delete engine;
         engine = nullptr;
+        VLE_LOGI("Destroyed the AndroidEngine instance!");
     }
+
+    VLE_LOGW("Was not able to destroy AndroidEngine instance!");
 }
 

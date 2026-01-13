@@ -40,6 +40,8 @@ fun VulkanSurface(
                     }
 
                     override fun surfaceDestroyed(holder: SurfaceHolder) {
+                        Log.i("NFI", "Destroyed surface")
+                        engine.destroyRenderEngine()
                         // later: engine.destroy()
                     }
                 })
