@@ -10,12 +10,18 @@
 #include <EngineBackend/Device.hpp>
 #include <Systems/Renderer.hpp>
 
-class AndroidEngine {
+class AndroidEngine final {
 public:
-    explicit AndroidEngine(ANativeWindow* nativeWindow);
+    explicit AndroidEngine(
+            ANativeWindow* nativeWindow,
+            std::uint32_t width,
+            std::uint32_t height);
     ~AndroidEngine();
 
 public:
+    void resize(std::uint32_t width, std::uint32_t height);
+
+private:
     vle::AndroidWindow _win;
     vle::EngineDevice _device;
     vle::sys::Renderer _renderer;

@@ -6,11 +6,12 @@
 
 #include <cstdint>
 
-static constexpr std::int32_t WIDTH = 800;
-static constexpr std::int32_t HEIGHT = 600;
-
-AndroidEngine::AndroidEngine(ANativeWindow* nativeWindow)
-    : _win(nativeWindow, WIDTH, HEIGHT, "NFI Scan App"),
+AndroidEngine::AndroidEngine(
+        ANativeWindow* nativeWindow,
+        std::uint32_t width,
+        std::uint32_t height
+)
+    : _win(nativeWindow, width, height, "NFI Scan App"),
       _device(_win),
       _renderer(_win, _device)
 {
@@ -18,3 +19,7 @@ AndroidEngine::AndroidEngine(ANativeWindow* nativeWindow)
 }
 
 AndroidEngine::~AndroidEngine() {}
+
+void AndroidEngine::resize(std::uint32_t width, std::uint32_t height) {
+
+}

@@ -7,5 +7,5 @@ class NativeAndroidEngine() {
         }
     }
 
-    public external fun initRenderEngine(surface: android.view.Surface)
+    public external fun initRenderEngine(surface: android.view.Surface, width: Int, height: Int)
 }
