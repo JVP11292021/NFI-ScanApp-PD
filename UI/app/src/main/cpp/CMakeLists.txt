@@ -62,6 +62,7 @@ target_include_directories(engineBackend PUBLIC
 
 target_compile_definitions(engineBackend PRIVATE
         USE_VULKAN
+        NDEBUG
 )
 
 # --------------------- Engine Utils ---------------------
@@ -115,14 +116,12 @@ target_include_directories(engineSystem PUBLIC
 
 # -------------------- ENGINE BACKEND BRIDGE --------------------
 
-add_library(engineBackendBridge SHARED
-        bridge/EngineBackend/Buffer_bridge.cpp
-        bridge/EngineBackend/Descriptors_bridge.cpp
-        bridge/EngineBackend/NativeConstants_bridge.cpp
-        bridge/EngineBackend/Window_bridge.cpp
+add_library(renderEngine SHARED
+        AndroidEngine.cpp
+        Engine_bridge.cpp
 )
 
-target_include_directories(engineBackendBridge PUBLIC
+target_include_directories(renderEngine PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/VulkanLiteEngine/Engine
 )
 
@@ -130,7 +129,7 @@ target_include_directories(engineBackendBridge PUBLIC
 find_library(vulkan-lib vulkan)
 
 target_link_libraries(
-        engineBackendBridge
+        renderEngine
         engineBackend
         engineUtils
         engineSystem
