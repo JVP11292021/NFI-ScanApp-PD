@@ -1,16 +1,39 @@
 cmake_minimum_required(VERSION 3.22.1)
 project(vulkanCore LANGUAGES C CXX)
 
+# ------------------------ GLM -------------------------
 
-# -------------------- SURFACE --------------------
+add_library(glm INTERFACE)
 
-add_library(vulkanCore SHARED
-        native-lib.cpp
+target_include_directories(glm INTERFACE
+        ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/glm
 )
 
-target_include_directories(vulkanCore PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty
+# ------------------- tiny OBJ loader --------------------
+
+add_library(tinyobjloader INTERFACE)
+
+target_include_directories( tinyobjloader INTERFACE
+        ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/tinyobjloader
 )
+
+
+# ------------------------ ASSIMP ------------------------
+set(ASSIMP_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/assimp)
+set(ASSIMP_INCLUDE_DIR ${ASSIMP_ROOT})
+set(ASSIMP_LIB_DIR ${ASSIMP_ROOT}/lib/${ANDROID_ABI})  # ABI-specific
+
+# Include headers
+#include_directories(${ASSIMP_INCLUDE_DIR})
+
+# Add prebuilt shared library
+add_library(assimp SHARED IMPORTED)
+set_target_properties(assimp PROPERTIES
+        IMPORTED_LOCATION ${ASSIMP_LIB_DIR}/libassimp.so
+)
+
+# If you used c++_shared, link libc++_shared too
+find_library(cpp_shared c++_shared)
 
 # --------------------- Engine Backend ---------------------
 
@@ -31,8 +54,15 @@ set_target_properties(engineBackend PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+target_link_libraries(engineBackend PUBLIC assimp glm tinyobjloader)
+
 target_include_directories(engineBackend PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/VulkanLiteEngine/Engine/
+        ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/VulkanLiteEngine/Engine/EngineUtils
+        ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty
+)
+
+target_compile_definitions(engineBackend PRIVATE
+        USE_VULKAN
 )
 
 # --------------------- Engine Utils ---------------------
@@ -47,9 +77,16 @@ set_target_properties(engineUtils PROPERTIES
         POSITION_INDEPENDENT_CODE ON
 )
 
+target_link_libraries(engineUtils   PUBLIC glm)
+
 target_include_directories(engineUtils PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/VulkanLiteEngine/Engine/
+        ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/VulkanLiteEngine/Engine
 )
+
+target_compile_definitions(engineUtils PRIVATE
+        USE_VULKAN
+)
+
 # ------------------- Engine Systems --------------------
 
 add_library(engineSystem STATIC
@@ -64,50 +101,28 @@ set_target_properties(engineSystem PROPERTIES
         POSITION_INDEPENDENT_CODE ON
 )
 
+target_link_libraries(engineSystem  PUBLIC glm)
+
 target_include_directories(engineSystem PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/VulkanLiteEngine/Engine/
+        ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/VulkanLiteEngine/Engine/EngineBackend
+        ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/VulkanLiteEngine/Engine/Systems
 )
-
-# ------------------------ GLM -------------------------
-
-add_library(glm INTERFACE)
-
-target_include_directories(glm INTERFACE
-        ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/glm
-)
-
-# ------------------- tiny OBJ loader --------------------
-
-add_library(tinyobjloader INTERFACE)
-
-target_include_directories( tinyobjloader INTERFACE
-        ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/tinyobjloader
-)
-
-
-# ------------------------ ASSIMP ------------------------
-set(ASSIMP_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/assimp)
-set(ASSIMP_INCLUDE_DIR ${ASSIMP_ROOT}/include)
-set(ASSIMP_LIB_DIR ${ASSIMP_ROOT}/lib/${ANDROID_ABI})  # ABI-specific
-
-# Include headers
-include_directories(${ASSIMP_INCLUDE_DIR})
-
-# Add prebuilt shared library
-add_library(assimp SHARED IMPORTED)
-set_target_properties(assimp PROPERTIES
-        IMPORTED_LOCATION ${ASSIMP_LIB_DIR}/libassimp.so
-)
-
-# If you used c++_shared, link libc++_shared too
-find_library(cpp_shared c++_shared)
-
 
 # ----------------------- Picking ------------------------
 
 #add_library(picking STATIC
 #
 #)
+
+# -------------------- SURFACE --------------------
+
+add_library(vulkanCore SHARED
+        native-lib.cpp
+)
+
+target_include_directories(vulkanCore PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/VulkanLiteEngine/Engine
+)
 
 # -------------------- LINK EVERYTHING --------------------
 find_library(vulkan-lib vulkan)
@@ -118,10 +133,8 @@ target_link_libraries(
         engineUtils
         engineSystem
         android
-        ${vulkan}
+        ${vulkan-lib}
         glm
-        tinyobjloader
         log
-        assimp
         ${cpp_shared}
 )
