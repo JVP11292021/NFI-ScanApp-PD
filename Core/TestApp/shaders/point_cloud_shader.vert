@@ -26,13 +26,14 @@ layout(set = 0, binding = 0) uniform GlobalUbo {
 layout(push_constant) uniform Push {
 	mat4 modelMatrix;
 	mat4 normalMatrix;
+	float pointSize;
 } push;
 
 
 void main() {
 	vec4 positionWorld = push.modelMatrix * vec4(position, 1.0);
 	gl_Position = ubo.projection * ubo.view * positionWorld;
-    gl_PointSize = 9.0;
+    gl_PointSize = push.pointSize;
 
 	fragNormalWorld = normalize(mat3(push.normalMatrix) * normal);
 	fragPosWorld = positionWorld.xyz;
