@@ -1,6 +1,7 @@
 package com.example.ipmedth_nfi.ui.components
 
-import androidx.compose.foundation.layout.Box
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -19,7 +20,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -29,6 +29,7 @@ import com.example.ipmedth_nfi.model.Observation
 import com.example.ipmedth_nfi.ui.ObservationField
 import com.composables.camera
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ObservationCard(
     observation: Observation,
@@ -63,7 +64,8 @@ fun ObservationCard(
 
                 ObservationField(
                     label = "Beschrijving",
-                    value = observation.beschrijving
+                    value = observation.beschrijving,
+
                 )
 
                 ObservationField(
