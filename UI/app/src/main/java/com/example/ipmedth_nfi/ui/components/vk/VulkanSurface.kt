@@ -19,7 +19,6 @@ fun VulkanSurface(
             SurfaceView(context).apply {
                 holder.addCallback(object : SurfaceHolder.Callback {
                     override fun surfaceCreated(holder: SurfaceHolder) {
-                        Log.i("NFI, ", "Device width=$width, height=$height")
                         engine.initRenderEngine(
                             holder.surface,
                             width,
@@ -33,7 +32,7 @@ fun VulkanSurface(
                         width: Int,
                         height: Int
                     ) {
-                        engine.initRenderEngine(
+                        engine.surfaceChanged(
                             holder.surface,
                             width,
                             height
