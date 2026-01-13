@@ -1,5 +1,7 @@
 package com.example.ipmedth_nfi.pages.app.tabs
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,6 +27,7 @@ import com.example.ipmedth_nfi.ui.components.ObservationCard
 import com.example.ipmedth_nfi.ui.components.ObservationSearchBar
 import com.example.ipmedth_nfi.viewmodel.SessionViewModel
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ObservationsTab(
     viewModel: SessionViewModel
@@ -33,9 +36,12 @@ fun ObservationsTab(
     var searchQuery by remember { mutableStateOf("") }
 
     Column(Modifier.fillMaxSize()) {
+        val totalCount = viewModel.observations.size
+        val bookmarkCount = viewModel.observations.count{ it.isBookmarked }
+
         InfoSubheader(
             subject = "Observations",
-            details = "Waarnemingen tijdens de inspectie",
+            details = "$totalCount totaal - $bookmarkCount bookmark(s)",
             actionTitle = "+ Nieuw",
             onAddClick = { showAddDialog = true }
         )
@@ -53,11 +59,10 @@ fun ObservationsTab(
 
         LazyColumn(
             modifier = Modifier.weight(1f),
-            contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             items(filteredObservations, key = { it.id }) { observation ->
-                ObservationCard(
+                ObservationCard (
                     observation = observation,
                     onDelete = { viewModel.deleteObservation(observation.id) },
                     onToggleBookmark = { viewModel.toggleBookmark(observation.id) },
