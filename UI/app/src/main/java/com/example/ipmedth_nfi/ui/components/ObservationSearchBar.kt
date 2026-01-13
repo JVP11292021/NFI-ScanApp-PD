@@ -18,7 +18,7 @@ fun ObservationSearchBar(
         onValueChange = onQueryChange,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .padding(vertical = 16.dp),
         placeholder = { Text("Zoeken naar waarneming...") },
         singleLine = true,
     )
