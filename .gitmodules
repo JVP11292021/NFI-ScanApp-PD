@@ -1,1 +1,6 @@
-
+[submodule "Core/Engine"]
+	path = Core/Engine
+	url = https://github.com/JVP11292021/VulkanLiteEngine.git
+[submodule "UI/app/src/main/cpp/thirdparty/VulkanLiteEngine"]
+	path = UI/app/src/main/cpp/thirdparty/VulkanLiteEngine
+	url = https://github.com/JVP11292021/VulkanLiteEngine.git
