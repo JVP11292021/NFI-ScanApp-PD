@@ -23,6 +23,7 @@ project "EngineUtils"
 	kind "staticlib"
 	language "C++"
 	cppdialect "C++17"
+	staticruntime "on"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
@@ -88,6 +89,7 @@ project "EngineBackend"
 	kind "staticlib"
 	language "C++"
 	cppdialect "C++17"
+	staticruntime "on"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
@@ -167,6 +169,7 @@ project "EngineSystems"
 	kind "staticlib"
 	language "C++"
 	cppdialect "C++17"
+	staticruntime "on"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
@@ -240,6 +243,7 @@ project "RayTracing"
 	kind "staticlib"
 	language "C++"
 	cppdialect "C++17"
+	staticruntime "on"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
@@ -249,7 +253,6 @@ project "RayTracing"
 		"%{prj.name}/**.hpp",
 		"%{prj.name}/**.inl",
 		"%{prj.name}/**.cpp",
-		"%{prj.name}/**.c",
 	}
 
 	includedirs {
@@ -311,11 +314,12 @@ project "RayTracing"
 		optimize "on"
 		runtime "Release"
 
-project "minmap-core"
-	location "minmap-core"
+project "GSplats"
+	location "GSplats"
 	kind "staticlib"
 	language "C++"
 	cppdialect "C++17"
+	staticruntime "on"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
@@ -325,12 +329,13 @@ project "minmap-core"
 		"%{prj.name}/**.hpp",
 		"%{prj.name}/**.inl",
 		"%{prj.name}/**.cpp",
-		"%{prj.name}/**.cc",
-		"%{prj.name}/**.c",
 	}
 
 	includedirs {
 		"Libraries/include",
+		"Engine/Engine/EngineBackend",
+		"Engine/Engine/EngineUtils",
+		"Engine/Engine/Systems"
 	}
 
 	libdirs {
@@ -338,15 +343,16 @@ project "minmap-core"
 	}
 
 	links {
-        "ceres.lib",
-        "glog.lib",
-		"sqlite3.lib",
-		"FreeImage.lib",
-		"FreeImagePlus.lib",
-		"faiss.lib"
+		"EngineBackend",
+		"EngineUtils",
+		"EngineSystems"
 	}
 
-	dependson {}
+	dependson { 
+		"EngineBackend", 
+		"EngineUtils",
+		"EngineSystems"
+	}
 
 	if vulkan_sdk ~= nil then
         includedirs {
@@ -366,24 +372,30 @@ project "minmap-core"
         }
     end
 
-	filter "toolset:msc*"
-        buildoptions { "/bigobj" }
-
 	filter "system:windows"
 		systemversion "latest"
-		defines { "_CRT_SECURE_NO_WARNINGS", "GLOG_NO_ABBREVIATED_SEVERITIES", "GLOG_USE_GLOG_EXPORT" }
-		buildoptions { "/permissive-" }  -- <-- important
 
 	filter "configurations:Debug"
 		defines "APP_DEBUG"
 		symbols "on"
 		runtime "Debug"
 
-project "minmap"
-	location "minmap"
+	filter "configurations:Release"
+		defines "APP_RELEASE"
+		optimize "on"
+		runtime "Release"
+
+	filter "configurations:Dist"
+		defines "APP_DIST"
+		optimize "on"
+		runtime "Release"
+
+project "SfM"
+	location "SfM"
 	kind "staticlib"
 	language "C++"
 	cppdialect "C++17"
+	staticruntime "on"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
@@ -393,13 +405,13 @@ project "minmap"
 		"%{prj.name}/**.hpp",
 		"%{prj.name}/**.inl",
 		"%{prj.name}/**.cpp",
-		"%{prj.name}/**.cc",
-		"%{prj.name}/**.c",
 	}
 
 	includedirs {
 		"Libraries/include",
-		"minmap-core",
+		"Engine/Engine/EngineBackend",
+		"Engine/Engine/EngineUtils",
+		"Engine/Engine/Systems",
 	}
 
 	libdirs {
@@ -407,13 +419,29 @@ project "minmap"
 	}
 
 	links {
+		"EngineBackend",
+		"EngineUtils",
+		"EngineSystems",
+		"colmap_controllers.lib",
+        "colmap_util.lib",
+        "colmap_feature.lib",
+        "colmap_feature_types.lib",
+        "colmap_sfm.lib",
+		"colmap_sensor.lib",
+		"colmap_math.lib",
+		"colmap_optim.lib",
+		"colmap_mvs.lib",
+		"colmap_image.lib",
+		"colmap_retrieval.lib",
+		"colmap_vlfeat.lib",
         "ceres.lib",
         "glog.lib",
-		"minmap-core",
 	}
 
-	dependson {
-		"minmap-core"
+	dependson { 
+		"EngineBackend", 
+		"EngineUtils",
+		"EngineSystems"
 	}
 
 	if vulkan_sdk ~= nil then
@@ -436,7 +464,7 @@ project "minmap"
 
 	filter "system:windows"
 		systemversion "latest"
-		defines { "_CRT_SECURE_NO_WARNINGS", "GLOG_NO_ABBREVIATED_SEVERITIES", "GLOG_USE_GLOG_EXPORT" }
+		defines { "_CRT_SECURE_NO_WARNINGS", "GLOG_NO_ABBREVIATED_SEVERITIES" }
 		buildoptions { "/permissive-" }  -- <-- important
 
 	filter "configurations:Debug"
@@ -459,6 +487,7 @@ project "TestApp"
 	kind "ConsoleApp"
 	language "C++"
 	cppdialect "C++17"
+	staticruntime "on"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
@@ -468,7 +497,6 @@ project "TestApp"
 		"%{prj.name}/**.hpp",
 		"%{prj.name}/**.inl",
 		"%{prj.name}/**.cpp",
-		"%{prj.name}/**.c",
 	}
 
 	includedirs {
@@ -476,8 +504,9 @@ project "TestApp"
 		"Engine/Engine/EngineBackend",
 		"Engine/Engine/EngineUtils",
 		"Engine/Engine/Systems",
-		"minmap",
-		"minmap-core"
+		"RayTracing",
+		"GSplats",
+		"SfM"
 	}
 
 	libdirs {
@@ -489,8 +518,9 @@ project "TestApp"
 		"EngineUtils",
 		"EngineSystems",
 		"RayTracing",
-		"minmap",
-		"minmap-core"
+		"GSplats",
+		"SfM",
+		"opencv_world4120d.lib",
 	}
 
 	dependson { 
@@ -498,8 +528,7 @@ project "TestApp"
 		"EngineUtils",
 		"EngineSystems",
 		"RayTracing",
-		"minmap",
-		"minmap-core"
+		"GSplats",
 	}
 
 	debugenvs {

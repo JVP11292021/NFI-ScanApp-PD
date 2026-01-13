@@ -1,17 +1,13 @@
 #include <iostream>
 
-#include <Feature.hpp>
-#include <MapModel.hpp>
-#include <SfM.hpp>
-#include <Ray.hpp>
-
 #include <CameraSystem.hpp>
 #include <MarkerManager.h>
-#include <PickingSystem.h>
 #include <Renderer.hpp>
 #include <ObjectRenderSystem.hpp>
 #include <PointCloudRenderSystem.hpp>
 #include <PointLightSystem.hpp>
+#include <PickingRenderSystem.hpp>
+#include <GLFW/glfw3.h>
 
 #include <Device.hpp>
 #include <defs.hpp>
@@ -23,6 +19,8 @@
 #include <Buffer.hpp>
 #include <Descriptors.hpp>
 #include <eutils.hpp>
+#include <GLFWWindow.hpp>
+#include <AndroidWindow.hpp>
 
 #include <filesystem>
 #include <chrono>
@@ -61,49 +59,6 @@ private:
 	glm::mat4 view_{ 1.0f };
 	glm::mat4 projection_{ 1.0f };
 	glm::mat4 inverseView_{ 1.0f };
-};
-
-class ReconstructionService {
-public:
-	bool runSparse(
-		const std::filesystem::path& dataset,
-		bool cpuOnly = true
-	) {
-		std::string programName = "Visualization Program";
-		colmap::InitializeGlog(programName.c_str());
-
-		std::filesystem::path images = dataset / "images";
-		std::filesystem::path db = dataset / "database.db";
-		std::filesystem::path sparse = dataset / "sparse";
-
-		std::filesystem::create_directories(sparse);
-
-		// 1. Feature extraction
-		if (minmap::RunFeatureExtractor(db, images) != EXIT_SUCCESS) {
-			LOG(ERROR) << "Feature extraction failed.";
-			return false;
-		}
-
-		//// 2. Exhaustive matching
-		//if (minmap::RunExhaustiveMatcher(db) != EXIT_SUCCESS) {
-		//	LOG(ERROR) << "Exhaustive matching failed.";
-		//	return false;
-		//}
-
-		//// 3. Mapping (creates sparse reconstruction)
-		//if (minmap::RunMapper(db, images, sparse) != EXIT_SUCCESS) {
-		//	LOG(ERROR) << "Mapping failed.";
-		//	return false;
-		//}
-
-		//// 4. Export to PLY
-		//if (minmap::RunModelConverter(sparse / "0", sparse / "sparse.ply", "PLY") != EXIT_SUCCESS) {
-		//	LOG(ERROR) << "Model conversion to PLY failed.";
-		//	return false;
-		//}
-
-		return true;
-	}
 };
 
 class FirstApp {
@@ -153,19 +108,20 @@ public:
 		vle::sys::PointLightSystem pointLigthSystem{ this->device, this->renderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout() };
 		vle::sys::PointCloudRenderSystem pointCloudRenderSystem{ this->device, this->renderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout() };
 		//vle::Camera camera{};
+		
+		PickingRenderSystem pickingRenderSystem{ this->device, WIDTH, HEIGHT, globalSetLayout->getDescriptorSetLayout(), this->renderer.getSwapChainRenderPass()};
 
 		vle::sys::CameraSystem cam{
 			glm::vec3(0.f, 0.f, 2.5f),
 			glm::vec3(0.f, 0.f, 1.f)
 		};
 		CameraAdapter camAdapter{ cam };
-		//cam.setRotation(
-		//	0.0f,
-		//	0.0f, 
-		//	0.0f
-		//);
 
 		auto currentTime = std::chrono::high_resolution_clock::now();
+
+		// Track if we need to pick on this frame
+		bool shouldPick = false;
+		uint32_t pickX = 0, pickY = 0;
 
 		while (!this->win.shouldClose()) {
 			glfwPollEvents();
@@ -207,31 +163,18 @@ public:
 
 			this->markerManager.updateMarkerRotations(cam.getPosition(), objects);
 
+			// Detect mouse click
 			static int prevMouseState = GLFW_RELEASE;
 			int mouseState = glfwGetMouseButton(this->win.getGLFWwindow(), GLFW_MOUSE_BUTTON_LEFT);
 			if (mouseState == GLFW_PRESS && prevMouseState == GLFW_RELEASE) {
-
 				double mouseX, mouseY;
 				glfwGetCursorPos(this->win.getGLFWwindow(), &mouseX, &mouseY);
-
+				
+				pickX = static_cast<uint32_t>(mouseX);
+				pickY = static_cast<uint32_t>(HEIGHT - mouseY - 1);
+				shouldPick = true;
+				
 				printf("Mouse Position: %f, %f\n", mouseX, mouseY);
-				Ray ray = PickingSystem::buildRay((float)mouseX, (float)mouseY, WIDTH, HEIGHT, cam);
-
-				// 4. Build the model matrix for the large model
-				auto& room = this->objects.begin()->second; // example: get your large model
-				glm::mat4 modelMatrix(1.0f);
-				modelMatrix = glm::translate(modelMatrix, room.transform.translation);
-				modelMatrix = glm::rotate(modelMatrix, room.transform.rotation.y, glm::vec3(0, 1, 0));
-				modelMatrix = glm::rotate(modelMatrix, room.transform.rotation.x, glm::vec3(1, 0, 0));
-				modelMatrix = glm::rotate(modelMatrix, room.transform.rotation.z, glm::vec3(0, 0, 1));
-				modelMatrix = glm::scale(modelMatrix, room.transform.scale);
-
-				// 5. Call intersection function (to implement next)
-				PickResult result = pickingSystem.intersectModel(ray, room.model, modelMatrix);
-
-				if (result.hit) {
-					std::cout << "Hit at: " << result.position.x << ", " << result.position.y << ", " << result.position.z << "\n";
-				}
 			}
 			prevMouseState = mouseState;
 
@@ -241,7 +184,6 @@ public:
 					frameIndex,
 					frameTimeElapsed,
 					commandBuffer,
-					//camera,
 					globalDescriptorSets[frameIndex],
 					this->objects,
 					this->points
@@ -252,11 +194,46 @@ public:
 				ubo.projection = camAdapter.getProjection();
 				ubo.view = camAdapter.getView();
 				ubo.inverseView = camAdapter.getInverseView();
+
 				pointLigthSystem.update(frameInfo, ubo);
+				pickingRenderSystem.update(frameInfo, ubo);
+
 				uboBuffers[frameIndex]->writeToBuffer(&ubo);
 				uboBuffers[frameIndex]->flush();
 
-				// Render Phase
+
+				// Render Phase - Picking render pass (must happen BEFORE reading)
+				pickingRenderSystem.render(frameInfo);
+
+				if (shouldPick) {
+					VkCommandBuffer pickCmdBuffer = this->device.beginSingleTimeCommands();
+					
+					pickingRenderSystem.copyPixelToStaging(pickCmdBuffer, pickX, pickY);
+					
+					this->device.endSingleTimeCommands(pickCmdBuffer);
+					
+					PickResult pick = pickingRenderSystem.readPickResult();
+
+					if (pick.id != 0xFFFFFFFF) {
+						std::cout << "Picked Point Cloud ID: " << pick.objectID 
+								  << ", Point Index: " << pick.pointIndex 
+								  << ", World Position: (" 
+								  << pick.worldPos.x << ", " 
+								  << pick.worldPos.y << ", " 
+								  << pick.worldPos.z << ")\n";
+						
+						// Create a marker at the picked position
+						this->markerManager.createMarker(pick.worldPos, this->device, this->objects);
+						std::cout << "Marker created at picked position!\n";
+					}
+					else {
+						std::cout << "No point picked.\n";
+					}
+					
+					shouldPick = false;
+				}
+
+				// Render Phase - Swap chain render pass
 				this->renderer.beginSwapChainRenderPass(commandBuffer);
 				objectRenderSystem.render(frameInfo);
 				pointLigthSystem.render(frameInfo);
@@ -268,98 +245,43 @@ public:
 
 		vkDeviceWaitIdle(this->device.device());
 	}
+
 private:
-
 	void loadObjects() {
-		//std::shared_ptr<vle::ShaderModel> model =
-		//	vle::ShaderModel::createModelFromFile(this->device, "models/smooth_vase.obj");
+		this->markerManager.loadMarkersFromTxt("models/markers.txt", this->device, this->objects);
 
-		//const int rows = 1;        // number of objects on Y axis
-		//const int cols = 1;        // number of objects on X axis
-		 
-		//const float startX = -2.0f;
-		//const float startY = 0.5f;
-		//const float zPos = 2.5f;
-
-		//const float spacingX = 0.6f;
-		//const float spacingY = 0.6f;
-
-		//for (int y = 0; y < rows; y++) {
-		//	for (int x = 0; x < cols; x++) {
-
-		//		auto obj = vle::Object::create();
-		//		obj.model = model;
-
-		//		obj.transform.translation = {
-		//			startX + x * spacingX,
-		//			startY + y * spacingY,
-		//			zPos
-		//		};
-
-		//		obj.transform.scale = { 3.f, 1.5f, 3.f };
-
-		//		this->objects.emplace(obj.getId(), std::move(obj));
-		//	}
-		//}
-
-		//std::shared_ptr<vle::ShaderModel> quadModel =
-		//	vle::ShaderModel::createModelFromFile(this->device, "models/quad.obj");
-		//auto obj = vle::Object::create();
-		//obj.model = quadModel;
-		//obj.transform.translation = { 0.f, .5f, 0.f };
-		//obj.transform.scale = { 3.f, 1.0f, 3.f };
-		//this->objects.emplace(obj.getId(), std::move(obj));
-
-		std::vector<glm::vec3> lightColors{
-			 {1.f, .1f, .1f},
-			 {.1f, .1f, 1.f},
-			 {.1f, 1.f, .1f},
-			 {1.f, 1.f, .1f},
-			 {.1f, 1.f, 1.f},
-			 {1.f, 1.f, 1.f}  //
-		};
-		for (std::int32_t i = 0; i < lightColors.size(); i++) {
-			auto pointLight = vle::Object::createPointLight(1.f);
-			pointLight.color = lightColors[i];
-			auto rotHeight = glm::rotate(
-				glm::mat4(1.f),
-				(i * glm::two_pi<float>()) / lightColors.size(),
-				{ 0.f, 1.f, 0.f });
-			pointLight.transform.translation = glm::vec3(rotHeight * glm::vec4(-1.f, -1.f, -1.f, 1.f));
-			this->objects.emplace(pointLight.getId(), std::move(pointLight));
-		}
-		//this->markerManager.loadMarkersFromTxt("models/markers.txt", this->device, this->objects);
-
-		std::shared_ptr<vle::ShaderModel> roomModel = 
-			vle::ShaderModel::createModelFromFile(this->device, "pointclouds/well/sparse/sparse.ply");
+		std::shared_ptr<vle::ShaderModel> roomModel = vle::ShaderModel::createModelFromFile(this->device, "models/simple_scene.ply");
 		auto room = vle::Object::create();
 		room.model = roomModel;		
 		room.transform.translation = { 0.f, .5f, 8.f };
-		//room.transform.rotation = {
-		//	glm::radians(9.0f),
-		//	glm::radians(180.f),
-		//	glm::radians(93.0f)
-		//};
+		room.transform.rotation = {
+			glm::radians(9.0f),
+			glm::radians(180.f),
+			glm::radians(93.0f)
+		};
 		this->points.emplace(room.getId(), std::move(room));
 	}
 
 private:
-	vle::EngineWindow win{ WIDTH, HEIGHT, "NFI App Engine" };
+#if VLE_WIN_WINDOWS
+
+	vle::GLFWWindow win{ WIDTH, HEIGHT, "NFI App Engine" };
+#else
+	vle::AndroidWindow win{ WIDTH, HEIGHT, "NFI App Engine" };
+#endif
+
 	vle::EngineDevice device{ win };
 	vle::sys::Renderer renderer{ win, device };
 
 	std::unique_ptr<vle::DescriptorPool> globalPool{};
 	vle::ObjectMap objects;
 	vle::ObjectMap points;
-	PickingSystem pickingSystem;
 	MarkerManager markerManager;
 };
 
-int main(int argc, char** argv) {
-	ReconstructionService recon{};
-	if (!recon.runSparse("pointclouds/well"))
-		return EXIT_FAILURE;
+#include <Test.hpp>
 
+int main(int argc, char** argv) {
 	FirstApp app;
 	try {
 		app.run();
