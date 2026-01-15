@@ -44,6 +44,7 @@ private:
     vle::EngineDevice _device;
     vle::sys::Renderer _renderer;
     vle::sys::CameraSystem _cam;
+    vle::sys::ObjectRenderSystem _objRenderSystem;
 
 public:
     std::unique_ptr<vle::DescriptorPool> globalPool{};

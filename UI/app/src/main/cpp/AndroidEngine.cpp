@@ -93,7 +93,7 @@ void AndroidEngine::renderFrame(float frameTimeElapsed) {
         // === RENDER ===
         _renderer.beginSwapChainRenderPass(commandBuffer);
         VLE_LOGI("RENDERING!");
-        // objectRenderSystem.render(frameInfo);
+        objectRenderSystem.render(frameInfo);
         // pointLightSystem.render(frameInfo);
         // pointCloudRenderSystem.render(frameInfo);
 
