@@ -13,12 +13,15 @@ static std::unique_ptr<vle::DescriptorSetLayout> globalSetLayout;
 static std::vector<VkDescriptorSet> globalDescriptorSets(MAX_FRAMES_IN_FLIGHT);
 
 AndroidEngine::AndroidEngine(
+        AAssetManager* assetManager,
         ANativeWindow* nativeWindow,
         std::int32_t width,
         std::int32_t height
 )
-    : _win(nativeWindow, width, height, "NFI Scan App"),
-      _device(_win),
+  :
+      _assetManager(assetManager),
+      _win(nativeWindow, width, height, "NFI Scan App"),
+      _device(_win, _assetManager),
       _renderer(_win, _device),
       _cam(
               glm::vec3(0.f, 0.f, 2.5f),
@@ -29,13 +32,15 @@ AndroidEngine::AndroidEngine(
             .setMaxSets(MAX_FRAMES_IN_FLIGHT)
             .addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, MAX_FRAMES_IN_FLIGHT)
             .build();
+
+    this->loadObjects();
+    this->mapUniformBufferObjects();
+    this->makeDescriptorSets();
+    this->makeSystems();
 }
 
 AndroidEngine::~AndroidEngine() {
-//    if (objectRenderSystem) {
-//        delete objectRenderSystem;
-//        objectRenderSystem = nullptr;
-//    }
+
 }
 
 void AndroidEngine::resize(std::int32_t width, std::int32_t height) {
@@ -67,6 +72,25 @@ void AndroidEngine::makeDescriptorSets() {
     }
 }
 
+void AndroidEngine::makeSystems() {
+    this->_objectRenderSystem =
+            std::make_unique<vle::sys::ObjectRenderSystem>(
+                    this->_device,
+                    this->_renderer.getSwapChainRenderPass(),
+                    globalSetLayout->getDescriptorSetLayout(),
+                    "shaders/simple_shader.vert.spv",
+                    "shaders/simple_shader.frag.spv");
+}
+
+void AndroidEngine::loadObjects() {
+    std::shared_ptr<vle::ShaderModel> model = vle::entity::Cube(this->_device, { .0f,.0f,.0f });
+    auto cube = vle::Object::create();
+    cube.model = model;
+    cube.transform.translation = { .0f,.0f,.5f };
+    cube.transform.scale = { .5f,.5f,.5f };
+    this->objects.emplace(cube.getId(), std::move(cube));
+}
+
 void AndroidEngine::renderFrame(float frameTimeElapsed) {
     if (auto commandBuffer = _renderer.beginFrame()) {
 
@@ -92,8 +116,7 @@ void AndroidEngine::renderFrame(float frameTimeElapsed) {
 
         // === RENDER ===
         _renderer.beginSwapChainRenderPass(commandBuffer);
-        VLE_LOGI("RENDERING!");
-        objectRenderSystem.render(frameInfo);
+        this->_objectRenderSystem->render(frameInfo);
         // pointLightSystem.render(frameInfo);
         // pointCloudRenderSystem.render(frameInfo);
 

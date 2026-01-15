@@ -2,17 +2,22 @@
 // Created by jessy on 1/13/2026.
 //
 
-#include <jni.h>
-#include <EngineBackend/defs.hpp>
-
 #include "AndroidEngine.h"
 #include "RenderLoopProcess.h"
 
+#include <jni.h>
+#include <android/asset_manager.h>
+#include <android/asset_manager_jni.h>
+#include <EngineBackend/defs.hpp>
+
+
 static RenderLoopProcess* process = nullptr;
 static AndroidEngine* engine = nullptr;
+static AAssetManager* asset_manager = nullptr;
 static ANativeWindow* nav_window = nullptr;
 
 static ANativeWindow * __winFromSurface(_JNIEnv *env, jobject surface);
+static AAssetManager * __assetManagerFromJava(_JNIEnv *env, jobject manager);
 
 extern "C"
 JNIEXPORT jint JNICALL
@@ -20,6 +25,7 @@ Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_initRenderEngine(
         JNIEnv *env,
         jobject /* this */,
         jobject surface,
+        jobject assetManager,
         jint width,
         jint height
 ) {
@@ -28,13 +34,12 @@ Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_initRenderEngine(
         return 0;
     }
     nav_window = __winFromSurface(env, surface);
+    asset_manager = __assetManagerFromJava(env, assetManager);
 //    VLE_LOGI("width=", std::to_string(width).c_str(), ", height=", std::to_string(height).c_str());
 
     if (!engine) {
         try {
-            engine = new AndroidEngine(nav_window, width, height);
-            engine->mapUniformBufferObjects();
-            engine->makeDescriptorSets();
+            engine = new AndroidEngine(asset_manager, nav_window, width, height);
             VLE_LOGD("Engine instance created successfully!");
         } catch (std::runtime_error& ex) {
             VLE_LOGE(ex.what());
@@ -122,3 +127,6 @@ ANativeWindow * __winFromSurface(_JNIEnv *env, jobject surface) {
     return ANativeWindow_fromSurface(env, surface);
 }
 
+AAssetManager * __assetManagerFromJava(_JNIEnv *env, jobject manager) {
+    return AAssetManager_fromJava(env, manager);
+}

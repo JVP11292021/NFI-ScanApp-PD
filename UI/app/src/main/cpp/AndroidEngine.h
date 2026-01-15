@@ -7,6 +7,8 @@
 
 #include "Semantics.h"
 
+#include <android/asset_manager.h>
+
 #include <EngineBackend/defs.hpp>
 #include <EngineBackend/AndroidWindow.hpp>
 #include <EngineBackend/Device.hpp>
@@ -23,6 +25,7 @@ using UboBuffer = vle::Buffer;
 class AndroidEngine final {
 public:
     explicit AndroidEngine(
+            AAssetManager* assetManager,
             ANativeWindow* nativeWindow,
             std::int32_t width,
             std::int32_t height);
@@ -32,21 +35,27 @@ public:
 public:
     // TODO needs to be implemented
     void resize(std::int32_t width, std::int32_t height);
-    void mapUniformBufferObjects();
-    void makeDescriptorSets();
     void renderFrame(float dt);
     void waitForDevice();
 
     inline bool killLoop() { return this->_win.shouldClose(); }
     inline float getAspectRatio() { return this->_renderer.getAspectRatio(); }
+
 private:
+    void mapUniformBufferObjects();
+    void makeDescriptorSets();
+    void makeSystems();
+    void loadObjects();
+
+private:
+    AAssetManager* _assetManager = nullptr;
     vle::AndroidWindow _win;
     vle::EngineDevice _device;
     vle::sys::Renderer _renderer;
     vle::sys::CameraSystem _cam;
-    vle::sys::ObjectRenderSystem _objRenderSystem;
+    std::unique_ptr<vle::sys::ObjectRenderSystem> _objectRenderSystem;
 
-public:
+private:
     std::unique_ptr<vle::DescriptorPool> globalPool{};
     vle::ObjectMap objects;
     vle::ObjectMap points;

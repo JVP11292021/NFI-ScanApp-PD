@@ -21,6 +21,7 @@ fun VulkanSurface(
                     override fun surfaceCreated(holder: SurfaceHolder) {
                         engine.initRenderEngine(
                             holder.surface,
+                            context.assets,
                             width,
                             height
                         )
