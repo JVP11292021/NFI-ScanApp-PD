@@ -24,6 +24,8 @@ fun VulkanSurface(
                             width,
                             height
                         )
+
+                        engine.start()
                     }
 
                     override fun surfaceChanged(
@@ -41,6 +43,7 @@ fun VulkanSurface(
 
                     override fun surfaceDestroyed(holder: SurfaceHolder) {
                         Log.i("NFI", "Destroyed surface")
+                        engine.stop()
                         engine.destroyRenderEngine()
                         // later: engine.destroy()
                     }

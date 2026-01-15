@@ -6,9 +6,13 @@
 #include <EngineBackend/defs.hpp>
 
 #include "AndroidEngine.h"
+#include "RenderLoopProcess.h"
 
+static RenderLoopProcess* process = nullptr;
 static AndroidEngine* engine = nullptr;
 static ANativeWindow* nav_window = nullptr;
+
+static ANativeWindow * __winFromSurface(_JNIEnv *env, jobject surface);
 
 extern "C"
 JNIEXPORT jint JNICALL
@@ -19,26 +23,23 @@ Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_initRenderEngine(
         jint width,
         jint height
 ) {
-    nav_window = ANativeWindow_fromSurface(env, surface);
+    if (engine) {
+        VLE_LOGF("Cannot create a double instance of AndroidEngine!");
+        return 0;
+    }
+    nav_window = __winFromSurface(env, surface);
 //    VLE_LOGI("width=", std::to_string(width).c_str(), ", height=", std::to_string(height).c_str());
 
     if (!engine) {
         try {
             engine = new AndroidEngine(nav_window, width, height);
+            engine->mapUniformBufferObjects();
+            engine->makeDescriptorSets();
             VLE_LOGD("Engine instance created successfully!");
         } catch (std::runtime_error& ex) {
             VLE_LOGE(ex.what());
             return 0;
         }
-    }
-    else {
-        VLE_LOGF("Cannot create a double instance of AndroidEngine!");
-        return 0;
-    }
-
-    if (!engine) {
-        VLE_LOGE("Failed to create Vulkan instance!");
-        return 0;
     }
 
     VLE_LOGI("Vulkan instance loaded correctly!");
@@ -75,6 +76,49 @@ Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_destroyRenderEngine(
         VLE_LOGI("Destroyed the AndroidEngine instance!");
     }
 
-    VLE_LOGW("Was not able to destroy AndroidEngine instance!");
+    if (process) {
+        delete process;
+        process = nullptr;
+        VLE_LOGI("Destroyed the RenderLoopProcess instance!");
+    }
+
+    if (process || engine)
+        VLE_LOGW("Was not able to destroy render instances!");
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_start(
+        JNIEnv *env,
+        jobject /* this */
+) {
+    if (!engine) {
+        VLE_LOGE("Cannot start render loop, AndroidEngine was uninitialized!");
+        return 0;
+    }
+
+    process = new RenderLoopProcess(engine);
+    VLE_LOGI("Starting render loop!");
+    return static_cast<jint>(process->start());     // Thread begins render loop
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_stop(
+        JNIEnv *env,
+        jobject /* this */
+) {
+    if (!process) {
+        VLE_LOGF("Cannot stop the render loop process when it isn't running!");
+        return 0;
+    }
+
+    process->stop();
+    VLE_LOGI("Stopped the render loop process");
+    return 1;
+}
+
+ANativeWindow * __winFromSurface(_JNIEnv *env, jobject surface) {
+    return ANativeWindow_fromSurface(env, surface);
 }
 

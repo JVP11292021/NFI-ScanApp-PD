@@ -71,6 +71,8 @@ add_library(engineUtils STATIC
         thirdparty/VulkanLiteEngine/Engine/EngineUtils/Aligned.cpp
         thirdparty/VulkanLiteEngine/Engine/EngineUtils/Hash.cpp
         thirdparty/VulkanLiteEngine/Engine/EngineUtils/VkHelpers.cpp
+        thirdparty/VulkanLiteEngine/Engine/EngineUtils/Threading.cpp
+        thirdparty/VulkanLiteEngine/Engine/EngineUtils/Timer.cpp
 )
 
 set_target_properties(engineUtils PROPERTIES
@@ -118,6 +120,7 @@ target_include_directories(engineSystem PUBLIC
 
 add_library(renderEngine SHARED
         AndroidEngine.cpp
+        RenderLoopProcess.cpp
         Engine_bridge.cpp
 )
 
