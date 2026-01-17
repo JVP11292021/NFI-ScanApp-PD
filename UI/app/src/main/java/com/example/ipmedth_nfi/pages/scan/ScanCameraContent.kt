@@ -79,7 +79,7 @@ fun ScanCameraContent(
         FloatingActionButton(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 32.dp),
+                .padding(bottom = 64.dp),
             onClick = {
                 imageCapture?.let {
                     takePhoto(context, it)

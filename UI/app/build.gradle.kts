@@ -46,6 +46,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.compose.material3)
     val cameraxVersion = "1.5.2"
     implementation("androidx.camera:camera-core:${cameraxVersion}")
     implementation("androidx.camera:camera-camera2:${cameraxVersion}")
@@ -53,7 +54,8 @@ dependencies {
     implementation("androidx.camera:camera-view:${cameraxVersion}")
     implementation("com.google.accompanist:accompanist-permissions:0.37.3")
     implementation("androidx.appcompat:appcompat:1.7.1")
-
+    implementation("androidx.compose.material:material-icons-core")
+    implementation("androidx.compose.material:material-icons-extended")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

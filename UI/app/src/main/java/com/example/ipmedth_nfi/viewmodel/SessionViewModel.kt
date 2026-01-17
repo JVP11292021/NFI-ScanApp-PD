@@ -10,6 +10,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.example.ipmedth_nfi.model.ExportData
+import com.example.ipmedth_nfi.model.Hoofdthema
 import com.example.ipmedth_nfi.model.Marker
 import com.example.ipmedth_nfi.model.Observation
 import com.example.ipmedth_nfi.model.RoomModel
@@ -29,7 +30,13 @@ class SessionViewModel : ViewModel() {
     var currentAssessmentPage by mutableStateOf<AssessmentPage>(AssessmentPage.Info)
         private set
 
-    // New lists for InfoTab
+    // Image handler functionality
+    fun onPhotoCaptured(uri: Uri) {
+        // TODO: Forward to ExportManager
+        println("Captured photo: $uri")
+    }
+
+    // Info page functionality
     val infoVooraf = mutableStateListOf<String>()
     val infoTerPlaatse = mutableStateListOf<String>()
 
@@ -37,26 +44,7 @@ class SessionViewModel : ViewModel() {
         currentAssessmentPage = page
     }
 
-    fun buildExport(): ExportData {
-        return ExportData(
-            roomModel = roomModel,
-            markers = markers.toList(),
-            appData = appData.toMap()
-        )
-    }
-
-    fun canCompleteFinish(): Boolean {
-        return pageCompletion
-            .filterKeys { it != AssessmentPage.Finish }
-            .values
-            .all { it }
-    }
-
-    fun onPhotoCaptured(uri: Uri) {
-        // TODO: Forward to ExportManager
-        println("Captured photo: $uri")
-    }
-
+    // Observation page functionality
     val observations = mutableStateListOf<Observation>()
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -77,6 +65,27 @@ class SessionViewModel : ViewModel() {
         observations.removeAll { it.id == id }
     }
 
+    // Theme page functionality
+    val hoofdthemas = mutableStateListOf<Hoofdthema>()
+
+    fun addHoofdthema(thema: Hoofdthema) {
+        hoofdthemas.add(thema)
+    }
+
+    fun deleteHoofdthema(id: String) {
+        hoofdthemas.removeAll { it.id == id }
+    }
+
+    fun updateHoofdthema(updatedThema: Hoofdthema) {
+        val index = hoofdthemas.indexOfFirst { it.id == updatedThema.id }
+        if (index != -1) {
+            hoofdthemas[index] = updatedThema
+        }
+    }
+
+    fun relevantCount(): Int = hoofdthemas.count { it.relevant }
+
+    // Completion checkbox functionality
     fun toggleBookmark(id: String) {
         val index = observations.indexOfFirst { it.id == id }
         if (index != -1) {
@@ -85,5 +94,21 @@ class SessionViewModel : ViewModel() {
                     isBookmarked = !observations[index].isBookmarked
                 )
         }
+    }
+
+    fun canCompleteFinish(): Boolean {
+        return pageCompletion
+            .filterKeys { it != AssessmentPage.Finish }
+            .values
+            .all { it }
+    }
+
+    // Export functionality
+    fun buildExport(): ExportData {
+        return ExportData(
+            roomModel = roomModel,
+            markers = markers.toList(),
+            appData = appData.toMap()
+        )
     }
 }
