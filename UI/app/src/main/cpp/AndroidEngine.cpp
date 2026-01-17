@@ -43,8 +43,13 @@ AndroidEngine::~AndroidEngine() {
 
 }
 
-void AndroidEngine::resize(std::int32_t width, std::int32_t height) {
+void AndroidEngine::resize(ANativeWindow* nav_win) {
+    if (!nav_win) {
+        VLE_LOGE("The window could not be resized because No ANativeWindow was passed through");
+        return;
+    }
 
+    this->_win.setNativeWindow(nav_win);
 }
 
 void AndroidEngine::mapUniformBufferObjects() {
@@ -110,6 +115,8 @@ void AndroidEngine::renderFrame(float frameTimeElapsed) {
         ubo.projection = this->_cam.getProjMatrix();
         ubo.view = this->_cam.getViewMatrix();
         ubo.inverseView = glm::inverse(ubo.view);
+        ubo.ambientLightColor = glm::vec4(1.f, 1.f, 1.f, 1.f);
+        ubo.numLights = 0;
 
         uboBuffers[frameIndex]->writeToBuffer(&ubo);
         uboBuffers[frameIndex]->flush();

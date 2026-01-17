@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.22.1)
 project(vulkanCore LANGUAGES C CXX)
 
+add_definitions(
+        -DVK_USE_PLATFORM_ANDROID_KHR #required
+)
+
 # ------------------------ GLM -------------------------
 
 add_library(glm INTERFACE)
@@ -62,6 +66,7 @@ target_include_directories(engineBackend PUBLIC
 
 target_compile_definitions(engineBackend PRIVATE
         USE_VULKAN
+        VLE_ECONOMIC_SWAP_CHAIN_MODE
         NDEBUG
 )
 

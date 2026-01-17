@@ -56,16 +56,16 @@ JNIEXPORT jint JNICALL
 Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_surfaceChanged(
         JNIEnv *env,
         jobject /* this */,
-        jobject surface,
-        jint width,
-        jint height
+        jobject surface
 ) {
     if (!engine) {
         VLE_LOGF("Could not activate window change detection 'AndroidEngine' undefined. Make sure to init the AndroidEngine!");
         return 0;
     }
 
-    engine->resize(width, height);
+    nav_window = __winFromSurface(env, surface);
+    engine->resize(nav_window);
+
     return 1;
 }
 

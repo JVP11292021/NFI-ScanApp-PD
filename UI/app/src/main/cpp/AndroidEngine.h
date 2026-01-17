@@ -34,7 +34,7 @@ public:
     NON_COPYABLE(AndroidEngine)
 public:
     // TODO needs to be implemented
-    void resize(std::int32_t width, std::int32_t height);
+    void resize(ANativeWindow* nav_win);
     void renderFrame(float dt);
     void waitForDevice();
 
