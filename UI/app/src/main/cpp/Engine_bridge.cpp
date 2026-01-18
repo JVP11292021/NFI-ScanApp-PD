@@ -1,136 +1,3 @@
-////
-//// Created by jessy on 1/13/2026.
-////
-//
-//#include "AndroidEngine.h"
-//#include "RenderLoopProcess.h"
-//
-//#include <jni.h>
-//#include <android/asset_manager.h>
-//#include <android/asset_manager_jni.h>
-//#include <EngineBackend/defs.hpp>
-//
-//
-//static RenderLoopProcess* process = nullptr;
-//static AndroidEngine* engine = nullptr;
-//static AAssetManager* asset_manager = nullptr;
-//static ANativeWindow* nav_window = nullptr;
-//
-//static ANativeWindow * __winFromSurface(_JNIEnv *env, jobject surface);
-//static AAssetManager * __assetManagerFromJava(_JNIEnv *env, jobject manager);
-//
-//extern "C"
-//JNIEXPORT jint JNICALL
-//Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_initRenderEngine(
-//        JNIEnv *env,
-//        jobject /* this */,
-//        jobject surface,
-//        jobject assetManager,
-//        jint width,
-//        jint height
-//) {
-//    if (engine) {
-//        VLE_LOGF("Cannot create a double instance of AndroidEngine!");
-//        return 0;
-//    }
-//    nav_window = __winFromSurface(env, surface);
-//    asset_manager = __assetManagerFromJava(env, assetManager);
-////    VLE_LOGI("width=", std::to_string(width).c_str(), ", height=", std::to_string(height).c_str());
-//
-//    if (!engine) {
-//        try {
-//            engine = new AndroidEngine(asset_manager, nav_window, width, height);
-//            VLE_LOGD("Engine instance created successfully!");
-//        } catch (std::runtime_error& ex) {
-//            VLE_LOGE(ex.what());
-//            return 0;
-//        }
-//    }
-//
-//    VLE_LOGI("Vulkan instance loaded correctly!");
-//    return 1;
-//}
-//
-//extern "C"
-//JNIEXPORT jint JNICALL
-//Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_surfaceChanged(
-//        JNIEnv *env,
-//        jobject /* this */,
-//        jobject surface
-//) {
-//    if (!engine) {
-//        VLE_LOGF("Could not activate window change detection 'AndroidEngine' undefined. Make sure to init the AndroidEngine!");
-//        return 0;
-//    }
-//
-//    nav_window = __winFromSurface(env, surface);
-//    engine->resize(nav_window);
-//
-//    return 1;
-//}
-//
-//extern "C"
-//JNIEXPORT void JNICALL
-//Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_destroyRenderEngine(
-//        JNIEnv *env,
-//        jobject /* this */
-//) {
-//    if (engine) {
-//        delete engine;
-//        engine = nullptr;
-//        VLE_LOGI("Destroyed the AndroidEngine instance!");
-//    }
-//
-//    if (process) {
-//        delete process;
-//        process = nullptr;
-//        VLE_LOGI("Destroyed the RenderLoopProcess instance!");
-//    }
-//
-//    if (process || engine)
-//        VLE_LOGW("Was not able to destroy render instances!");
-//}
-//
-//extern "C"
-//JNIEXPORT jint JNICALL
-//Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_start(
-//        JNIEnv *env,
-//        jobject /* this */
-//) {
-//    if (!engine) {
-//        VLE_LOGE("Cannot start render loop, AndroidEngine was uninitialized!");
-//        return 0;
-//    }
-//
-//    process = new RenderLoopProcess(engine);
-//    VLE_LOGI("Starting render loop!");
-//    return static_cast<jint>(process->start());     // Thread begins render loop
-//}
-//
-//extern "C"
-//JNIEXPORT jint JNICALL
-//Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_stop(
-//        JNIEnv *env,
-//        jobject /* this */
-//) {
-//    if (!process) {
-//        VLE_LOGF("Cannot stop the render loop process when it isn't running!");
-//        return 0;
-//    }
-//
-//    process->stop();
-//    VLE_LOGI("Stopped the render loop process");
-//    return 1;
-//}
-//
-//ANativeWindow * __winFromSurface(_JNIEnv *env, jobject surface) {
-//    return ANativeWindow_fromSurface(env, surface);
-//}
-//
-//AAssetManager * __assetManagerFromJava(_JNIEnv *env, jobject manager) {
-//    return AAssetManager_fromJava(env, manager);
-//}
-
 #include <jni.h>
 #include <vector>
 #include <string>
@@ -162,6 +29,7 @@ public:
     AndroidGraphicsApplication(AAssetManager* assetManager, ANativeWindow* window);
     ~AndroidGraphicsApplication();
     void createSurface();
+    void createShaderModule(const std::string& assetPath, VkShaderModuleCreateInfo* createInfo);
     std::vector<char> readFile(const std::string& filename);
     void setSize(uint32_t w, uint32_t h);
     void drawFrame();
@@ -314,12 +182,27 @@ void AndroidGraphicsApplication::createSurface() {
 
 // Used to setup shaders.
 std::vector<char> AndroidGraphicsApplication::readFile(const std::string& filename) {
-    AAsset* file = AAssetManager_open(mAssetManager, filename.c_str(), AASSET_MODE_BUFFER);
-    size_t size = AAsset_getLength(file);
-    std::vector<char> data(size);
-    AAsset_read(file, data.data(), size);
-    AAsset_close(file);
-    return data;
+    AAsset* asset = AAssetManager_open(mAssetManager, filename.c_str(), AASSET_MODE_STREAMING);
+    if (!asset) {
+        __android_log_print(ANDROID_LOG_ERROR, "VulkanEngine", "Failed to open shader: %s", filename.c_str());
+        return {};
+    }
+
+    size_t size = AAsset_getLength(asset);
+    std::vector<char> buffer(size);
+    AAsset_read(asset, buffer.data(), size);
+    AAsset_close(asset);
+
+    return buffer;
+}
+
+void AndroidGraphicsApplication::createShaderModule(const std::string& assetPath, VkShaderModuleCreateInfo* createInfo) {
+    std::vector<char> shaderCode = readFile(assetPath);
+
+    createInfo->sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    createInfo->codeSize = shaderCode.size();
+    // SPIR-V bytecode must be aligned to 4 bytes (uint32_t)
+    createInfo->pCode = reinterpret_cast<const uint32_t*>(shaderCode.data());
 }
 
 void AndroidGraphicsApplication::setSize(uint32_t w, uint32_t h) {
@@ -369,15 +252,11 @@ void AndroidGraphicsApplication::sampleMain() {
     init_renderpass(info, depthPresent);
     // we could compile our own shaders, but here we use pre-made data
     // https://vulkan-tutorial.com/Drawing_a_triangle/Graphics_pipeline_basics/Shader_modules
-#include "15-draw_cube.vert.h"
-#include "15-draw_cube.frag.h"
+
     VkShaderModuleCreateInfo vert_info = {};
     VkShaderModuleCreateInfo frag_info = {};
-    vert_info.sType = frag_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-    vert_info.codeSize = sizeof(__draw_cube_vert);
-    vert_info.pCode = __draw_cube_vert;
-    frag_info.codeSize = sizeof(__draw_cube_frag);
-    frag_info.pCode = __draw_cube_frag;
+    createShaderModule("shaders/15-draw_cube.vert.spv", &vert_info);
+    createShaderModule("shaders/15-draw_cube.frag.spv", &frag_info);
     init_shaders(info, &vert_info, &frag_info);
     init_framebuffers(info, depthPresent);
     init_vertex_buffer(info, g_vb_solid_face_colors_Data, sizeof(g_vb_solid_face_colors_Data),
