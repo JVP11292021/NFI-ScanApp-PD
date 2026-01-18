@@ -10,11 +10,6 @@ class NativeAndroidEngine() {
         }
     }
 
-//    public external fun initRenderEngine(surface: android.view.Surface, assetManager: AssetManager, width: Int, height: Int) : Int
-//    public external fun destroyRenderEngine()
-//    public external fun surfaceChanged(surface: android.view.Surface) : Int
-//    public external fun start() : Int
-//    public external fun stop() : Int
     private external fun nativeCreate(surface: Surface, assetManager: AssetManager)
     private external fun nativeDestroy()
     private external fun nativeResize(width: Int, height: Int)

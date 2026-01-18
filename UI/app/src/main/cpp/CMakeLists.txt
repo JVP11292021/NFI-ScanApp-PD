@@ -127,28 +127,16 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/thridparty/utils)
 
 include_directories(${ANDROID_NDK}//sources/android/native_app_glue)
 
-if (ANDROID)
-    set(VOLK_STATIC_DEFINES VK_USE_PLATFORM_ANDROID_KHR)
-elseif()
-endif()
-
-include_directories(thirdparty/volk)
-
 add_library(renderEngine SHARED
         AndroidEngine.cpp
         RenderLoopProcess.cpp
         Engine_bridge.cpp
-        thirdparty/utils/util_init.cpp
-        thirdparty/utils/util.cpp
 )
 
 target_include_directories(renderEngine PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty
         ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/VulkanLiteEngine/Engine
 )
-
-SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fpermissive")
-add_subdirectory(thirdparty/volk)
 
 # -------------------- LINK EVERYTHING --------------------
 find_library(vulkan-lib vulkan)
@@ -161,7 +149,6 @@ target_link_libraries(
         android
         ${vulkan-lib}
         glm
-        volk
         log
         ${cpp_shared}
 )
