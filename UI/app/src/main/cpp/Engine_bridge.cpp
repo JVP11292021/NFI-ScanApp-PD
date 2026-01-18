@@ -1,132 +1,570 @@
+////
+//// Created by jessy on 1/13/2026.
+////
 //
-// Created by jessy on 1/13/2026.
+//#include "AndroidEngine.h"
+//#include "RenderLoopProcess.h"
 //
-
-#include "AndroidEngine.h"
-#include "RenderLoopProcess.h"
+//#include <jni.h>
+//#include <android/asset_manager.h>
+//#include <android/asset_manager_jni.h>
+//#include <EngineBackend/defs.hpp>
+//
+//
+//static RenderLoopProcess* process = nullptr;
+//static AndroidEngine* engine = nullptr;
+//static AAssetManager* asset_manager = nullptr;
+//static ANativeWindow* nav_window = nullptr;
+//
+//static ANativeWindow * __winFromSurface(_JNIEnv *env, jobject surface);
+//static AAssetManager * __assetManagerFromJava(_JNIEnv *env, jobject manager);
+//
+//extern "C"
+//JNIEXPORT jint JNICALL
+//Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_initRenderEngine(
+//        JNIEnv *env,
+//        jobject /* this */,
+//        jobject surface,
+//        jobject assetManager,
+//        jint width,
+//        jint height
+//) {
+//    if (engine) {
+//        VLE_LOGF("Cannot create a double instance of AndroidEngine!");
+//        return 0;
+//    }
+//    nav_window = __winFromSurface(env, surface);
+//    asset_manager = __assetManagerFromJava(env, assetManager);
+////    VLE_LOGI("width=", std::to_string(width).c_str(), ", height=", std::to_string(height).c_str());
+//
+//    if (!engine) {
+//        try {
+//            engine = new AndroidEngine(asset_manager, nav_window, width, height);
+//            VLE_LOGD("Engine instance created successfully!");
+//        } catch (std::runtime_error& ex) {
+//            VLE_LOGE(ex.what());
+//            return 0;
+//        }
+//    }
+//
+//    VLE_LOGI("Vulkan instance loaded correctly!");
+//    return 1;
+//}
+//
+//extern "C"
+//JNIEXPORT jint JNICALL
+//Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_surfaceChanged(
+//        JNIEnv *env,
+//        jobject /* this */,
+//        jobject surface
+//) {
+//    if (!engine) {
+//        VLE_LOGF("Could not activate window change detection 'AndroidEngine' undefined. Make sure to init the AndroidEngine!");
+//        return 0;
+//    }
+//
+//    nav_window = __winFromSurface(env, surface);
+//    engine->resize(nav_window);
+//
+//    return 1;
+//}
+//
+//extern "C"
+//JNIEXPORT void JNICALL
+//Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_destroyRenderEngine(
+//        JNIEnv *env,
+//        jobject /* this */
+//) {
+//    if (engine) {
+//        delete engine;
+//        engine = nullptr;
+//        VLE_LOGI("Destroyed the AndroidEngine instance!");
+//    }
+//
+//    if (process) {
+//        delete process;
+//        process = nullptr;
+//        VLE_LOGI("Destroyed the RenderLoopProcess instance!");
+//    }
+//
+//    if (process || engine)
+//        VLE_LOGW("Was not able to destroy render instances!");
+//}
+//
+//extern "C"
+//JNIEXPORT jint JNICALL
+//Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_start(
+//        JNIEnv *env,
+//        jobject /* this */
+//) {
+//    if (!engine) {
+//        VLE_LOGE("Cannot start render loop, AndroidEngine was uninitialized!");
+//        return 0;
+//    }
+//
+//    process = new RenderLoopProcess(engine);
+//    VLE_LOGI("Starting render loop!");
+//    return static_cast<jint>(process->start());     // Thread begins render loop
+//}
+//
+//extern "C"
+//JNIEXPORT jint JNICALL
+//Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_stop(
+//        JNIEnv *env,
+//        jobject /* this */
+//) {
+//    if (!process) {
+//        VLE_LOGF("Cannot stop the render loop process when it isn't running!");
+//        return 0;
+//    }
+//
+//    process->stop();
+//    VLE_LOGI("Stopped the render loop process");
+//    return 1;
+//}
+//
+//ANativeWindow * __winFromSurface(_JNIEnv *env, jobject surface) {
+//    return ANativeWindow_fromSurface(env, surface);
+//}
+//
+//AAssetManager * __assetManagerFromJava(_JNIEnv *env, jobject manager) {
+//    return AAssetManager_fromJava(env, manager);
+//}
 
 #include <jni.h>
+#include <vector>
+#include <string>
 #include <android/asset_manager.h>
+#include <android/native_window.h>
+#include <utils/util_init.hpp>
+#define VOLK_IMPLEMENTATION
+#include <utils/volk_setup.hpp>
+#include <android/log.h>
+#include <android/native_window_jni.h>
 #include <android/asset_manager_jni.h>
-#include <EngineBackend/defs.hpp>
 
+class GraphicsApplication {};
 
-static RenderLoopProcess* process = nullptr;
-static AndroidEngine* engine = nullptr;
-static AAssetManager* asset_manager = nullptr;
-static ANativeWindow* nav_window = nullptr;
+class AndroidGraphicsApplication : public GraphicsApplication {
+private:
+    AAssetManager* mAssetManager;
+    ANativeWindow* mWindow;
+    uint32_t width;
+    uint32_t height;
+    VkInstance instance;
+    VkSurfaceKHR surface;
+    //struct sample_info info;
 
-static ANativeWindow * __winFromSurface(_JNIEnv *env, jobject surface);
-static AAssetManager * __assetManagerFromJava(_JNIEnv *env, jobject manager);
+public:
+    bool isResizeNeeded;
 
-extern "C"
-JNIEXPORT jint JNICALL
-Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_initRenderEngine(
-        JNIEnv *env,
-        jobject /* this */,
-        jobject surface,
-        jobject assetManager,
-        jint width,
-        jint height
-) {
-    if (engine) {
-        VLE_LOGF("Cannot create a double instance of AndroidEngine!");
-        return 0;
-    }
-    nav_window = __winFromSurface(env, surface);
-    asset_manager = __assetManagerFromJava(env, assetManager);
-//    VLE_LOGI("width=", std::to_string(width).c_str(), ", height=", std::to_string(height).c_str());
+public:
+    AndroidGraphicsApplication(AAssetManager* assetManager, ANativeWindow* window);
+    ~AndroidGraphicsApplication();
+    void createSurface();
+    std::vector<char> readFile(const std::string& filename);
+    void setSize(uint32_t w, uint32_t h);
+    void drawFrame();
+    void sampleMain();
+    void init_window_size_patched(struct sample_info &info);
+};
 
-    if (!engine) {
-        try {
-            engine = new AndroidEngine(asset_manager, nav_window, width, height);
-            VLE_LOGD("Engine instance created successfully!");
-        } catch (std::runtime_error& ex) {
-            VLE_LOGE(ex.what());
-            return 0;
-        }
-    }
+struct Vertex {
+    float posX, posY, posZ, posW;  // Position data
+    float r, g, b, a;              // Color
+};
 
-    VLE_LOGI("Vulkan instance loaded correctly!");
-    return 1;
+struct VertexUV {
+    float posX, posY, posZ, posW;  // Position data
+    float u, v;                    // texture u,v
+};
+
+#define XYZ1(_x_, _y_, _z_) (_x_), (_y_), (_z_), 1.f
+#define UV(_u_, _v_) (_u_), (_v_)
+
+static const Vertex g_vbData[] = {
+        {XYZ1(-1, -1, -1), XYZ1(0.f, 0.f, 0.f)}, {XYZ1(1, -1, -1), XYZ1(1.f, 0.f, 0.f)}, {XYZ1(-1, 1, -1), XYZ1(0.f, 1.f, 0.f)},
+        {XYZ1(-1, 1, -1), XYZ1(0.f, 1.f, 0.f)},  {XYZ1(1, -1, -1), XYZ1(1.f, 0.f, 0.f)}, {XYZ1(1, 1, -1), XYZ1(1.f, 1.f, 0.f)},
+
+        {XYZ1(-1, -1, 1), XYZ1(0.f, 0.f, 1.f)},  {XYZ1(-1, 1, 1), XYZ1(0.f, 1.f, 1.f)},  {XYZ1(1, -1, 1), XYZ1(1.f, 0.f, 1.f)},
+        {XYZ1(1, -1, 1), XYZ1(1.f, 0.f, 1.f)},   {XYZ1(-1, 1, 1), XYZ1(0.f, 1.f, 1.f)},  {XYZ1(1, 1, 1), XYZ1(1.f, 1.f, 1.f)},
+
+        {XYZ1(1, 1, 1), XYZ1(1.f, 1.f, 1.f)},    {XYZ1(1, 1, -1), XYZ1(1.f, 1.f, 0.f)},  {XYZ1(1, -1, 1), XYZ1(1.f, 0.f, 1.f)},
+        {XYZ1(1, -1, 1), XYZ1(1.f, 0.f, 1.f)},   {XYZ1(1, 1, -1), XYZ1(1.f, 1.f, 0.f)},  {XYZ1(1, -1, -1), XYZ1(1.f, 0.f, 0.f)},
+
+        {XYZ1(-1, 1, 1), XYZ1(0.f, 1.f, 1.f)},   {XYZ1(-1, -1, 1), XYZ1(0.f, 0.f, 1.f)}, {XYZ1(-1, 1, -1), XYZ1(0.f, 1.f, 0.f)},
+        {XYZ1(-1, 1, -1), XYZ1(0.f, 1.f, 0.f)},  {XYZ1(-1, -1, 1), XYZ1(0.f, 0.f, 1.f)}, {XYZ1(-1, -1, -1), XYZ1(0.f, 0.f, 0.f)},
+
+        {XYZ1(1, 1, 1), XYZ1(1.f, 1.f, 1.f)},    {XYZ1(-1, 1, 1), XYZ1(0.f, 1.f, 1.f)},  {XYZ1(1, 1, -1), XYZ1(1.f, 1.f, 0.f)},
+        {XYZ1(1, 1, -1), XYZ1(1.f, 1.f, 0.f)},   {XYZ1(-1, 1, 1), XYZ1(0.f, 1.f, 1.f)},  {XYZ1(-1, 1, -1), XYZ1(0.f, 1.f, 0.f)},
+
+        {XYZ1(1, -1, 1), XYZ1(1.f, 0.f, 1.f)},   {XYZ1(1, -1, -1), XYZ1(1.f, 0.f, 0.f)}, {XYZ1(-1, -1, 1), XYZ1(0.f, 0.f, 1.f)},
+        {XYZ1(-1, -1, 1), XYZ1(0.f, 0.f, 1.f)},  {XYZ1(1, -1, -1), XYZ1(1.f, 0.f, 0.f)}, {XYZ1(-1, -1, -1), XYZ1(0.f, 0.f, 0.f)},
+};
+
+static const Vertex g_vb_solid_face_colors_Data[] = {
+        // red face
+        {XYZ1(-1, -1, 1), XYZ1(1.f, 0.f, 0.f)},
+        {XYZ1(-1, 1, 1), XYZ1(1.f, 0.f, 0.f)},
+        {XYZ1(1, -1, 1), XYZ1(1.f, 0.f, 0.f)},
+        {XYZ1(1, -1, 1), XYZ1(1.f, 0.f, 0.f)},
+        {XYZ1(-1, 1, 1), XYZ1(1.f, 0.f, 0.f)},
+        {XYZ1(1, 1, 1), XYZ1(1.f, 0.f, 0.f)},
+        // green face
+        {XYZ1(-1, -1, -1), XYZ1(0.f, 1.f, 0.f)},
+        {XYZ1(1, -1, -1), XYZ1(0.f, 1.f, 0.f)},
+        {XYZ1(-1, 1, -1), XYZ1(0.f, 1.f, 0.f)},
+        {XYZ1(-1, 1, -1), XYZ1(0.f, 1.f, 0.f)},
+        {XYZ1(1, -1, -1), XYZ1(0.f, 1.f, 0.f)},
+        {XYZ1(1, 1, -1), XYZ1(0.f, 1.f, 0.f)},
+        // blue face
+        {XYZ1(-1, 1, 1), XYZ1(0.f, 0.f, 1.f)},
+        {XYZ1(-1, -1, 1), XYZ1(0.f, 0.f, 1.f)},
+        {XYZ1(-1, 1, -1), XYZ1(0.f, 0.f, 1.f)},
+        {XYZ1(-1, 1, -1), XYZ1(0.f, 0.f, 1.f)},
+        {XYZ1(-1, -1, 1), XYZ1(0.f, 0.f, 1.f)},
+        {XYZ1(-1, -1, -1), XYZ1(0.f, 0.f, 1.f)},
+        // yellow face
+        {XYZ1(1, 1, 1), XYZ1(1.f, 1.f, 0.f)},
+        {XYZ1(1, 1, -1), XYZ1(1.f, 1.f, 0.f)},
+        {XYZ1(1, -1, 1), XYZ1(1.f, 1.f, 0.f)},
+        {XYZ1(1, -1, 1), XYZ1(1.f, 1.f, 0.f)},
+        {XYZ1(1, 1, -1), XYZ1(1.f, 1.f, 0.f)},
+        {XYZ1(1, -1, -1), XYZ1(1.f, 1.f, 0.f)},
+        // magenta face
+        {XYZ1(1, 1, 1), XYZ1(1.f, 0.f, 1.f)},
+        {XYZ1(-1, 1, 1), XYZ1(1.f, 0.f, 1.f)},
+        {XYZ1(1, 1, -1), XYZ1(1.f, 0.f, 1.f)},
+        {XYZ1(1, 1, -1), XYZ1(1.f, 0.f, 1.f)},
+        {XYZ1(-1, 1, 1), XYZ1(1.f, 0.f, 1.f)},
+        {XYZ1(-1, 1, -1), XYZ1(1.f, 0.f, 1.f)},
+        // cyan face
+        {XYZ1(1, -1, 1), XYZ1(0.f, 1.f, 1.f)},
+        {XYZ1(1, -1, -1), XYZ1(0.f, 1.f, 1.f)},
+        {XYZ1(-1, -1, 1), XYZ1(0.f, 1.f, 1.f)},
+        {XYZ1(-1, -1, 1), XYZ1(0.f, 1.f, 1.f)},
+        {XYZ1(1, -1, -1), XYZ1(0.f, 1.f, 1.f)},
+        {XYZ1(-1, -1, -1), XYZ1(0.f, 1.f, 1.f)},
+};
+
+static const VertexUV g_vb_texture_Data[] = {
+        // left face
+        {XYZ1(-1, -1, -1), UV(1.f, 0.f)},  // lft-top-front
+        {XYZ1(-1, 1, 1), UV(0.f, 1.f)},    // lft-btm-back
+        {XYZ1(-1, -1, 1), UV(0.f, 0.f)},   // lft-top-back
+        {XYZ1(-1, 1, 1), UV(0.f, 1.f)},    // lft-btm-back
+        {XYZ1(-1, -1, -1), UV(1.f, 0.f)},  // lft-top-front
+        {XYZ1(-1, 1, -1), UV(1.f, 1.f)},   // lft-btm-front
+        // front face
+        {XYZ1(-1, -1, -1), UV(0.f, 0.f)},  // lft-top-front
+        {XYZ1(1, -1, -1), UV(1.f, 0.f)},   // rgt-top-front
+        {XYZ1(1, 1, -1), UV(1.f, 1.f)},    // rgt-btm-front
+        {XYZ1(-1, -1, -1), UV(0.f, 0.f)},  // lft-top-front
+        {XYZ1(1, 1, -1), UV(1.f, 1.f)},    // rgt-btm-front
+        {XYZ1(-1, 1, -1), UV(0.f, 1.f)},   // lft-btm-front
+        // top face
+        {XYZ1(-1, -1, -1), UV(0.f, 1.f)},  // lft-top-front
+        {XYZ1(1, -1, 1), UV(1.f, 0.f)},    // rgt-top-back
+        {XYZ1(1, -1, -1), UV(1.f, 1.f)},   // rgt-top-front
+        {XYZ1(-1, -1, -1), UV(0.f, 1.f)},  // lft-top-front
+        {XYZ1(-1, -1, 1), UV(0.f, 0.f)},   // lft-top-back
+        {XYZ1(1, -1, 1), UV(1.f, 0.f)},    // rgt-top-back
+        // bottom face
+        {XYZ1(-1, 1, -1), UV(0.f, 0.f)},  // lft-btm-front
+        {XYZ1(1, 1, 1), UV(1.f, 1.f)},    // rgt-btm-back
+        {XYZ1(-1, 1, 1), UV(0.f, 1.f)},   // lft-btm-back
+        {XYZ1(-1, 1, -1), UV(0.f, 0.f)},  // lft-btm-front
+        {XYZ1(1, 1, -1), UV(1.f, 0.f)},   // rgt-btm-front
+        {XYZ1(1, 1, 1), UV(1.f, 1.f)},    // rgt-btm-back
+        // right face
+        {XYZ1(1, 1, -1), UV(0.f, 1.f)},   // rgt-btm-front
+        {XYZ1(1, -1, 1), UV(1.f, 0.f)},   // rgt-top-back
+        {XYZ1(1, 1, 1), UV(1.f, 1.f)},    // rgt-btm-back
+        {XYZ1(1, -1, 1), UV(1.f, 0.f)},   // rgt-top-back
+        {XYZ1(1, 1, -1), UV(0.f, 1.f)},   // rgt-btm-front
+        {XYZ1(1, -1, -1), UV(0.f, 0.f)},  // rgt-top-front
+        // back face
+        {XYZ1(-1, 1, 1), UV(1.f, 1.f)},   // lft-btm-back
+        {XYZ1(1, 1, 1), UV(0.f, 1.f)},    // rgt-btm-back
+        {XYZ1(-1, -1, 1), UV(1.f, 0.f)},  // lft-top-back
+        {XYZ1(-1, -1, 1), UV(1.f, 0.f)},  // lft-top-back
+        {XYZ1(1, 1, 1), UV(0.f, 1.f)},    // rgt-btm-back
+        {XYZ1(1, -1, 1), UV(0.f, 0.f)},   // rgt-top-back
+};
+
+AndroidGraphicsApplication::AndroidGraphicsApplication(AAssetManager* assetManager, ANativeWindow* window): GraphicsApplication() {
+    mAssetManager = assetManager;
+    mWindow = window;
+
+    //info = {};
+    char sample_title[] = "android_surface_view_with_vulkan";
+    //init_global_layer_properties(info);
+    //init_instance(info, sample_title);
+    createSurface();
 }
 
-extern "C"
-JNIEXPORT jint JNICALL
-Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_surfaceChanged(
-        JNIEnv *env,
-        jobject /* this */,
-        jobject surface
-) {
-    if (!engine) {
-        VLE_LOGF("Could not activate window change detection 'AndroidEngine' undefined. Make sure to init the AndroidEngine!");
-        return 0;
-    }
-
-    nav_window = __winFromSurface(env, surface);
-    engine->resize(nav_window);
-
-    return 1;
+AndroidGraphicsApplication::~AndroidGraphicsApplication() {
+    //vkDestroyInstance(instance, nullptr);
 }
 
-extern "C"
+void AndroidGraphicsApplication::createSurface() {
+    __android_log_print(ANDROID_LOG_VERBOSE, "AndroidGraphicsApplication", "createSurface");
+    sampleMain();
+}
+
+// Used to setup shaders.
+std::vector<char> AndroidGraphicsApplication::readFile(const std::string& filename) {
+    AAsset* file = AAssetManager_open(mAssetManager, filename.c_str(), AASSET_MODE_BUFFER);
+    size_t size = AAsset_getLength(file);
+    std::vector<char> data(size);
+    AAsset_read(file, data.data(), size);
+    AAsset_close(file);
+    return data;
+}
+
+void AndroidGraphicsApplication::setSize(uint32_t w, uint32_t h) {
+    width = w;
+    height = h;
+}
+
+void AndroidGraphicsApplication::drawFrame() {
+    // not done yet
+    // redraw after SurfaceView.surfaceRedrawNeeded()
+}
+
+// from the code samples, the sample 15-draw_cube
+// git clone --recursive https://github.com/LunarG/VulkanSamples.git
+void AndroidGraphicsApplication::sampleMain() {
+    VkResult U_ASSERT_ONLY res;
+    struct sample_info info = {};
+    char sample_title[] = "Draw Cube";
+    const bool depthPresent = true;
+
+    //process_command_line_args(info, argc, argv);
+    if (volkInitialize())
+    {
+        throw std::runtime_error("Failed to initialize volk.");
+    }
+    init_global_layer_properties(info);
+    init_instance_extension_names(info);
+    init_device_extension_names(info);
+    init_instance(info, sample_title);
+    init_enumerate_device(info);
+    //init_window_size(info, 500, 500);
+    init_window_size_patched(info); // PATCHED
+    init_connection(info);
+    init_window(info);
+    //init_swapchain_extension(info);
+    init_swapchain_extension(info, mWindow); // PATCHED
+    init_device(info);
+
+    init_command_pool(info);
+    init_command_buffer(info);
+    execute_begin_command_buffer(info);
+    init_device_queue(info);
+    init_swap_chain(info);
+    init_depth_buffer(info);
+    init_uniform_buffer(info);
+    init_descriptor_and_pipeline_layouts(info, false);
+    init_renderpass(info, depthPresent);
+    // we could compile our own shaders, but here we use pre-made data
+    // https://vulkan-tutorial.com/Drawing_a_triangle/Graphics_pipeline_basics/Shader_modules
+#include "15-draw_cube.vert.h"
+#include "15-draw_cube.frag.h"
+    VkShaderModuleCreateInfo vert_info = {};
+    VkShaderModuleCreateInfo frag_info = {};
+    vert_info.sType = frag_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    vert_info.codeSize = sizeof(__draw_cube_vert);
+    vert_info.pCode = __draw_cube_vert;
+    frag_info.codeSize = sizeof(__draw_cube_frag);
+    frag_info.pCode = __draw_cube_frag;
+    init_shaders(info, &vert_info, &frag_info);
+    init_framebuffers(info, depthPresent);
+    init_vertex_buffer(info, g_vb_solid_face_colors_Data, sizeof(g_vb_solid_face_colors_Data),
+                       sizeof(g_vb_solid_face_colors_Data[0]), false);
+    init_descriptor_pool(info, false);
+    init_descriptor_set(info, false);
+    init_pipeline_cache(info);
+    init_pipeline(info, depthPresent);
+
+    /* VULKAN_KEY_START */
+
+    VkClearValue clear_values[2];
+    clear_values[0].color.float32[0] = 0.2f;
+    clear_values[0].color.float32[1] = 0.2f;
+    clear_values[0].color.float32[2] = 0.2f;
+    clear_values[0].color.float32[3] = 0.2f;
+    clear_values[1].depthStencil.depth = 1.0f;
+    clear_values[1].depthStencil.stencil = 0;
+
+    VkSemaphore imageAcquiredSemaphore;
+    VkSemaphoreCreateInfo imageAcquiredSemaphoreCreateInfo;
+    imageAcquiredSemaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+    imageAcquiredSemaphoreCreateInfo.pNext = NULL;
+    imageAcquiredSemaphoreCreateInfo.flags = 0;
+
+    res = vkCreateSemaphore(info.device, &imageAcquiredSemaphoreCreateInfo, NULL, &imageAcquiredSemaphore);
+    assert(res == VK_SUCCESS);
+
+    // Get the index of the next available swapchain image:
+    res = vkAcquireNextImageKHR(info.device, info.swap_chain, UINT64_MAX, imageAcquiredSemaphore, VK_NULL_HANDLE,
+                                &info.current_buffer);
+    // TODO: Deal with the VK_SUBOPTIMAL_KHR and VK_ERROR_OUT_OF_DATE_KHR
+    // return codes
+    assert(res == VK_SUCCESS);
+
+    VkRenderPassBeginInfo rp_begin;
+    rp_begin.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    rp_begin.pNext = NULL;
+    rp_begin.renderPass = info.render_pass;
+    rp_begin.framebuffer = info.framebuffers[info.current_buffer];
+    rp_begin.renderArea.offset.x = 0;
+    rp_begin.renderArea.offset.y = 0;
+    rp_begin.renderArea.extent.width = info.width;
+    rp_begin.renderArea.extent.height = info.height;
+    rp_begin.clearValueCount = 2;
+    rp_begin.pClearValues = clear_values;
+
+    vkCmdBeginRenderPass(info.cmd, &rp_begin, VK_SUBPASS_CONTENTS_INLINE);
+
+    vkCmdBindPipeline(info.cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, info.pipeline);
+    vkCmdBindDescriptorSets(info.cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, info.pipeline_layout, 0, NUM_DESCRIPTOR_SETS,
+                            info.desc_set.data(), 0, NULL);
+
+    const VkDeviceSize offsets[1] = {0};
+    vkCmdBindVertexBuffers(info.cmd, 0, 1, &info.vertex_buffer.buf, offsets);
+
+    init_viewports(info);
+    init_scissors(info);
+
+    vkCmdDraw(info.cmd, 12 * 3, 1, 0, 0);
+    vkCmdEndRenderPass(info.cmd);
+    res = vkEndCommandBuffer(info.cmd);
+    const VkCommandBuffer cmd_bufs[] = {info.cmd};
+    VkFenceCreateInfo fenceInfo;
+    VkFence drawFence;
+    fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    fenceInfo.pNext = NULL;
+    fenceInfo.flags = 0;
+    vkCreateFence(info.device, &fenceInfo, NULL, &drawFence);
+
+    VkPipelineStageFlags pipe_stage_flags = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    VkSubmitInfo submit_info[1] = {};
+    submit_info[0].pNext = NULL;
+    submit_info[0].sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submit_info[0].waitSemaphoreCount = 1;
+    submit_info[0].pWaitSemaphores = &imageAcquiredSemaphore;
+    submit_info[0].pWaitDstStageMask = &pipe_stage_flags;
+    submit_info[0].commandBufferCount = 1;
+    submit_info[0].pCommandBuffers = cmd_bufs;
+    submit_info[0].signalSemaphoreCount = 0;
+    submit_info[0].pSignalSemaphores = NULL;
+
+    /* Queue the command buffer for execution */
+    res = vkQueueSubmit(info.graphics_queue, 1, submit_info, drawFence);
+    assert(res == VK_SUCCESS);
+
+    /* Now present the image in the window */
+
+    VkPresentInfoKHR present;
+    present.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    present.pNext = NULL;
+    present.swapchainCount = 1;
+    present.pSwapchains = &info.swap_chain;
+    present.pImageIndices = &info.current_buffer;
+    present.pWaitSemaphores = NULL;
+    present.waitSemaphoreCount = 0;
+    present.pResults = NULL;
+
+    /* Make sure command buffer is finished before presenting */
+    do {
+        res = vkWaitForFences(info.device, 1, &drawFence, VK_TRUE, FENCE_TIMEOUT);
+    } while (res == VK_TIMEOUT);
+
+    assert(res == VK_SUCCESS);
+    res = vkQueuePresentKHR(info.present_queue, &present);
+    assert(res == VK_SUCCESS);
+
+    wait_seconds(20);
+    /* VULKAN_KEY_END */
+    if (info.save_images) write_ppm(info, "15-draw_cube");
+
+    vkDestroySemaphore(info.device, imageAcquiredSemaphore, NULL);
+    vkDestroyFence(info.device, drawFence, NULL);
+    destroy_pipeline(info);
+    destroy_pipeline_cache(info);
+    destroy_descriptor_pool(info);
+    destroy_vertex_buffer(info);
+    destroy_framebuffers(info);
+    destroy_shaders(info);
+    destroy_renderpass(info);
+    destroy_descriptor_and_pipeline_layouts(info);
+    destroy_uniform_buffer(info);
+    destroy_depth_buffer(info);
+    destroy_swap_chain(info);
+    destroy_command_buffer(info);
+    destroy_command_pool(info);
+    destroy_device(info);
+    destroy_window(info);
+    destroy_instance(info);
+}
+
+void AndroidGraphicsApplication::init_window_size_patched(struct sample_info &info) {
+    int32_t default_width = ANativeWindow_getWidth(mWindow);
+    int32_t default_height = ANativeWindow_getHeight(mWindow);
+    info.width = default_width;
+    info.height = default_height;
+}
+
+AndroidGraphicsApplication *mApplicationInstance = NULL;
+
+// sources for the idea of using an android SurfaceView
+// https://stackoverflow.com/questions/45157950/can-we-use-vulkan-with-java-activity-on-android-platform
+// https://vulkan-tutorial.com/Drawing_a_triangle/Presentation/Window_surface
+
+extern "C" {
+
+JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
+    __android_log_print(ANDROID_LOG_VERBOSE, "VulkanAppBridge", "JNI_OnLoad");
+    return JNI_VERSION_1_6;
+}
+
 JNIEXPORT void JNICALL
-Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_destroyRenderEngine(
-        JNIEnv *env,
-        jobject /* this */
-) {
-    if (engine) {
-        delete engine;
-        engine = nullptr;
-        VLE_LOGI("Destroyed the AndroidEngine instance!");
+Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeCreate(JNIEnv *env, jobject vulkanAppBridge,
+                                                          jobject surface, jobject pAssetManager) {
+    if (mApplicationInstance) {
+        delete mApplicationInstance;
+        mApplicationInstance = NULL;
     }
-
-    if (process) {
-        delete process;
-        process = nullptr;
-        VLE_LOGI("Destroyed the RenderLoopProcess instance!");
-    }
-
-    if (process || engine)
-        VLE_LOGW("Was not able to destroy render instances!");
+    __android_log_print(ANDROID_LOG_DEBUG, "mc-native-VulkanAppBridge", "create");
+    auto window = ANativeWindow_fromSurface(env, surface);
+    auto assetManager = AAssetManager_fromJava(env, pAssetManager);
+    mApplicationInstance = new AndroidGraphicsApplication(assetManager, window);
 }
 
-extern "C"
-JNIEXPORT jint JNICALL
-Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_start(
-        JNIEnv *env,
-        jobject /* this */
-) {
-    if (!engine) {
-        VLE_LOGE("Cannot start render loop, AndroidEngine was uninitialized!");
-        return 0;
+JNIEXPORT void JNICALL
+Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeDestroy(JNIEnv *env, jobject vulkanAppBridge) {
+    __android_log_print(ANDROID_LOG_DEBUG, "mc-native-VulkanAppBridge", "destroy");
+    if (mApplicationInstance) {
+        delete mApplicationInstance;
+        mApplicationInstance = NULL;
     }
-
-    process = new RenderLoopProcess(engine);
-    VLE_LOGI("Starting render loop!");
-    return static_cast<jint>(process->start());     // Thread begins render loop
 }
 
-extern "C"
-JNIEXPORT jint JNICALL
-Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_stop(
-        JNIEnv *env,
-        jobject /* this */
-) {
-    if (!process) {
-        VLE_LOGF("Cannot stop the render loop process when it isn't running!");
-        return 0;
+JNIEXPORT void JNICALL
+Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeResize(JNIEnv *env, jobject vulkanAppBridge, jint width, jint height) {
+    __android_log_print(ANDROID_LOG_DEBUG, "mc-native-VulkanAppBridge", "resize: %dx%d", width, height);
+    if (mApplicationInstance) {
+        mApplicationInstance->setSize(width, height);
+        mApplicationInstance->isResizeNeeded = true;
     }
-
-    process->stop();
-    VLE_LOGI("Stopped the render loop process");
-    return 1;
 }
 
-ANativeWindow * __winFromSurface(_JNIEnv *env, jobject surface) {
-    return ANativeWindow_fromSurface(env, surface);
+JNIEXPORT void JNICALL
+Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeDraw(JNIEnv *env, jobject vulkanAppBridge) {
+    __android_log_print(ANDROID_LOG_DEBUG, "mc-native-VulkanAppBridge", "draw");
+    if (mApplicationInstance) {
+        mApplicationInstance->drawFrame();
+    }
 }
-
-AAssetManager * __assetManagerFromJava(_JNIEnv *env, jobject manager) {
-    return AAssetManager_fromJava(env, manager);
 }

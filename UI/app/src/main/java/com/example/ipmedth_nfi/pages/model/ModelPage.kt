@@ -1,14 +1,15 @@
 package com.example.ipmedth_nfi.pages.model
 
+import android.content.Intent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.example.ipmedth_nfi.bridge.NativeAndroidEngine
-import com.example.ipmedth_nfi.ui.components.vk.VulkanSurface
+import androidx.compose.ui.platform.LocalContext
+import com.example.ipmedth_nfi.RendererActivity // Ensure this import matches your package
 import com.example.ipmedth_nfi.viewmodel.SessionViewModel
 
 @Composable
@@ -16,12 +17,18 @@ fun ModelPage(
     viewModel: SessionViewModel,
     modifier: Modifier = Modifier
 ) {
-    val engine = remember { NativeAndroidEngine() }
+    val context = LocalContext.current
 
-    Box(modifier = modifier.fillMaxSize()) {
-        VulkanSurface(
-            modifier = Modifier.fillMaxSize(),
-            engine = engine
-        )
+    Box(
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Button(onClick = {
+            // Create an Intent to launch the RendererActivity
+            val intent = Intent(context, RendererActivity::class.java)
+            context.startActivity(intent)
+        }) {
+            Text(text = "Open Vulkan Renderer")
+        }
     }
 }

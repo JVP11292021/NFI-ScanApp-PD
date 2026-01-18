@@ -20,18 +20,13 @@ fun VulkanSurface(
 
     val surfaceView = remember {
         SurfaceView(context).apply {
-            setSurfaceLifecycle(1) // SURFACE_LIFECYCLE_FOLLOWS_VISIBILITY
-            holder.addCallback(object : SurfaceHolder.Callback {
+            // Ensure the surface lifecycle follows visibility for better resource management
+//            setSurfaceLifecycle(1)
+
+            holder.addCallback(object : SurfaceHolder.Callback2 {
                 override fun surfaceCreated(holder: SurfaceHolder) {
-                    // 1. Initialize engine with the actual surface
-                    engine.initRenderEngine(
-                        holder.surface,
-                        assetManager,
-                        width,
-                        height
-                    )
-                    // 2. Start the RenderLoop thread
-                    engine.start()
+                    // Initialize the native Vulkan engine with the provided surface
+                    engine.create(holder.surface, assetManager)
                 }
 
                 override fun surfaceChanged(
@@ -40,15 +35,19 @@ fun VulkanSurface(
                     width: Int,
                     height: Int
                 ) {
-                    Log.i("NFI", "Changed surface!");
-                    // Handle orientation changes or resizing
-                    engine.surfaceChanged(holder.surface)
+                    Log.i("NFI", "Resizing surface to: $width x $height")
+                    // Notify the native backend of the new dimensions
+                    engine.resize(width, height)
                 }
 
                 override fun surfaceDestroyed(holder: SurfaceHolder) {
-                    // 3. Stop the thread and cleanup before surface is gone
-                    engine.stop()
-                    engine.destroyRenderEngine()
+                    // Clean up native resources before the surface is fully removed
+                    engine.destroy()
+                }
+
+                override fun surfaceRedrawNeeded(holder: SurfaceHolder) {
+                    // Trigger a frame draw when the system requests a redraw
+                    engine.draw()
                 }
             })
         }

@@ -47,6 +47,7 @@ android {
     }
     buildFeatures {
         compose = true
+        prefab = true
     }
     externalNativeBuild {
         cmake {
@@ -73,7 +74,7 @@ dependencies {
     implementation("androidx.camera:camera-view:${cameraxVersion}")
     implementation("com.google.accompanist:accompanist-permissions:0.37.3")
     implementation("androidx.appcompat:appcompat:1.7.1")
-
+    implementation("androidx.games:games-activity:4.0.0")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
