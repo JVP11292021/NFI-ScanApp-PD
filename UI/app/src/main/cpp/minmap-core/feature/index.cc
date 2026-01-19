@@ -80,14 +80,14 @@ class FaissFeatureDescriptorIndex : public FeatureDescriptorIndex {
         omp_set_max_active_levels(1);
 #endif
 
-      faiss::SearchParametersIVF search_params;
+      faiss::IVFSearchParameters search_params;
       search_params.nprobe = 8;
-      index_->search(num_query_descriptors,
-                     query_descriptors.data(),
-                     num_eff_neighbors,
-                     l2_dists.data(),
-                     indices_long.data(),
-                     &search_params);
+//      index_->search(num_query_descriptors,
+//                     query_descriptors.data(),
+//                     num_eff_neighbors,
+//                     l2_dists.data(),
+//                     indices_long.data(),
+//                     &search_params);
     }
 
     indices = indices_long.cast<int>();

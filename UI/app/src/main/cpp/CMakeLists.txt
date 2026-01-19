@@ -170,21 +170,39 @@ add_subdirectory(thirdparty/ceres)
 # -------------------- FREEIMAGE (STATIC, MINIMAL) --------------------
 
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
-
-# Disable everything you do NOT need
 set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
-#set(BUILD_OPENEXR ON CACHE BOOL "" FORCE)
-#set(BUILD_WEBP OFF CACHE BOOL "" FORCE)
-#set(BUILD_LIBRAWLITE OFF CACHE BOOL "" FORCE)
-#set(BUILD_JXR OFF CACHE BOOL "" FORCE)
-#
-## Enable only what you need
-#set(BUILD_ZLIB ON CACHE BOOL "" FORCE)
-#set(BUILD_LIBPNG ON CACHE BOOL "" FORCE)
-#set(BUILD_LIBTIFF OFF CACHE BOOL "" FORCE) # enable only if you really need TIFF
 
 # Add FreeImage
 add_subdirectory(thirdparty/FreeImage)
+
+# -------------------- Android-FAISS (STATIC, EMBEDDED) --------------------
+
+if ((${ANDROID_ABI} STREQUAL "arm64-v8a") OR (${ANDROID_ABI} STREQUAL "x86_64"))
+    add_definitions(-D ANDROID_BIT32)
+else ()
+    add_definitions(-D ANDROID_BIT64)
+endif ()
+
+set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -s -O3 -DSkip_f2c_Undefs -DNO_LONG_LONG -DNO_BLAS_WRAP")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -s -O3 -DSkip_f2c_Undefs -DNO_LONG_LONG -DNO_BLAS_WRAP")
+
+FILE(GLOB CLAPACK_FILES
+        thirdparty/clapack/SRC/*.c
+        thirdparty/clapack/SRC/*.cpp
+)
+FILE(GLOB FAISS_FILES
+        thirdparty/faiss/*.cpp
+)
+
+add_library(faiss SHARED
+        ${CLAPACK_FILES}
+        ${FAISS_FILES}
+)
+
+target_link_libraries(faiss PRIVATE
+        android
+)
+
 
 # -------------------- minmap-core (STATIC, EMBEDDED) --------------------
 
@@ -304,6 +322,7 @@ target_link_libraries(minmap-core PRIVATE
         poselib
         ceres
         freeimage
+        faiss
 )
 
 # -------------------- minmap (STATIC, EMBEDDED) --------------------
