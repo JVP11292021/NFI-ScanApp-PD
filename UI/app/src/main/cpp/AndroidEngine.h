@@ -48,6 +48,7 @@ private:
             VkRenderPass renderPass,
             const std::string& vertPath,
             const std::string& fragPath) override;
+
 };
 
 class AndroidEngine final : public IAndroidSurface {
@@ -64,7 +65,9 @@ public:
     // TODO needs to be implemented
     void resize(std::int32_t width, std::int32_t height) override;
     void drawFrame() override;
-
+    void onDrag(float dx, float dy);
+    void onZoom(float scaleFactor);
+    void onStrafe(float dx, float dy);
     void waitForDevice();
 
 //    inline bool killLoop() { return this->_win.shouldClose(); }

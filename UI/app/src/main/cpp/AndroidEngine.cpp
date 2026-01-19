@@ -78,11 +78,7 @@ AndroidEngine::AndroidEngine(
     _assetManager(assetManager),
     _win(nativeWindow, width, height, "NFI Scan App"),
     _device(_win, _assetManager),
-    _renderer(_win, _device),
-    _cam(
-          glm::vec3(0.f, 0.f, 2.5f),
-          glm::vec3(0.f, 0.f, 1.f)
-    )
+    _renderer(_win, _device)
 {
     this->globalPool = vle::DescriptorPool::Builder(this->_device)
             .setMaxSets(MAX_FRAMES_IN_FLIGHT)
@@ -93,12 +89,14 @@ AndroidEngine::AndroidEngine(
     this->mapUniformBufferObjects();
     this->makeDescriptorSets();
     this->makeSystems();
+
 }
 
 AndroidEngine::~AndroidEngine() = default;
 
 void AndroidEngine::resize(std::int32_t width, std::int32_t height) {
     this->_win.setSize(width, height);
+
 }
 
 void AndroidEngine::mapUniformBufferObjects() {
@@ -146,7 +144,16 @@ void AndroidEngine::loadObjects() {
 }
 
 void AndroidEngine::drawFrame() {
-        auto newTime = std::chrono::high_resolution_clock::now();
+    vle::sys::CameraSystem cam{
+            glm::vec3(0.f, 0.f, 2.5f),
+            glm::vec3(0.f, 0.f, 1.f)
+    };
+
+    auto view = _cam.getViewMatrix();
+    auto projection = _cam.getProjMatrix();
+    auto inverseView = glm::inverse(view);
+
+    auto newTime = std::chrono::high_resolution_clock::now();
     float frameTimeElapsed =
             std::chrono::duration<float, std::chrono::seconds::period>(newTime - this->_currentTime).count();
     this->_currentTime = newTime;
@@ -164,11 +171,7 @@ void AndroidEngine::drawFrame() {
         if (this->_win.getWidth() > this->_win.getHeight()) {
             fov *= static_cast<float>(this->_win.getHeight()) / static_cast<float>(this->_win.getWidth());
         }
-        auto projection = glm::perspective(fov, static_cast<float>(this->_win.getWidth()) / static_cast<float>(this->_win.getHeight()), 0.1f, 100.0f);
-        auto view = glm::lookAt(glm::vec3(-5, 3, -10),  // Camera is at (-5,3,-10), in World Space
-                                glm::vec3(0, 0, 0),     // and looks at the origin
-                                glm::vec3(0, -1, 0)     // Head is up (set to 0,-1,0 to look upside-down)
-        );
+
         auto model = glm::mat4(1.0f);
         // Vulkan clip space has inverted Y and half Z.
 //        auto clip = glm::mat4(1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 0.5f, 1.0f);
@@ -187,9 +190,10 @@ void AndroidEngine::drawFrame() {
 
         // === UPDATE ===
         vle::GlobalUbo ubo{};
-        ubo.projection = projection;
         ubo.view = view;
-        ubo.inverseView = glm::inverse(ubo.view);
+        ubo.projection = projection;
+        ubo.inverseView = inverseView;
+
         ubo.ambientLightColor = glm::vec4(1.f, 1.f, 1.f, 1.f);
         ubo.numLights = 0;
 
@@ -209,4 +213,25 @@ void AndroidEngine::drawFrame() {
 
 void AndroidEngine::waitForDevice() {
     vkDeviceWaitIdle(this->_device.device());
+}
+
+void AndroidEngine::onDrag(float dx, float dy) {
+    constexpr float TOUCH_SENSITIVITY = 0.5f;
+    _cam.processMouseInput(
+            dy * TOUCH_SENSITIVITY,
+            -dx * TOUCH_SENSITIVITY,
+            true
+    );
+}
+
+void AndroidEngine::onStrafe(float dx, float dy) {
+    constexpr float STRAFE_SENSITIVITY = 0.0006f;
+    _cam.processKeyboard(vle::sys::RIGHT, dx * STRAFE_SENSITIVITY);
+    _cam.processKeyboard(vle::sys::MOVE_UP, dy * STRAFE_SENSITIVITY);
+}
+
+void AndroidEngine::onZoom(float scaleFactor) {
+    constexpr float ZOOM_SENSITIVITY = 0.2f;
+    float zoomDelta = std::log(scaleFactor) * ZOOM_SENSITIVITY;
+    _cam.processKeyboard(vle::sys::FORWARD, zoomDelta);
 }

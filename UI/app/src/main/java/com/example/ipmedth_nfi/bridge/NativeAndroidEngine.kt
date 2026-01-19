@@ -14,6 +14,9 @@ class NativeAndroidEngine() {
     private external fun nativeDestroy()
     private external fun nativeResize(width: Int, height: Int)
     private external fun nativeDraw()
+    private external fun nativeOnDrag(deltaX: Float, deltaY: Float)
+    private external fun nativeOnStrafe(deltaX: Float, deltaY: Float)
+    private external fun nativeOnPinch(scaleFactor: Float)
 
     fun create(surface: Surface, assetManager: AssetManager) {
         nativeCreate(surface, assetManager)
@@ -31,4 +34,15 @@ class NativeAndroidEngine() {
         nativeDraw()
     }
 
+    fun onDrag(deltaX: Float, deltaY: Float) {
+        nativeOnDrag(deltaX, deltaY)
+    }
+
+    fun onPinch(scaleFactor: Float) {
+        nativeOnPinch(scaleFactor)
+    }
+
+    fun onStrafe(deltaX: Float, deltaY: Float) {
+        nativeOnStrafe(deltaX, deltaY)
+    }
 }

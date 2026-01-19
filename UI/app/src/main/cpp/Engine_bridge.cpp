@@ -67,8 +67,35 @@ Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeResize(JNIEnv *en
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeDraw(JNIEnv *env, jobject vulkanAppBridge) {
-    VLE_LOGD("Redrawing engine frame");
+//    VLE_LOGD("Redrawing engine frame");
     if (engineApp) {
         engineApp->drawFrame();
+    }
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeOnDrag(JNIEnv *env, jobject thiz,
+                                                                      jfloat delta_x,
+                                                                      jfloat delta_y) {
+    if(engineApp) {
+        engineApp->onDrag(delta_x, delta_y);
+    }
+}
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeOnPinch(JNIEnv *env, jobject thiz,
+                                                                       jfloat scale_factor) {
+    if(engineApp) {
+        engineApp->onZoom(scale_factor);
+    }
+}
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeOnStrafe(JNIEnv *env, jobject thiz,
+                                                                        jfloat delta_x,
+                                                                        jfloat delta_y) {
+    if(engineApp) {
+        engineApp->onStrafe(-delta_x, -delta_y);
     }
 }
