@@ -64,9 +64,11 @@ fun VulkanSurface(
                     // Handle Taps and Double Taps
                     detectTapGestures(
                         onDoubleTap = { offset ->
+                            Log.i("UI", "On double tap")
                             // engine.onDoubleTap(offset.x, offset.y)
                         },
                         onTap = { offset ->
+                            Log.i("UI", "On tap")
                             // engine.onTap(offset.x, offset.y)
                         }
                     )
@@ -75,17 +77,19 @@ fun VulkanSurface(
                     // Handle Dragging (Horizontal and Vertical)
                     detectDragGestures { change, dragAmount ->
                         change.consume()
+                        Log.i("UI", "On drag");
                         // dragAmount.x and dragAmount.y tell you the delta moved
                         // engine.onDrag(dragAmount.x, dragAmount.y)
                     }
-                }
-                .pointerInput(Unit) {
-                    // Handle Pinch (Zoom/Scale) and Rotation
-                    detectTransformGestures { centroid, pan, zoom, rotation ->
-                        // zoom is the scale factor (e.g., 1.1f for pinching out)
-                        // engine.onScale(zoom)
-                    }
                 },
+//                .pointerInput(Unit) {
+//                    // Handle Pinch (Zoom/Scale) and Rotation
+//                    detectTransformGestures { centroid, pan, zoom, rotation ->
+//                        Log.i("UI", "On zoom/scale")
+//                        // zoom is the scale factor (e.g., 1.1f for pinching out)
+//                        // engine.onScale(zoom)
+//                    }
+//                },
         update = { }
     )
 }

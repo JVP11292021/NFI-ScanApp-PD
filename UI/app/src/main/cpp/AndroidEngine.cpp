@@ -171,9 +171,9 @@ void AndroidEngine::drawFrame() {
         );
         auto model = glm::mat4(1.0f);
         // Vulkan clip space has inverted Y and half Z.
-        auto clip = glm::mat4(1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 0.5f, 1.0f);
+//        auto clip = glm::mat4(1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 0.5f, 1.0f);
 
-        auto projectionViewModel = clip * projection * view * model;
+        auto projectionViewModel = projection * view * model;
 
         vle::FrameInfo frameInfo{
                 frameIndex,
