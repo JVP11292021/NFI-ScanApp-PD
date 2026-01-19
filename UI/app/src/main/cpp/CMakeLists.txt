@@ -1,8 +1,330 @@
 cmake_minimum_required(VERSION 3.22.1)
 project(vulkanCore LANGUAGES C CXX)
 
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+if(ANDROID)
+    add_definitions(-DANDROID)
+endif()
+
 add_definitions(
         -DVK_USE_PLATFORM_ANDROID_KHR #required
+)
+
+# -------------------- POSELIB (STATIC, EMBEDDED) --------------------
+
+add_library(poselib STATIC
+        thirdparty/poselib/robust.cc
+        thirdparty/poselib/robust/ransac.cc
+        thirdparty/poselib/robust/bundle.cc
+        thirdparty/poselib/robust/utils.cc
+        thirdparty/poselib/robust/sampling.cc
+
+        thirdparty/poselib/solvers/gp3p.cc
+        thirdparty/poselib/solvers/gp4ps.cc
+        thirdparty/poselib/solvers/p1p2ll.cc
+        thirdparty/poselib/solvers/p2p1ll.cc
+        thirdparty/poselib/solvers/p2p2pl.cc
+        thirdparty/poselib/solvers/p3ll.cc
+        thirdparty/poselib/solvers/p3p.cc
+        thirdparty/poselib/solvers/p3p_ding.cc
+        thirdparty/poselib/solvers/p4pf.cc
+        thirdparty/poselib/solvers/p5lp_radial.cc
+        thirdparty/poselib/solvers/p6lp.cc
+        thirdparty/poselib/solvers/ugp2p.cc
+        thirdparty/poselib/solvers/ugp3ps.cc
+        thirdparty/poselib/solvers/up1p2pl.cc
+        thirdparty/poselib/solvers/up2p.cc
+        thirdparty/poselib/solvers/up1p1ll.cc
+        thirdparty/poselib/solvers/up4pl.cc
+        thirdparty/poselib/solvers/ugp4pl.cc
+        thirdparty/poselib/solvers/relpose_upright_3pt.cc
+        thirdparty/poselib/solvers/relpose_upright_planar_2pt.cc
+        thirdparty/poselib/solvers/relpose_upright_planar_3pt.cc
+        thirdparty/poselib/solvers/relpose_8pt.cc
+        thirdparty/poselib/solvers/relpose_5pt.cc
+        thirdparty/poselib/solvers/relpose_7pt.cc
+        thirdparty/poselib/solvers/relpose_6pt_focal.cc
+        thirdparty/poselib/solvers/gen_relpose_upright_4pt.cc
+        thirdparty/poselib/solvers/gen_relpose_5p1pt.cc
+        thirdparty/poselib/solvers/gen_relpose_6pt.cc
+        thirdparty/poselib/solvers/homography_4pt.cc
+
+        thirdparty/poselib/misc/qep.cc
+        thirdparty/poselib/misc/univariate.cc
+        thirdparty/poselib/misc/essential.cc
+        thirdparty/poselib/misc/re3q3.cc
+        thirdparty/poselib/misc/colmap_models.cc
+        thirdparty/poselib/misc/decompositions.cc
+)
+
+set_target_properties(poselib PROPERTIES
+        POSITION_INDEPENDENT_CODE ON
+)
+
+target_include_directories(poselib PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/poselib
+        ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/Eigen
+)
+
+# -------------------- SQLITE (STATIC, EMBEDDED) --------------------
+
+add_library(sqlite3 STATIC
+        thirdparty/sqlite/sqlite3.c
+)
+
+# Android requires PIC for anything linked into a .so
+set_target_properties(sqlite3 PROPERTIES
+        POSITION_INDEPENDENT_CODE ON
+)
+
+target_include_directories(sqlite3 PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/sqlite
+)
+
+# Optional performance & safety flags
+target_compile_definitions(sqlite3 PRIVATE
+        SQLITE_THREADSAFE=1
+        SQLITE_OMIT_LOAD_EXTENSION
+        SQLITE_ENABLE_FTS5
+        SQLITE_ENABLE_JSON1
+        SQLITE_DEFAULT_MEMSTATUS=0
+)
+
+# -------------------- VLFeat (STATIC, EMBEDDED) --------------------
+
+add_library(vlfeat STATIC
+        thirdparty/VLFeat/aib.c
+        thirdparty/VLFeat/array.c
+        thirdparty/VLFeat/covdet.c
+        thirdparty/VLFeat/dsift.c
+        thirdparty/VLFeat/fisher.c
+        thirdparty/VLFeat/generic.c
+        thirdparty/VLFeat/getopt_long.c
+        thirdparty/VLFeat/gmm.c
+        thirdparty/VLFeat/hikmeans.c
+        thirdparty/VLFeat/hog.c
+        thirdparty/VLFeat/homkermap.c
+        thirdparty/VLFeat/host.c
+        thirdparty/VLFeat/ikmeans.c
+        thirdparty/VLFeat/imopv.c
+        thirdparty/VLFeat/kdtree.c
+        thirdparty/VLFeat/kmeans.c
+        thirdparty/VLFeat/lbp.c
+        thirdparty/VLFeat/liop.c
+        thirdparty/VLFeat/mathop.c
+        thirdparty/VLFeat/mser.c
+        thirdparty/VLFeat/pgm.c
+        thirdparty/VLFeat/quickshift.c
+        thirdparty/VLFeat/random.c
+        thirdparty/VLFeat/rodrigues.c
+        thirdparty/VLFeat/scalespace.c
+        thirdparty/VLFeat/sift.c
+        thirdparty/VLFeat/slic.c
+        thirdparty/VLFeat/stringop.c
+        thirdparty/VLFeat/svm.c
+        thirdparty/VLFeat/svmdataset.c
+        thirdparty/VLFeat/vlad.c
+)
+
+set_target_properties(vlfeat PROPERTIES
+        POSITION_INDEPENDENT_CODE ON
+)
+
+target_include_directories(vlfeat PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/VLFeat
+)
+
+add_compile_definitions(VL_DISABLE_AVX)
+add_compile_definitions(VL_DISABLE_SSE2)
+add_compile_definitions(VL_DISABLE_OPENMP)
+
+# -------------------- Eigen (HEADER-ONLY, EMBEDDED) --------------------
+
+add_library(Eigen3 INTERFACE)
+
+target_include_directories(Eigen3 INTERFACE
+        ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/Eigen
+)
+
+add_subdirectory(thirdparty/Eigen)
+
+# -------------------- ceres (STATIC, EMBEDDED) --------------------
+
+set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+set(CERES_USE_CUDA OFF CACHE BOOL "" FORCE)
+set(CERES_USE_OPENMP OFF CACHE BOOL "" FORCE)
+set(CERES_USE_EIGEN_SPARSE ON CACHE BOOL "" FORCE)
+set(CERES_USE_LAPACK OFF CACHE BOOL "" FORCE)
+set(CERES_USE_SUITESPARSE OFF CACHE BOOL "" FORCE)
+set(CERES_USE_CXSparse OFF CACHE BOOL "" FORCE)
+
+add_subdirectory(thirdparty/ceres)
+
+# -------------------- FREEIMAGE (STATIC, MINIMAL) --------------------
+
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+
+# Disable everything you do NOT need
+set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
+#set(BUILD_OPENEXR ON CACHE BOOL "" FORCE)
+#set(BUILD_WEBP OFF CACHE BOOL "" FORCE)
+#set(BUILD_LIBRAWLITE OFF CACHE BOOL "" FORCE)
+#set(BUILD_JXR OFF CACHE BOOL "" FORCE)
+#
+## Enable only what you need
+#set(BUILD_ZLIB ON CACHE BOOL "" FORCE)
+#set(BUILD_LIBPNG ON CACHE BOOL "" FORCE)
+#set(BUILD_LIBTIFF OFF CACHE BOOL "" FORCE) # enable only if you really need TIFF
+
+# Add FreeImage
+add_subdirectory(thirdparty/FreeImage)
+
+# -------------------- minmap-core (STATIC, EMBEDDED) --------------------
+
+add_library(minmap-core STATIC
+        # controllers
+        minmap-core/controllers/feature_extraction.cc
+        minmap-core/controllers/feature_matching.cc
+        minmap-core/controllers/feature_matching_utils.cc
+        minmap-core/controllers/image_reader.cc
+        minmap-core/controllers/incremental_pipeline.cc
+        minmap-core/controllers/option_manager.cc
+
+        # estimators
+        minmap-core/estimators/absolute_pose.cc
+        minmap-core/estimators/alignment.cc
+        minmap-core/estimators/bundle_adjustment.cc
+        minmap-core/estimators/coordinate_frame.cc
+        minmap-core/estimators/essential_matrix.cc
+        minmap-core/estimators/fundamental_matrix.cc
+        minmap-core/estimators/generalized_absolute_pose.cc
+        minmap-core/estimators/generalized_pose.cc
+        minmap-core/estimators/generalized_relative_pose.cc
+        minmap-core/estimators/homography_matrix.cc
+        minmap-core/estimators/similarity_transform.cc
+        minmap-core/estimators/triangulation.cc
+        minmap-core/estimators/two_view_geometry.cc
+        minmap-core/estimators/utils.cc
+
+        # feature
+        minmap-core/feature/index.cc
+        minmap-core/feature/matcher.cc
+        minmap-core/feature/pairing.cc
+        minmap-core/feature/sift.cc
+        minmap-core/feature/types.cc
+        minmap-core/feature/utils.cc
+
+        # geometry
+        minmap-core/geometry/essential_matrix.cc
+        minmap-core/geometry/gps.cc
+        minmap-core/geometry/homography_matrix.cc
+        minmap-core/geometry/normalization.cc
+        minmap-core/geometry/pose.cc
+        minmap-core/geometry/pose_prior.cc
+        minmap-core/geometry/rigid3.cc
+        minmap-core/geometry/sim3.cc
+        minmap-core/geometry/triangulation.cc
+
+        # math
+        minmap-core/math/math.cc
+        minmap-core/math/polynomial.cc
+        minmap-core/math/random.cc
+
+        # optim
+        minmap-core/optim/combination_sampler.cc
+        minmap-core/optim/random_sampler.cc
+        minmap-core/optim/support_measurement.cc
+
+        # scene
+        minmap-core/scene/camera.cc
+        minmap-core/scene/correspondence_graph.cc
+        minmap-core/scene/database.cc
+        minmap-core/scene/database_cache.cc
+        minmap-core/scene/frame.cc
+        minmap-core/scene/image.cc
+        minmap-core/scene/point2d.cc
+        minmap-core/scene/point3d.cc
+        minmap-core/scene/projection.cc
+        minmap-core/scene/reconstruction.cc
+        minmap-core/scene/reconstruction_io.cc
+        minmap-core/scene/reconstruction_io_binary.cc
+        minmap-core/scene/reconstruction_io_text.cc
+        minmap-core/scene/reconstruction_io_utils.cc
+        minmap-core/scene/reconstruction_manager.cc
+        minmap-core/scene/track.cc
+        minmap-core/scene/two_view_geometry.cc
+        minmap-core/scene/visibility_pyramid.cc
+
+        # sensor
+        minmap-core/sensor/bitmap.cc
+        minmap-core/sensor/database.cc
+        minmap-core/sensor/models.cc
+        minmap-core/sensor/rig.cc
+        minmap-core/sensor/specs.cc
+
+        # sfm
+        minmap-core/sfm/incremental_mapper.cc
+        minmap-core/sfm/incremental_mapper_impl.cc
+        minmap-core/sfm/incremental_triangulator.cc
+        minmap-core/sfm/observation_manager.cc
+
+        # util
+        minmap-core/util/base_controller.cc
+        minmap-core/util/endian.cc
+        minmap-core/util/file.cc
+        minmap-core/util/logging.cc
+        minmap-core/util/misc.cc
+        minmap-core/util/ply.cc
+        minmap-core/util/string.cc
+        minmap-core/util/threading.cc
+        minmap-core/util/timer.cc
+)
+
+set_target_properties(minmap-core PROPERTIES
+        POSITION_INDEPENDENT_CODE ON
+)
+
+target_include_directories(minmap-core PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/minmap-core
+        ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty
+        ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/Eigen
+        ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ceres/include
+)
+
+target_link_libraries(minmap-core PRIVATE
+        sqlite3
+        vlfeat
+        poselib
+        ceres
+        freeimage
+)
+
+# -------------------- minmap (STATIC, EMBEDDED) --------------------
+
+add_library(minmap STATIC
+        minmap/Feature.cpp
+        minmap/MapModel.cpp
+        minmap/SfM.cpp
+)
+
+set_target_properties(minmap PROPERTIES
+        POSITION_INDEPENDENT_CODE ON
+)
+
+target_include_directories(minmap PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/minmap-core
+)
+
+target_link_libraries(minmap
+        PRIVATE
+        minmap-core
 )
 
 # ------------------------ GLM -------------------------
@@ -136,6 +458,8 @@ add_library(renderEngine SHARED
 target_include_directories(renderEngine PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty
         ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/VulkanLiteEngine/Engine
+        ${CMAKE_CURRENT_SOURCE_DIR}/minmap-core
+        ${CMAKE_CURRENT_SOURCE_DIR}/minmap
 )
 
 # -------------------- LINK EVERYTHING --------------------
@@ -146,6 +470,14 @@ target_link_libraries(
         engineBackend
         engineUtils
         engineSystem
+        sqlite3
+        vlfeat
+        minmap-core
+        minmap
+        poselib
+        Eigen3
+        ceres
+        freeimage
         android
         ${vulkan-lib}
         glm

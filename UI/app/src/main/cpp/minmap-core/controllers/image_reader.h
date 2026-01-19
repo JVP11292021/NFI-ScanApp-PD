@@ -1,0 +1,105 @@
+#pragma once
+
+#include "../geometry/gps.h"
+#include "../scene/database.h"
+#include "../sensor/bitmap.h"
+#include "../util/threading.h"
+
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
+
+namespace colmap {
+
+struct ImageReaderOptions {
+  // Root path to folder which contains the images.
+  std::string image_path;
+
+  // Optional root path to folder which contains image masks. For a given image,
+  // the corresponding mask must have the same sub-path below this root as the
+  // image has below image_path. The filename must be equal, aside from the
+  // added extension .png. For example, for an image image_path/abc/012.jpg, the
+  // mask would be mask_path/abc/012.jpg.png. No features will be extracted in
+  // regions where the mask image is black (pixel intensity value 0 in
+  // grayscale).
+  std::string mask_path;
+
+  // Optional path to an image file specifying a mask for all images. No
+  // features will be extracted in regions where the mask is black (pixel
+  // intensity value 0 in grayscale).
+  std::string camera_mask_path;
+
+  // Optional list of images to read. The list must contain the relative path
+  // of the images with respect to the image_path.
+  std::vector<std::string> image_names;
+  // Name of the camera model.
+  std::string camera_model = "SIMPLE_RADIAL";
+
+  // Manual specification of camera parameters. If empty, camera parameters
+  // will be extracted from EXIF, i.e. principal point and focal length.
+  std::string camera_params;
+
+  // Whether to use the same camera for all images.
+  bool single_camera = false;
+
+  // Whether to use the same camera for all images in the same sub-folder.
+  bool single_camera_per_folder = false;
+  // Whether to use a different camera for each image.
+  bool single_camera_per_image = false;
+  // Whether to explicitly use an existing camera for all images. Note that in
+  // this case the specified camera model and parameters are ignored.
+  int existing_camera_id = kInvalidCameraId;
+
+  // If camera parameters are not specified manually and the image does not
+  // have focal length EXIF information, the focal length is set to the
+  // value `default_focal_length_factor * max(width, height)`.
+  double default_focal_length_factor = 1.2;
+
+  bool Check() const;
+};
+
+// Recursively iterate over the images in a directory. Skips an image if it
+// already exists in the database. Extracts the camera intrinsics from EXIF and
+// writes the camera information to the database.
+class ImageReader {
+ public:
+  enum class Status {
+    FAILURE,
+    SUCCESS,
+    IMAGE_EXISTS,
+    BITMAP_ERROR,
+    MASK_ERROR,
+    CAMERA_SINGLE_DIM_ERROR,
+    CAMERA_EXIST_DIM_ERROR,
+    CAMERA_PARAM_ERROR
+  };
+
+  ImageReader(const ImageReaderOptions& options, Database* database);
+
+  Status Next(Rig* rig,
+              Camera* camera,
+              Image* image,
+              PosePrior* pose_prior,
+              Bitmap* bitmap,
+              Bitmap* mask);
+  size_t NextIndex() const;
+  size_t NumImages() const;
+
+  static std::string StatusToString(Status status);
+
+ private:
+  // Image reader options.
+  ImageReaderOptions options_;
+  Database* database_;
+  // Index of previously processed image.
+  size_t image_index_;
+  // Previously processed rig/camera.
+  Rig prev_rig_;
+  Camera prev_camera_;
+  std::unordered_map<std::string, camera_t> camera_model_to_id_;
+  // Names of image sub-folders.
+  std::string prev_image_folder_;
+  std::unordered_set<std::string> image_folders_;
+};
+
+}  // namespace colmap
