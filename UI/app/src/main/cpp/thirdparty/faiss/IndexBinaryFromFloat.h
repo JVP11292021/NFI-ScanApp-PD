@@ -1,5 +1,5 @@
-/**
- * Copyright (c) Facebook, Inc. and its affiliates.
+/*
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
@@ -10,11 +10,9 @@
 #ifndef FAISS_INDEX_BINARY_FROM_FLOAT_H
 #define FAISS_INDEX_BINARY_FROM_FLOAT_H
 
-#include "IndexBinary.h"
-
+#include <faiss/IndexBinary.h>
 
 namespace faiss {
-
 
 struct Index;
 
@@ -26,27 +24,31 @@ struct Index;
  * vectors.
  */
 struct IndexBinaryFromFloat : IndexBinary {
-  Index *index = nullptr;
+    Index* index = nullptr;
 
-  bool own_fields = false; ///< Whether object owns the index pointer.
+    bool own_fields = false; ///< Whether object owns the index pointer.
 
-  IndexBinaryFromFloat();
+    IndexBinaryFromFloat();
 
-  explicit IndexBinaryFromFloat(Index *index);
+    explicit IndexBinaryFromFloat(Index* index);
 
-  ~IndexBinaryFromFloat();
+    ~IndexBinaryFromFloat() override;
 
-  void add(idx_t n, const uint8_t *x) override;
+    void add(idx_t n, const uint8_t* x) override;
 
-  void reset() override;
+    void reset() override;
 
-  void search(idx_t n, const uint8_t *x, idx_t k,
-              int32_t *distances, idx_t *labels) const override;
+    void search(
+            idx_t n,
+            const uint8_t* x,
+            idx_t k,
+            int32_t* distances,
+            idx_t* labels,
+            const SearchParameters* params = nullptr) const override;
 
-  void train(idx_t n, const uint8_t *x) override;
+    void train(idx_t n, const uint8_t* x) override;
 };
 
+} // namespace faiss
 
-}  // namespace faiss
-
-#endif  // FAISS_INDEX_BINARY_FROM_FLOAT_H
+#endif // FAISS_INDEX_BINARY_FROM_FLOAT_H

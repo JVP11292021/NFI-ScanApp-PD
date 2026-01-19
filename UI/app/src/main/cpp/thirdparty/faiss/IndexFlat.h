@@ -1,5 +1,5 @@
-/**
- * Copyright (c) Facebook, Inc. and its affiliates.
+/*
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
@@ -12,34 +12,31 @@
 
 #include <vector>
 
-#include "Index.h"
-
+#include <faiss/IndexFlatCodes.h>
+#include <faiss/impl/Panorama.h>
 
 namespace faiss {
 
 /** Index that stores the full vectors and performs exhaustive search */
-struct IndexFlat: Index {
-    /// database vectors, size ntotal * d
-    std::vector<float> xb;
-
-    explicit IndexFlat (idx_t d, MetricType metric = METRIC_L2);
-
-    void add(idx_t n, const float* x) override;
-
-    void reset() override;
+struct IndexFlat : IndexFlatCodes {
+    explicit IndexFlat(
+            idx_t d, ///< dimensionality of the input vectors
+            MetricType metric = METRIC_L2);
 
     void search(
-        idx_t n,
-        const float* x,
-        idx_t k,
-        float* distances,
-        idx_t* labels) const override;
+            idx_t n,
+            const float* x,
+            idx_t k,
+            float* distances,
+            idx_t* labels,
+            const SearchParameters* params = nullptr) const override;
 
     void range_search(
-        idx_t n,
-        const float* x,
-        float radius,
-        RangeSearchResult* result) const override;
+            idx_t n,
+            const float* x,
+            float radius,
+            RangeSearchResult* result,
+            const SearchParameters* params = nullptr) const override;
 
     void reconstruct(idx_t key, float* recons) const override;
 
@@ -51,100 +48,148 @@ struct IndexFlat: Index {
      * @param distances
      *                corresponding output distances, size n * k
      */
-    void compute_distance_subset (
+    void compute_distance_subset(
             idx_t n,
-            const float *x,
+            const float* x,
             idx_t k,
-            float *distances,
-            const idx_t *labels) const;
+            float* distances,
+            const idx_t* labels) const;
 
-    /** remove some ids. NB that Because of the structure of the
-     * indexing structre, the semantics of this operation are
-     * different from the usual ones: the new ids are shifted */
-    size_t remove_ids(const IDSelector& sel) override;
+    // get pointer to the floating point data
+    float* get_xb() {
+        return (float*)codes.data();
+    }
+    const float* get_xb() const {
+        return (const float*)codes.data();
+    }
 
-    IndexFlat () {}
+    IndexFlat() {}
 
-    DistanceComputer * get_distance_computer() const override;
+    FlatCodesDistanceComputer* get_FlatCodesDistanceComputer() const override;
+
+    /* The standalone codec interface (just memcopies in this case) */
+    void sa_encode(idx_t n, const float* x, uint8_t* bytes) const override;
+
+    void sa_decode(idx_t n, const uint8_t* bytes, float* x) const override;
 };
 
-
-
-struct IndexFlatIP:IndexFlat {
-    explicit IndexFlatIP (idx_t d): IndexFlat (d, METRIC_INNER_PRODUCT) {}
-    IndexFlatIP () {}
+struct IndexFlatIP : IndexFlat {
+    explicit IndexFlatIP(idx_t d) : IndexFlat(d, METRIC_INNER_PRODUCT) {}
+    IndexFlatIP() {}
 };
 
+struct IndexFlatL2 : IndexFlat {
+    // Special cache for L2 norms.
+    // If this cache is set, then get_distance_computer() returns
+    // a special version that computes the distance using dot products
+    // and l2 norms.
+    std::vector<float> cached_l2norms;
 
-struct IndexFlatL2:IndexFlat {
-    explicit IndexFlatL2 (idx_t d): IndexFlat (d, METRIC_L2) {}
-    IndexFlatL2 () {}
+    /**
+     * @param d dimensionality of the input vectors
+     */
+    explicit IndexFlatL2(idx_t d) : IndexFlat(d, METRIC_L2) {}
+    IndexFlatL2() {}
+
+    // override for l2 norms cache.
+    FlatCodesDistanceComputer* get_FlatCodesDistanceComputer() const override;
+
+    // compute L2 norms
+    void sync_l2norms();
+    // clear L2 norms
+    void clear_l2norms();
 };
 
+struct IndexFlatPanorama : IndexFlat {
+    const size_t batch_size;
+    const size_t n_levels;
+    std::vector<float> cum_sums;
+    Panorama pano;
 
-// same as an IndexFlatL2 but a value is subtracted from each distance
-struct IndexFlatL2BaseShift: IndexFlatL2 {
-    std::vector<float> shift;
-
-    IndexFlatL2BaseShift (idx_t d, size_t nshift, const float *shift);
-
-    void search(
-        idx_t n,
-        const float* x,
-        idx_t k,
-        float* distances,
-        idx_t* labels) const override;
-};
-
-
-/** Index that queries in a base_index (a fast one) and refines the
- *  results with an exact search, hopefully improving the results.
- */
-struct IndexRefineFlat: Index {
-
-    /// storage for full vectors
-    IndexFlat refine_index;
-
-    /// faster index to pre-select the vectors that should be filtered
-    Index *base_index;
-    bool own_fields;  ///< should the base index be deallocated?
-
-    /// factor between k requested in search and the k requested from
-    /// the base_index (should be >= 1)
-    float k_factor;
-
-    explicit IndexRefineFlat (Index *base_index);
-
-    IndexRefineFlat ();
-
-    void train(idx_t n, const float* x) override;
+    /**
+     * @param d dimensionality of the input vectors
+     * @param metric metric type
+     * @param n_levels number of Panorama levels
+     * @param batch_size batch size for Panorama storage
+     */
+    explicit IndexFlatPanorama(
+            idx_t d,
+            MetricType metric,
+            size_t n_levels,
+            size_t batch_size)
+            : IndexFlat(d, metric),
+              batch_size(batch_size),
+              n_levels(n_levels),
+              pano(code_size, n_levels, batch_size) {
+        FAISS_THROW_IF_NOT(metric == METRIC_L2);
+    }
 
     void add(idx_t n, const float* x) override;
 
+    void search(
+            idx_t n,
+            const float* x,
+            idx_t k,
+            float* distances,
+            idx_t* labels,
+            const SearchParameters* params = nullptr) const override;
+
+    void range_search(
+            idx_t n,
+            const float* x,
+            float radius,
+            RangeSearchResult* result,
+            const SearchParameters* params = nullptr) const override;
+
+    void search_subset(
+            idx_t n,
+            const float* x,
+            idx_t k_base,
+            const idx_t* base_labels,
+            idx_t k,
+            float* distances,
+            idx_t* labels) const override;
+
     void reset() override;
 
-    void search(
-        idx_t n,
-        const float* x,
-        idx_t k,
-        float* distances,
-        idx_t* labels) const override;
+    void reconstruct(idx_t key, float* recons) const override;
 
-    ~IndexRefineFlat() override;
+    void reconstruct_n(idx_t i, idx_t n, float* recons) const override;
+
+    size_t remove_ids(const IDSelector& sel) override;
+
+    void merge_from(Index& otherIndex, idx_t add_id) override;
+
+    void add_sa_codes(idx_t n, const uint8_t* codes_in, const idx_t* xids)
+            override;
+
+    void permute_entries(const idx_t* perm);
 };
 
+struct IndexFlatL2Panorama : IndexFlatPanorama {
+    /**
+     * @param d dimensionality of the input vectors
+     * @param n_levels number of Panorama levels
+     * @param batch_size batch size for Panorama storage
+     */
+    explicit IndexFlatL2Panorama(
+            idx_t d,
+            size_t n_levels,
+            size_t batch_size = 512)
+            : IndexFlatPanorama(d, METRIC_L2, n_levels, batch_size) {}
+};
 
-/// optimized version for 1D "vectors"
-struct IndexFlat1D:IndexFlatL2 {
-    bool continuous_update; ///< is the permutation updated continuously?
+/// optimized version for 1D "vectors".
+struct IndexFlat1D : IndexFlatL2 {
+    bool continuous_update = true; ///< is the permutation updated continuously?
 
     std::vector<idx_t> perm; ///< sorted database indices
 
-    explicit IndexFlat1D (bool continuous_update=true);
+    explicit IndexFlat1D(bool continuous_update = true);
 
     /// if not continuous_update, call this between the last add and
     /// the first search
-    void update_permutation ();
+    void update_permutation();
 
     void add(idx_t n, const float* x) override;
 
@@ -152,14 +197,14 @@ struct IndexFlat1D:IndexFlatL2 {
 
     /// Warn: the distances returned are L1 not L2
     void search(
-        idx_t n,
-        const float* x,
-        idx_t k,
-        float* distances,
-        idx_t* labels) const override;
+            idx_t n,
+            const float* x,
+            idx_t k,
+            float* distances,
+            idx_t* labels,
+            const SearchParameters* params = nullptr) const override;
 };
 
-
-}
+} // namespace faiss
 
 #endif

@@ -203,7 +203,6 @@ target_link_libraries(faiss PRIVATE
         android
 )
 
-
 # -------------------- minmap-core (STATIC, EMBEDDED) --------------------
 
 add_library(minmap-core STATIC
