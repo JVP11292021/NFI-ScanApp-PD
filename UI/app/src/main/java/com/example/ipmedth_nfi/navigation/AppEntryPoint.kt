@@ -7,7 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.ipmedth_nfi.ui.components.AppDrawer
+import com.example.ipmedth_nfi.ui.components.navbar.AppDrawer
 import com.example.ipmedth_nfi.viewmodel.SessionViewModel
 import kotlinx.coroutines.launch
 

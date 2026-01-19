@@ -8,6 +8,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ipmedth_nfi.navigation.AppEntryPoint
 import com.example.ipmedth_nfi.ui.theme.IPMEDTH_NFITheme
 import com.example.ipmedth_nfi.viewmodel.SessionViewModel
+import com.google.androidgamesdk.GameActivity;
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -20,4 +21,5 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
 }

@@ -10,12 +10,23 @@ android {
 
     defaultConfig {
         applicationId = "com.example.ipmedth_nfi"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        ndk {
+            abiFilters.add("arm64-v8a")
+        }
+
+        externalNativeBuild {
+            cmake {
+                // Force shared STL (needed by Assimp & your engine)
+                arguments += listOf("-DANDROID_STL=c++_shared")
+            }
+        }
     }
 
     buildTypes {
@@ -36,6 +47,7 @@ android {
     }
     buildFeatures {
         compose = true
+        prefab = true
     }
     externalNativeBuild {
         cmake {
@@ -43,11 +55,26 @@ android {
             version = "3.22.1"
         }
     }
+
+    packaging {
+        jniLibs {
+            pickFirsts += setOf(
+                "**/libc++_shared.so"
+            )
+            useLegacyPackaging = true
+        }
+    }
 }
 
 dependencies {
+    val cameraxVersion = "1.5.2"
+    implementation("androidx.camera:camera-core:${cameraxVersion}")
+    implementation("androidx.camera:camera-camera2:${cameraxVersion}")
+    implementation("androidx.camera:camera-lifecycle:${cameraxVersion}")
+    implementation("androidx.camera:camera-view:${cameraxVersion}")
+    implementation("com.google.accompanist:accompanist-permissions:0.37.3")
     implementation("androidx.appcompat:appcompat:1.7.1")
-
+    implementation("androidx.games:games-activity:4.0.0")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -57,7 +84,6 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.navigation.compose)
-    implementation(libs.androidx.games.activity)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

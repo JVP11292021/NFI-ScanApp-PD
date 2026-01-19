@@ -1,0 +1,74 @@
+#include "AndroidEngine.h"
+#include "RenderLoopProcess.h"
+
+#include <jni.h>
+#include <android/asset_manager.h>
+#include <android/asset_manager_jni.h>
+#include <EngineBackend/defs.hpp>
+
+static AndroidEngine* engineApp = nullptr;
+
+extern "C"
+JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
+    VLE_LOGV("Loading VulkanAppBridge form JNI_onLoad");
+    return JNI_VERSION_1_6;
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeCreate(
+        JNIEnv *env,
+        jobject vulkanAppBridge,
+        jobject surface,
+        jobject pAssetManager
+) {
+    if (engineApp) {
+        delete engineApp;
+        engineApp = nullptr;
+    }
+
+    auto window = ANativeWindow_fromSurface(env, surface);
+    auto assetManager = AAssetManager_fromJava(env, pAssetManager);
+    if (!window || !assetManager) {
+        VLE_LOGF("Was unable to initialize the ANativeWindow and/or the AAssetManager from UI!");
+        return;
+    }
+
+    try {
+        engineApp = new AndroidEngine(
+                assetManager, window, ANativeWindow_getWidth(window), ANativeWindow_getHeight(window));
+    } catch (std::runtime_error& er) {
+        VLE_LOGF(er.what());
+        return;
+    }
+    VLE_LOGD("AndroidEngine app instance created successfully!");
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeDestroy(JNIEnv *env, jobject vulkanAppBridge) {
+    if (engineApp) {
+        delete engineApp;
+        engineApp = nullptr;
+        VLE_LOGI("Destroyed the AndroidEngine app instance!");
+    }
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeResize(JNIEnv *env, jobject vulkanAppBridge, jint width, jint height) {
+    VLE_LOGD("Resized surface to: ", std::to_string(width).c_str(), "x", std::to_string(height).c_str());
+    if (engineApp) {
+        engineApp->resize(width, height);
+//        mApplicationInstance->isResizeNeeded = true;
+    }
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeDraw(JNIEnv *env, jobject vulkanAppBridge) {
+    VLE_LOGD("Redrawing engine frame");
+    if (engineApp) {
+        engineApp->drawFrame();
+    }
+}
