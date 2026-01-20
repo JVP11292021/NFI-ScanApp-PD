@@ -26,6 +26,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.ipmedth_nfi.viewmodel.SessionViewModel
 import java.text.SimpleDateFormat
@@ -40,32 +41,31 @@ fun ScanCameraContent(
     val lifecycleOwner = LocalLifecycleOwner.current
     var imageCapture by remember { mutableStateOf<ImageCapture?>(null) }
 
-    Box(
-        modifier = modifier.fillMaxSize()
-    ) {
+    Box(modifier = modifier.fillMaxSize()) {
+
         AndroidView(
             modifier = Modifier.fillMaxSize(),
             factory = { ctx ->
                 val previewView = PreviewView(ctx)
 
-                val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
+                val cameraProviderFuture =
+                    ProcessCameraProvider.getInstance(ctx)
+
                 cameraProviderFuture.addListener({
                     val cameraProvider = cameraProviderFuture.get()
 
                     val preview = Preview.Builder().build().also {
-                        it.setSurfaceProvider(previewView.surfaceProvider)
+                        it.surfaceProvider = previewView.surfaceProvider
                     }
 
                     imageCapture = ImageCapture.Builder()
                         .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
                         .build()
 
-                    val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-
                     cameraProvider.unbindAll()
                     cameraProvider.bindToLifecycle(
                         lifecycleOwner,
-                        cameraSelector,
+                        CameraSelector.DEFAULT_BACK_CAMERA,
                         preview,
                         imageCapture
                     )
@@ -75,14 +75,16 @@ fun ScanCameraContent(
             }
         )
 
-        //Capture button
         FloatingActionButton(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 64.dp),
             onClick = {
                 imageCapture?.let {
-                    takePhoto(context, it)
+                    takePhoto(
+                        imageCapture = it,
+                        viewModel = viewModel
+                    )
                 }
             }
         ) {
@@ -91,39 +93,30 @@ fun ScanCameraContent(
     }
 }
 
-private fun takePhoto(
-    context: Context,
-    imageCapture: ImageCapture
-) {
-    val name = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US)
-        .format(System.currentTimeMillis())
 
-    val contentValues = ContentValues().apply {
-        put(MediaStore.MediaColumns.DISPLAY_NAME, name)
-        put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/NFI")
-        }
-    }
+private fun takePhoto(
+    imageCapture: ImageCapture,
+    viewModel: SessionViewModel
+) {
+    val photoFile = viewModel.createImageFile()
 
     val outputOptions = ImageCapture.OutputFileOptions
-        .Builder(
-            context.contentResolver,
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-            contentValues
-        )
+        .Builder(photoFile)
         .build()
 
     imageCapture.takePicture(
         outputOptions,
-        ContextCompat.getMainExecutor(context),
+        ContextCompat.getMainExecutor(viewModel.getApplication()),
         object : ImageCapture.OnImageSavedCallback {
-            override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-                println("Saved photo: ${outputFileResults.savedUri}") //Debug
+
+            override fun onImageSaved(
+                outputFileResults: ImageCapture.OutputFileResults
+            ) {
+                viewModel.onPhotoCaptured(photoFile.toUri())
             }
 
             override fun onError(exception: ImageCaptureException) {
-                exception.printStackTrace() //Debug
+                exception.printStackTrace()
             }
         }
     )

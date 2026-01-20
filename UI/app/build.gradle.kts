@@ -1,7 +1,10 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlinx.serialization)
 }
 
 android {
@@ -31,8 +34,13 @@ android {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
     }
-    kotlinOptions {
-        jvmTarget = "21"
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_21)
+
+            // Useful for Compose 2.0 to ensure strict mode
+            freeCompilerArgs.add("-Xconsistent-data-class-copy-visibility")
+        }
     }
     buildFeatures {
         compose = true
@@ -46,9 +54,11 @@ android {
 }
 
 dependencies {
+    implementation("androidx.activity:activity-ktx:1.12.2")
+    implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.compose.material3)
     val cameraxVersion = "1.5.2"
-    implementation("androidx.camera:camera-core:${cameraxVersion}")
+    implementation(libs.androidx.camera.core)
     implementation("androidx.camera:camera-camera2:${cameraxVersion}")
     implementation("androidx.camera:camera-lifecycle:${cameraxVersion}")
     implementation("androidx.camera:camera-view:${cameraxVersion}")

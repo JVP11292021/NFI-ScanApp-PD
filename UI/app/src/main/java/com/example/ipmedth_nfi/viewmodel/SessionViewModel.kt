@@ -1,5 +1,8 @@
 package com.example.ipmedth_nfi.viewmodel
 
+import java.io.File
+import java.util.UUID
+import android.app.Application
 import android.net.Uri
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -8,16 +11,47 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.ipmedth_nfi.model.ExportData
 import com.example.ipmedth_nfi.model.Hoofdthema
 import com.example.ipmedth_nfi.model.Marker
 import com.example.ipmedth_nfi.model.Observation
+import com.example.ipmedth_nfi.model.Onderzoek
+import com.example.ipmedth_nfi.model.ProjectStorage
 import com.example.ipmedth_nfi.model.RoomModel
 import com.example.ipmedth_nfi.ui.navigation.AssessmentPage
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import java.time.Instant
 
-class SessionViewModel : ViewModel() {
+class SessionViewModel(
+    application: Application,
+    private val storage: ProjectStorage
+) : AndroidViewModel(application) {
+    private val _activeOnderzoek = MutableStateFlow<Onderzoek?>(null)
+    val activeOnderzoek: StateFlow<Onderzoek?> = _activeOnderzoek
+
+    val hasActiveOnderzoek: StateFlow<Boolean> =
+        _activeOnderzoek.map { it != null }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.Eagerly,
+                initialValue = false
+            )
+
+    fun startOnderzoek(onderzoek: Onderzoek) {
+        storage.createProject(onderzoek)
+        _activeOnderzoek.value = onderzoek
+    }
+
+    fun closeOnderzoek() {
+        _activeOnderzoek.value = null
+    }
     val pageCompletion = mutableStateMapOf<AssessmentPage, Boolean>().apply {
         AssessmentPage.all.forEach { page ->
             this[page] = false
@@ -34,6 +68,20 @@ class SessionViewModel : ViewModel() {
     fun onPhotoCaptured(uri: Uri) {
         // TODO: Forward to ExportManager
         println("Captured photo: $uri")
+    }
+
+    fun createImageFile(): File {
+        val onderzoek = _activeOnderzoek.value
+            ?: error("No active onderzoek")
+
+        val imageDir = storage.getImageDir(onderzoek)
+
+        if (!imageDir.exists()) {
+            imageDir.mkdirs()
+        }
+
+        val fileName = "IMG_${UUID.randomUUID()}.jpg"
+        return File(imageDir, fileName)
     }
 
     // Info page functionality
