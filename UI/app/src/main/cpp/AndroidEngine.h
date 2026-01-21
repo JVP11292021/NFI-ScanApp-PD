@@ -21,35 +21,9 @@
 #include <Systems/CameraSystem.hpp>
 #include <Systems/RenderSystem.hpp>
 #include <Systems/ObjectRenderSystem.hpp>
+#include <Systems/PointCloudRenderSystem.hpp>
 
 using UboBuffer = vle::Buffer;
-
-struct CubePushConstants {
-    glm::mat4 pvm{ 1.f };
-};
-
-class CubeRenderSystem : public vle::sys::RenderSystem<CubePushConstants> {
-public:
-    CubeRenderSystem(
-        vle::EngineDevice& device,
-        VkRenderPass renderPass,
-        VkDescriptorSetLayout globalSetLayout,
-        const std::string& vertPath,
-        const std::string& fragPath);
-
-    NON_COPYABLE(CubeRenderSystem)
-
-public:
-    void update(vle::FrameInfo& frameInfo, vle::GlobalUbo& ubo) override;
-    void render(vle::FrameInfo& frameInfo) override;
-
-private:
-    void createPipeline(
-            VkRenderPass renderPass,
-            const std::string& vertPath,
-            const std::string& fragPath) override;
-
-};
 
 class AndroidEngine final : public IAndroidSurface {
 public:
@@ -84,7 +58,8 @@ private:
     vle::EngineDevice _device;
     vle::sys::Renderer _renderer;
     vle::sys::CameraSystem _cam;
-    std::unique_ptr<CubeRenderSystem> _cubeRenderSystem;
+    std::unique_ptr<vle::sys::PointCloudRenderSystem> pointCloudRenderSystem;
+
 
 private:
     std::unique_ptr<vle::DescriptorPool> globalPool{};

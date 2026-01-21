@@ -12,61 +12,6 @@ static std::vector<std::unique_ptr<UboBuffer>> uboBuffers(MAX_FRAMES_IN_FLIGHT);
 static std::unique_ptr<vle::DescriptorSetLayout> globalSetLayout;
 static std::vector<VkDescriptorSet> globalDescriptorSets(MAX_FRAMES_IN_FLIGHT);
 
-CubeRenderSystem::CubeRenderSystem(
-        vle::EngineDevice& device,
-        VkRenderPass renderPass,
-        VkDescriptorSetLayout globalSetLayout,
-        const std::string& vertPath,
-        const std::string& fragPath
-)
-        : RenderSystem(device, globalSetLayout)
-{
-    this->createPipeline(renderPass, vertPath, fragPath);
-}
-
-void CubeRenderSystem::update(vle::FrameInfo& frameInfo, vle::GlobalUbo& ubo) {}
-
-void CubeRenderSystem::render(vle::FrameInfo& frameInfo) {
-    this->pipeline->bind(frameInfo.commandBuffer);
-
-    vkCmdBindDescriptorSets(
-            frameInfo.commandBuffer,
-            VK_PIPELINE_BIND_POINT_GRAPHICS,
-            this->pipelineLayout,
-            0, 1,
-            &frameInfo.globalDescriptorSet,
-            0, nullptr );
-
-    for (auto& kv: frameInfo.gameObjects) {
-        vle::Object& obj = kv.second;
-        if (!obj.model) continue;
-        CubePushConstants push{};
-        push.pvm = frameInfo.pvmMatrix;
-        vkCmdPushConstants(frameInfo.commandBuffer, this->pipelineLayout, VLE_PUSH_CONST_VERT_FRAG_FLAG, 0, sizeof(CubePushConstants), &push);
-        obj.model->bind(frameInfo.commandBuffer);
-        obj.model->draw(frameInfo.commandBuffer);
-    }
-
-}
-
-void CubeRenderSystem::createPipeline(
-        VkRenderPass renderPass,
-        const std::string& vertPath,
-        const std::string& fragPath
-) {
-    assert(this->pipelineLayout != nullptr && "Cannot create pipeline before pipeline layout");
-
-    vle::PipelineConfigInfo pipelineConfig{};
-    vle::Pipeline::defaultPipelineConfigInfo(
-            pipelineConfig);
-    pipelineConfig.bindingDescriptions = vle::ShaderModel::Vertex::getBindingDescription();
-    pipelineConfig.attributeDescriptors = vle::ShaderModel::Vertex::getAttributeDescription();
-    pipelineConfig.renderPass = renderPass;
-    pipelineConfig.pipelineLayout = this->pipelineLayout;
-    this->pipeline = std::make_unique<vle::Pipeline>(
-            this->device, vertPath, fragPath, pipelineConfig);
-}
-
 AndroidEngine::AndroidEngine(
         AAssetManager* assetManager,
         ANativeWindow* nativeWindow,
@@ -84,7 +29,6 @@ AndroidEngine::AndroidEngine(
             .setMaxSets(MAX_FRAMES_IN_FLIGHT)
             .addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, MAX_FRAMES_IN_FLIGHT)
             .build();
-
     this->loadObjects();
     this->mapUniformBufferObjects();
     this->makeDescriptorSets();
@@ -125,30 +69,30 @@ void AndroidEngine::makeDescriptorSets() {
 }
 
 void AndroidEngine::makeSystems() {
-    this->_cubeRenderSystem =
-            std::make_unique<CubeRenderSystem>(
-                    this->_device,
-                    this->_renderer.getSwapChainRenderPass(),
-                    globalSetLayout->getDescriptorSetLayout(),
-                    "shaders/15-draw_cube.vert.spv",
-                    "shaders/15-draw_cube.frag.spv");
+    pointCloudRenderSystem =
+            std::make_unique<vle::sys::PointCloudRenderSystem>(
+                _device,
+                _renderer.getSwapChainRenderPass(),
+                globalSetLayout->getDescriptorSetLayout(),
+                "shaders/point_cloud_shader.vert.spv",
+                "shaders/point_cloud_shader.frag.spv");
 }
 
 void AndroidEngine::loadObjects() {
-    std::shared_ptr<vle::ShaderModel> model = vle::entity::Cube(this->_device);
-    auto cube = vle::Object::create();
-    cube.model = model;
-//    cube.transform.translation = { .0f,.0f,.5f };
-//    cube.transform.scale = { .5f,.5f,.5f };
-    this->objects.emplace(cube.getId(), std::move(cube));
+    std::shared_ptr<vle::ShaderModel> roomModel =
+            vle::ShaderModel::createModelFromFile(_device, "simple_scene.ply");
+    auto room = vle::Object::create();
+    room.model = roomModel;
+    room.transform.translation = { 0.f, .5f, 8.f };
+    room.transform.rotation = {
+            glm::radians(9.0f),
+            glm::radians(180.f),
+            glm::radians(93.0f)
+    };
+    this->points.emplace(room.getId(), std::move(room));
 }
 
 void AndroidEngine::drawFrame() {
-    vle::sys::CameraSystem cam{
-            glm::vec3(0.f, 0.f, 2.5f),
-            glm::vec3(0.f, 0.f, 1.f)
-    };
-
     auto view = _cam.getViewMatrix();
     auto projection = _cam.getProjMatrix();
     auto inverseView = glm::inverse(view);
@@ -176,7 +120,6 @@ void AndroidEngine::drawFrame() {
         // Vulkan clip space has inverted Y and half Z.
 //        auto clip = glm::mat4(1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 0.5f, 1.0f);
 
-        auto projectionViewModel = projection * view * model;
 
         vle::FrameInfo frameInfo{
                 frameIndex,
@@ -185,7 +128,6 @@ void AndroidEngine::drawFrame() {
                 globalDescriptorSets[frameIndex],
                 this->objects,
                 this->points,
-                projectionViewModel
         };
 
         // === UPDATE ===
@@ -202,7 +144,7 @@ void AndroidEngine::drawFrame() {
 
         // === RENDER ===
         _renderer.beginSwapChainRenderPass(commandBuffer);
-        this->_cubeRenderSystem->render(frameInfo);
+        pointCloudRenderSystem->render(frameInfo);
         // pointLightSystem.render(frameInfo);
         // pointCloudRenderSystem.render(frameInfo);
 
@@ -225,13 +167,13 @@ void AndroidEngine::onDrag(float dx, float dy) {
 }
 
 void AndroidEngine::onStrafe(float dx, float dy) {
-    constexpr float STRAFE_SENSITIVITY = 0.0006f;
+    constexpr float STRAFE_SENSITIVITY = 0.002f;
     _cam.processKeyboard(vle::sys::RIGHT, dx * STRAFE_SENSITIVITY);
     _cam.processKeyboard(vle::sys::MOVE_UP, dy * STRAFE_SENSITIVITY);
 }
 
 void AndroidEngine::onZoom(float scaleFactor) {
-    constexpr float ZOOM_SENSITIVITY = 0.2f;
+    constexpr float ZOOM_SENSITIVITY = 0.5f;
     float zoomDelta = std::log(scaleFactor) * ZOOM_SENSITIVITY;
     _cam.processKeyboard(vle::sys::FORWARD, zoomDelta);
 }
