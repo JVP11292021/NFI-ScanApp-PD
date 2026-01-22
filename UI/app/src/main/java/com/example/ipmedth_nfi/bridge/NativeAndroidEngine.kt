@@ -17,6 +17,7 @@ class NativeAndroidEngine() {
     private external fun nativeOnDrag(deltaX: Float, deltaY: Float)
     private external fun nativeOnStrafe(deltaX: Float, deltaY: Float)
     private external fun nativeOnPinch(scaleFactor: Float)
+    private external fun nativeOnTap(x: Float, y: Float)
 
     fun create(surface: Surface, assetManager: AssetManager) {
         nativeCreate(surface, assetManager)
@@ -44,5 +45,9 @@ class NativeAndroidEngine() {
 
     fun onStrafe(deltaX: Float, deltaY: Float) {
         nativeOnStrafe(deltaX, deltaY)
+    }
+
+    fun onTap(x: Float, y: Float) {
+        nativeOnTap(x, y)
     }
 }

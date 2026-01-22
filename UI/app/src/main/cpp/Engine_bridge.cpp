@@ -99,3 +99,11 @@ Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeOnStrafe(JNIEnv *
         engineApp->onStrafe(-delta_x, -delta_y);
     }
 }
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeOnTap(JNIEnv *env, jobject thiz,
+                                                                     jfloat x, jfloat y) {
+    if (engineApp) {
+        engineApp->onTap(static_cast<uint32_t>(x), static_cast<uint32_t>(y));
+    }
+}
