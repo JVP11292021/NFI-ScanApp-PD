@@ -173,12 +173,28 @@ void AndroidEngine::drawFrame() {
         uboBuffers[frameIndex]->flush();
 
         pickingRenderSystem->render(frameInfo);
-        if (shouldPick) {
-            VkCommandBuffer pickCmdBuffer = _device.beginSingleTimeCommands();
-            pickingRenderSystem->copyPixelToStaging(pickCmdBuffer, pickX, pickY);
-            VLE_LOGI("Picking at: ", std::to_string(pickX).c_str(), ", ", std::to_string(pickY).c_str());
-            _device.endSingleTimeCommands(pickCmdBuffer);
 
+        // Copy pixel data to staging buffer BEFORE ending the frame command buffer
+        // This ensures proper synchronization - the render pass must complete first
+        if (shouldPick) {
+            pickingRenderSystem->copyPixelToStaging(commandBuffer, pickX, pickY);
+            VLE_LOGI("Picking at: ", std::to_string(pickX).c_str(), ", ", std::to_string(pickY).c_str());
+        }
+
+        // === RENDER ===
+        _renderer.beginSwapChainRenderPass(commandBuffer);
+
+        objectRenderSystem->render(frameInfo);
+        pointCloudRenderSystem->render(frameInfo);
+        // pointLightSystem.render(frameInfo);
+
+        _renderer.endSwapChainRenderPass(commandBuffer);
+        _renderer.endFrame();
+
+        // Read pick result AFTER the frame has been submitted and completed
+        if (shouldPick) {
+            // Wait for GPU to finish so we can read the staging buffer
+            vkDeviceWaitIdle(_device.device());
 
             PickResult pick = pickingRenderSystem->readPickResult();
 
@@ -193,16 +209,6 @@ void AndroidEngine::drawFrame() {
             }
             shouldPick = false;
         }
-
-        // === RENDER ===
-        _renderer.beginSwapChainRenderPass(commandBuffer);
-
-        objectRenderSystem->render(frameInfo);
-        pointCloudRenderSystem->render(frameInfo);
-        // pointLightSystem.render(frameInfo);
-
-        _renderer.endSwapChainRenderPass(commandBuffer);
-        _renderer.endFrame();
     }
 }
 

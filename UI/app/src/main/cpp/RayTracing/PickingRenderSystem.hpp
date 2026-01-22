@@ -66,6 +66,9 @@ private:
     PickingFramebuffer pickingFB;
     std::unique_ptr<vle::Buffer> stagingBufferID;
     std::unique_ptr<vle::Buffer> stagingBufferPos;
+
+    // MRT color blend attachments - must persist for pipeline lifetime
+    std::array<VkPipelineColorBlendAttachmentState, 2> colorBlendAttachments{};
 };
 
 #endif // !RT_PICKING_RENDER_SYSTEM_HPP

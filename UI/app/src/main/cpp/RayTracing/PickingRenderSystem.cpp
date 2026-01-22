@@ -1,5 +1,6 @@
 #include "PickingRenderSystem.hpp"
 #include "descriptors.hpp"
+#include <array>
 
 PickingRenderSystem::PickingRenderSystem(
         vle::EngineDevice& device,
@@ -119,6 +120,23 @@ void PickingRenderSystem::createPipeline(VkRenderPass renderPass, const std::str
             filteredAttributes.push_back(attr);
         }
     }
+
+    // Configure 2 color blend attachments for MRT (Multiple Render Targets)
+    // Attachment 0: Object ID (uvec2)
+    // Attachment 1: World Position (vec4)
+    // Using member variable to ensure it stays valid during pipeline creation
+
+    // Both attachments use the same blend settings (no blending, write all components)
+    for (auto& attachment : colorBlendAttachments) {
+        attachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+                                    VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+        attachment.blendEnable = VK_FALSE;
+    }
+
+    // Override the color blend info to use 2 attachments
+    pipelineConfig.colorBlendInfo.attachmentCount = static_cast<uint32_t>(colorBlendAttachments.size());
+    pipelineConfig.colorBlendInfo.pAttachments = colorBlendAttachments.data();
+
     //pipelineConfig.depthStencilInfo.depthTestEnable = VK_FALSE;
     //pipelineConfig.depthStencilInfo.depthWriteEnable = VK_FALSE;
     pipelineConfig.bindingDescriptions = bindings;
@@ -135,6 +153,61 @@ void PickingRenderSystem::createPipeline(VkRenderPass renderPass, const std::str
 }
 
 void PickingRenderSystem::copyPixelToStaging(VkCommandBuffer cmdBuffer, uint32_t mouseX, uint32_t mouseY) {
+    // Bounds checking - clamp coordinates to framebuffer dimensions
+    uint32_t fbWidth = pickingFB.getExtent().width;
+    uint32_t fbHeight = pickingFB.getExtent().height;
+
+    if (mouseX >= fbWidth) mouseX = fbWidth - 1;
+    if (mouseY >= fbHeight) mouseY = fbHeight - 1;
+
+    VLE_LOGI("copyPixelToStaging: mouse(", std::to_string(mouseX).c_str(), ",",
+             std::to_string(mouseY).c_str(), ") fb(", std::to_string(fbWidth).c_str(),
+             "x", std::to_string(fbHeight).c_str(), ")");
+
+    // Memory barrier to ensure render pass writes are complete and images are in correct layout
+    // This is critical on Android tile-based GPUs
+    VkImageMemoryBarrier barrierColorPre{};;
+    barrierColorPre.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    barrierColorPre.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    barrierColorPre.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+    barrierColorPre.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+    barrierColorPre.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+    barrierColorPre.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrierColorPre.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrierColorPre.image = pickingFB.getColorImage();
+    barrierColorPre.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    barrierColorPre.subresourceRange.baseMipLevel = 0;
+    barrierColorPre.subresourceRange.levelCount = 1;
+    barrierColorPre.subresourceRange.baseArrayLayer = 0;
+    barrierColorPre.subresourceRange.layerCount = 1;
+
+    VkImageMemoryBarrier barrierPosPre{};
+    barrierPosPre.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    barrierPosPre.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    barrierPosPre.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+    barrierPosPre.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+    barrierPosPre.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+    barrierPosPre.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrierPosPre.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrierPosPre.image = pickingFB.getPositionImage();
+    barrierPosPre.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    barrierPosPre.subresourceRange.baseMipLevel = 0;
+    barrierPosPre.subresourceRange.levelCount = 1;
+    barrierPosPre.subresourceRange.baseArrayLayer = 0;
+    barrierPosPre.subresourceRange.layerCount = 1;
+
+    std::array<VkImageMemoryBarrier, 2> preBarriers = {barrierColorPre, barrierPosPre};
+
+    vkCmdPipelineBarrier(
+        cmdBuffer,
+        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+        VK_PIPELINE_STAGE_TRANSFER_BIT,
+        0,
+        0, nullptr,
+        0, nullptr,
+        static_cast<uint32_t>(preBarriers.size()), preBarriers.data()
+    );
+
     VkBufferImageCopy regionID{};
     regionID.bufferOffset = 0;
     regionID.bufferRowLength = 0;
@@ -144,14 +217,16 @@ void PickingRenderSystem::copyPixelToStaging(VkCommandBuffer cmdBuffer, uint32_t
     regionID.imageSubresource.baseArrayLayer = 0;
     regionID.imageSubresource.layerCount = 1;
 
-    uint32_t flippedY = pickingFB.getExtent().height - mouseY - 1;
+    // On Android, both touch coordinates and Vulkan image coordinates have Y=0 at the top
+    // No Y-flip needed (unlike desktop GLFW where Y=0 is at the bottom)
+    uint32_t finalY = mouseY;
 
     regionID.imageOffset = {
         static_cast<int32_t>(mouseX),
-        static_cast<int32_t>(flippedY),
+        static_cast<int32_t>(finalY),
         0
     };
-	regionID.imageExtent = { 1, 1, 1 };
+    regionID.imageExtent = { 1, 1, 1 };
 
     vkCmdCopyImageToBuffer(
         cmdBuffer,
@@ -172,7 +247,7 @@ void PickingRenderSystem::copyPixelToStaging(VkCommandBuffer cmdBuffer, uint32_t
     regionPos.imageSubresource.layerCount = 1;
     regionPos.imageOffset = {
         static_cast<int32_t>(mouseX),
-        static_cast<int32_t>(flippedY),
+        static_cast<int32_t>(finalY),
         0
     };
     regionPos.imageExtent = { 1, 1, 1 };
@@ -184,6 +259,22 @@ void PickingRenderSystem::copyPixelToStaging(VkCommandBuffer cmdBuffer, uint32_t
         stagingBufferPos->getBuffer(),
         1,
         &regionPos
+    );
+
+    // Memory barrier to ensure GPU writes to staging buffers are visible to CPU
+    VkMemoryBarrier memoryBarrier{};
+    memoryBarrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+    memoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    memoryBarrier.dstAccessMask = VK_ACCESS_HOST_READ_BIT;
+
+    vkCmdPipelineBarrier(
+        cmdBuffer,
+        VK_PIPELINE_STAGE_TRANSFER_BIT,
+        VK_PIPELINE_STAGE_HOST_BIT,
+        0,
+        1, &memoryBarrier,
+        0, nullptr,
+        0, nullptr
     );
 }
 
