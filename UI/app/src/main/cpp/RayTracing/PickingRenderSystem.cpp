@@ -205,6 +205,9 @@ PickResult PickingRenderSystem::readPickResult() {
     result.hit = true;
     result.objectID = pick.objectID;
     result.pointIndex = pick.pointIndex;
+    VLE_LOGI("Picked Object ID: ", std::to_string(pick.objectID).c_str(),
+            " Point Index: ", std::to_string(pick.pointIndex).c_str()
+    );
 
 	result.id = (pick.objectID << 16) | (pick.pointIndex & 0xFFFF);
 
@@ -214,5 +217,11 @@ PickResult PickingRenderSystem::readPickResult() {
     stagingBufferPos->unmap();
 
     result.worldPos = glm::vec3(pos[0], pos[1], pos[2]);
+    VLE_LOGI("Picked ID: ", std::to_string(result.id).c_str(),
+            " at world position: ",
+            std::to_string(result.worldPos.x).c_str(), ", ",
+            std::to_string(result.worldPos.y).c_str(), ", ",
+            std::to_string(result.worldPos.z).c_str()
+    );
     return result;
 }

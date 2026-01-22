@@ -5,6 +5,7 @@
 #include <android/asset_manager.h>
 #include <android/asset_manager_jni.h>
 #include <EngineBackend/defs.hpp>
+//#include "RayTracing/MarkerManager.h"
 
 static AndroidEngine* engineApp = nullptr;
 
@@ -107,3 +108,18 @@ Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeOnTap(JNIEnv *env
         engineApp->onTap(static_cast<uint32_t>(x), static_cast<uint32_t>(y));
     }
 }
+//static std::unique_ptr<MarkerManager> gMarkerManager = nullptr;
+//
+//extern "C"
+//JNIEXPORT void JNICALL
+//Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeInitMarkerManager(
+//        JNIEnv* env,
+//        jobject thiz,
+//        jstring jPath
+//) {
+//    const char* cPath = env->GetStringUTFChars(jPath, nullptr);
+//    if (cPath) {
+//        gMarkerManager = std::make_unique<MarkerManager>(std::string(cPath));
+//        env->ReleaseStringUTFChars(jPath, cPath);
+//    }
+//}

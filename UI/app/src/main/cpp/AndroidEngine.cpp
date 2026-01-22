@@ -100,7 +100,11 @@ void AndroidEngine::makeSystems() {
 }
 
 void AndroidEngine::loadObjects() {
-    this->markerManager.loadMarkersFromTxt("cpp/markers.txt", _device, this->objects);
+//    try {
+        this->markerManager.loadMarkersFromTxt("/storage/emulated/0/Android/data/com.example.ipmedth_nfi/files/NFI_Scanapp/123/testCase/markers.txt", _device, this->objects);
+//    } catch (std::runtime_error& er) {
+//        VLE_LOGW("No markers.txt found in asset folder, starting with no markers.");
+//    }
 
     std::shared_ptr<vle::ShaderModel> roomModel =
             vle::ShaderModel::createModelFromFile(_device, "simple_scene.ply");
@@ -172,12 +176,20 @@ void AndroidEngine::drawFrame() {
         if (shouldPick) {
             VkCommandBuffer pickCmdBuffer = _device.beginSingleTimeCommands();
             pickingRenderSystem->copyPixelToStaging(pickCmdBuffer, pickX, pickY);
+            VLE_LOGI("Picking at: ", std::to_string(pickX).c_str(), ", ", std::to_string(pickY).c_str());
             _device.endSingleTimeCommands(pickCmdBuffer);
+
 
             PickResult pick = pickingRenderSystem->readPickResult();
 
             if (pick.id != 0xFFFFFFFF) {
                 this->markerManager.createMarker(pick.worldPos, _device, this->objects);
+                VLE_LOGI(
+                        "Placed marker at: ",
+                        std::to_string(pick.worldPos.x).c_str(), ", ",
+                        std::to_string(pick.worldPos.y).c_str(), ", ",
+                        std::to_string(pick.worldPos.z).c_str()
+                );
             }
             shouldPick = false;
         }

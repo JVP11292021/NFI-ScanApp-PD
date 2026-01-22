@@ -18,6 +18,7 @@ class NativeAndroidEngine() {
     private external fun nativeOnStrafe(deltaX: Float, deltaY: Float)
     private external fun nativeOnPinch(scaleFactor: Float)
     private external fun nativeOnTap(x: Float, y: Float)
+//    private external fun nativeInitMarkerManager(markersBasePath: String)
 
     fun create(surface: Surface, assetManager: AssetManager) {
         nativeCreate(surface, assetManager)
@@ -50,4 +51,9 @@ class NativeAndroidEngine() {
     fun onTap(x: Float, y: Float) {
         nativeOnTap(x, y)
     }
+
+//    fun initMarkerManager(onderzoek: Onderzoek) {
+//        val markersBasePath = onderzoek.basepath
+//        nativeInitMarkerManager(markersBasePath)
+//    }
 }

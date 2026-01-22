@@ -50,9 +50,8 @@ void MarkerManager::loadMarkersFromTxt(const std::string& filePath, vle::EngineD
         float x, y, z;
         if (!(iss >> markerId >> x >> y >> z >> SINnumber)) continue;
 
-        // Extract marker number to determine next marker ID
         try {
-            int markerNum = std::stoi(markerId.substr(6)); // "Marker" = 6 chars
+            int markerNum = std::stoi(markerId.substr(6));
             if (markerNum > maxMarkerNum) maxMarkerNum = markerNum;
         } catch (...) {}
 
@@ -73,12 +72,10 @@ void MarkerManager::loadMarkersFromTxt(const std::string& filePath, vle::EngineD
 
 void MarkerManager::createMarker(const glm::vec3& position, vle::EngineDevice& device, vle::ObjectMap& objects)
 {
-    // Load model if not already loaded
     if (!markerPinModel) {
         markerPinModel = vle::ShaderModel::createModelFromFile(device, "markerPin.obj");
     }
 
-    // Create new marker object
     auto obj = vle::Object::create();
     obj.model = markerPinModel;
     obj.color = { 1.f, .1f, .1f };
@@ -91,7 +88,6 @@ void MarkerManager::createMarker(const glm::vec3& position, vle::EngineDevice& d
 
     objects.emplace(newMarkerId, std::move(obj));
 
-    // Save to file if path is set
     if (!currentFilePath.empty()) {
         saveMarkersToTxt(currentFilePath, objects);
     }
@@ -99,16 +95,13 @@ void MarkerManager::createMarker(const glm::vec3& position, vle::EngineDevice& d
 
 void MarkerManager::destroyMarker(vle::id_t markerId, vle::ObjectMap& objects)
 {
-    // Remove from marker IDs list
     auto it = std::find(markerIds.begin(), markerIds.end(), markerId);
     if (it != markerIds.end()) {
         markerIds.erase(it);
     }
 
-    // Remove from objects map
     objects.erase(markerId);
 
-    // Save updated list to file
     if (!currentFilePath.empty()) {
         saveMarkersToTxt(currentFilePath, objects);
     }
