@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -41,8 +43,12 @@ fun InfoTab(viewModel: SessionViewModel) {
     // Live counts
     val countVooraf = viewModel.infoVooraf.size
     val countTerPlaatse = viewModel.infoTerPlaatse.size
+    val scrollState = rememberScrollState()
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(scrollState)) {
         InfoSubheader(
             subject = "Informatie", 
             details = "$countVooraf vooraf - $countTerPlaatse ter plaatse",
@@ -53,10 +59,10 @@ fun InfoTab(viewModel: SessionViewModel) {
         Spacer(Modifier.size(8.dp))
         
         InfoDropdown(
-            title = "Vooraf", 
+            title = "Vooraf",
             items = viewModel.infoVooraf,
             onDeleteItem = { index ->
-                viewModel.infoVooraf.removeAt(index)
+                viewModel.removeInfoVooraf(index)
             }
         )
         
@@ -66,7 +72,7 @@ fun InfoTab(viewModel: SessionViewModel) {
             title = "Ter Plaatse", 
             items = viewModel.infoTerPlaatse,
             onDeleteItem = { index ->
-                viewModel.infoTerPlaatse.removeAt(index)
+                viewModel.removeInfoTerPlaatse(index)
             }
         )
     }
@@ -80,9 +86,9 @@ fun InfoTab(viewModel: SessionViewModel) {
                 onDismiss = { showBottomSheet = false },
                 onAdd = { text, isVooraf ->
                     if (isVooraf) {
-                        viewModel.infoVooraf.add(text)
+                        viewModel.addInfoVooraf(text)
                     } else {
-                        viewModel.infoTerPlaatse.add(text)
+                        viewModel.addInfoTerPlaatse(text)
                     }
                     showBottomSheet = false
                 }

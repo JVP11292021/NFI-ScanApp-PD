@@ -12,8 +12,8 @@ fun ScanPage(
 ) {
     CameraPermissionsGate {
         ScanCameraContent(
-            viewModel= viewModel,
-            modifier= modifier
+            viewModel = viewModel,
+            modifier = modifier
         )
     }
 }

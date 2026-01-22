@@ -1,4 +1,4 @@
-package com.example.ipmedth_nfi.ui.components
+package com.example.ipmedth_nfi.ui.components.observations
 
 import android.os.Build
 import androidx.annotation.RequiresApi

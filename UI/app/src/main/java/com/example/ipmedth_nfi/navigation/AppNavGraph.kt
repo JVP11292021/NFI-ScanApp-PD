@@ -1,5 +1,6 @@
 package com.example.ipmedth_nfi.navigation
 
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.Scaffold
@@ -25,6 +26,7 @@ fun AppNavGraph(
     viewModel: SessionViewModel
 ) {
     val scope = rememberCoroutineScope()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute =
         navController.currentBackStackEntryAsState().value?.destination?.route
     val assessmentPage = viewModel.currentAssessmentPage
@@ -55,19 +57,19 @@ fun AppNavGraph(
         NavHost(
             navController = navController,
             startDestination = MainRoute.SCAN.route,
-            modifier = Modifier.padding(top = paddingValues.calculateTopPadding())
+            modifier = Modifier.padding(paddingValues)
         ) {
             composable(MainRoute.SCAN.route) {
                 ScanPage(
                     viewModel = viewModel,
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                    modifier = Modifier.fillMaxSize()
                 )
             }
 
             composable(MainRoute.MODEL.route) {
                 ModelPage(
                     viewModel = viewModel,
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                    modifier = Modifier.fillMaxSize()
                 )
             }
 

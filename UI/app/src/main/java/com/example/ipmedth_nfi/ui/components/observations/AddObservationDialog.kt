@@ -1,4 +1,4 @@
-package com.example.ipmedth_nfi.ui.components
+package com.example.ipmedth_nfi.ui.components.observations
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer

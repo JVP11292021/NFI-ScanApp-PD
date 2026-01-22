@@ -1,7 +1,6 @@
-package com.example.ipmedth_nfi.ui.components
+package com.example.ipmedth_nfi.ui.components.observations
 
 import android.os.Build
-import android.view.RoundedCorner
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
