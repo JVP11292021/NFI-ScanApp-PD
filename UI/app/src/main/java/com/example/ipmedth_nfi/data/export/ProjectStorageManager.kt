@@ -18,7 +18,7 @@ class ProjectStorageManager(
         File(rootDir, "${onderzoek.zaaknummer}/${onderzoek.onderzoeksnaam}")
 
     override fun getImageDir(onderzoek: Onderzoek): File =
-        File(getProjectDir(onderzoek), "reconstructie/images")
+        File(getProjectDir(onderzoek), "Reconstruction/images")
 
     override fun createProject(onderzoek: Onderzoek): File {
         val projectDir = getProjectDir(onderzoek)

@@ -56,6 +56,7 @@ android {
     buildFeatures {
         compose = true
         prefab = true
+        shaders = true
     }
     externalNativeBuild {
         cmake {
