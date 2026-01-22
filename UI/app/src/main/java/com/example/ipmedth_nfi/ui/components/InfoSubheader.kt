@@ -41,7 +41,7 @@ fun InfoSubheader(
         SubheaderButton(
             title = actionTitle,
             onClick = onAddClick,
-            modifier = Modifier.weight(1f) // Fills the other half of the max width
+            modifier = Modifier.weight(1f)
         )
     }
 }
