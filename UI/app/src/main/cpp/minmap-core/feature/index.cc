@@ -1,10 +1,12 @@
 #include "matcher.h"
 
-#include <faiss/IndexFlat.h>
+#include <faiss/IndexFlat.h> // Top level fixed
 #include <faiss/IndexIVFFlat.h>
-#include <faiss/IndexIVFPQ.h>
-#include <faiss/IndexPQ.h>
 #include <omp.h>
+
+namespace faiss {
+
+}
 
 namespace colmap {
 namespace {
@@ -82,12 +84,12 @@ class FaissFeatureDescriptorIndex : public FeatureDescriptorIndex {
 
       faiss::IVFSearchParameters search_params;
       search_params.nprobe = 8;
-//      index_->search(num_query_descriptors,
-//                     query_descriptors.data(),
-//                     num_eff_neighbors,
-//                     l2_dists.data(),
-//                     indices_long.data(),
-//                     &search_params);
+      index_->search(num_query_descriptors,
+                     query_descriptors.data(),
+                     num_eff_neighbors,
+                     l2_dists.data(),
+                     indices_long.data(),
+                     &search_params);
     }
 
     indices = indices_long.cast<int>();

@@ -113,7 +113,7 @@ write_JPEG_file (char * filename, int quality)
    */
   if ((outfile = fopen(filename, "wb")) == NULL) {
     fprintf(stderr, "can't open %s\n", filename);
-    exit(1);
+//    exit(1);
   }
   jpeg_stdio_dest(&cinfo, outfile);
 
@@ -376,7 +376,7 @@ read_JPEG_file (char * filename)
      */
     (void) jpeg_read_scanlines(&cinfo, buffer, 1);
     /* Assume put_scanline_someplace wants a pointer and sample count. */
-    put_scanline_someplace(buffer[0], row_stride);
+//    put_scanline_someplace(buffer[0], row_stride);
   }
 
   /* Step 7: Finish decompression */

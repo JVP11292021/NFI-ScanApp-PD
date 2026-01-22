@@ -10,20 +10,22 @@
 #include <faiss/utils/random.h>
 
 extern "C" {
+typedef long long integer;
+
 int sgemm_(
         const char* transa,
         const char* transb,
-        FINTEGER* m,
-        FINTEGER* n,
-        FINTEGER* k,
+        integer* m,
+        integer* n,
+        integer* k,
         const float* alpha,
         const float* a,
-        FINTEGER* lda,
+        integer* lda,
         const float* b,
-        FINTEGER* ldb,
+        integer* ldb,
         float* beta,
         float* c,
-        FINTEGER* ldc);
+        integer* ldc);
 }
 
 namespace faiss {
@@ -240,7 +242,7 @@ void rand_smooth_vectors(size_t n, size_t d, float* x, int64_t seed) {
     float_rand(rot.data(), rot.size(), seed + 1);
 
     { //
-        FINTEGER di = d, d1i = d1, ni = n;
+        integer di = d, d1i = d1, ni = n;
         float one = 1.0, zero = 0.0;
         sgemm_("Not transposed",
                "Not transposed", // natural order

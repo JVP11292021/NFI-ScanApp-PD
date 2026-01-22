@@ -135,7 +135,7 @@ set_property(CACHE CERES_THREADING_MODEL PROPERTY STRINGS
   ${CERES_THREADING_MODELS_AVAILABLE})
 
 option(MINIGLOG "Use a stripped down version of glog." OFF)
-option(GFLAGS "Enable Google Flags." ON)
+option(GFLAGS "Enable Google Flags." OFF)
 option(SUITESPARSE "Enable SuiteSparse." ON)
 option(CXSPARSE "Enable CXSparse." ON)
 if (APPLE)

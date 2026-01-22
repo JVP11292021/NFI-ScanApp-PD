@@ -11,6 +11,10 @@ if(ANDROID)
     add_definitions(-DANDROID)
 endif()
 
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fopenmp")
+
 add_definitions(
         -DVK_USE_PLATFORM_ANDROID_KHR #required
 )
@@ -60,6 +64,19 @@ add_library(poselib STATIC
         thirdparty/poselib/misc/re3q3.cc
         thirdparty/poselib/misc/colmap_models.cc
         thirdparty/poselib/misc/decompositions.cc
+)
+
+target_compile_options(poselib PRIVATE
+        -g0
+        -O0
+        -fno-strict-aliasing
+        -fno-vectorize
+        -fno-slp-vectorize
+)
+
+target_compile_definitions(poselib PRIVATE
+        EIGEN_DONT_VECTORIZE
+        EIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT
 )
 
 set_target_properties(poselib PROPERTIES
@@ -177,32 +194,76 @@ add_subdirectory(thirdparty/FreeImage)
 
 # -------------------- Android-FAISS (STATIC, EMBEDDED) --------------------
 
-if ((${ANDROID_ABI} STREQUAL "arm64-v8a") OR (${ANDROID_ABI} STREQUAL "x86_64"))
-    add_definitions(-D ANDROID_BIT32)
-else ()
-    add_definitions(-D ANDROID_BIT64)
-endif ()
+#set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -s -O3 -DSkip_f2c_Undefs -DNO_LONG_LONG -DNO_BLAS_WRAP")
+#set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -s -O3 -DSkip_f2c_Undefs -DNO_LONG_LONG -DNO_BLAS_WRAP")
 
-set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -s -O3 -DSkip_f2c_Undefs -DNO_LONG_LONG -DNO_BLAS_WRAP")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -s -O3 -DSkip_f2c_Undefs -DNO_LONG_LONG -DNO_BLAS_WRAP")
+if(ANDROID)
+    if((${ANDROID_ABI} STREQUAL "arm64-v8a") OR (${ANDROID_ABI} STREQUAL "x86_64"))
+        add_compile_definitions(ANDROID_BIT32)
+    else()
+        add_compile_definitions(ANDROID_BIT64)
+        error("No support for other build architectures than arm64-v8a and x86_64")
+    endif()
+endif()
 
-FILE(GLOB CLAPACK_FILES
-        thirdparty/clapack/SRC/*.c
-        thirdparty/clapack/SRC/*.cpp
-)
-FILE(GLOB FAISS_FILES
+file(GLOB FAISS_ROOT_SOURCES
         thirdparty/faiss/*.cpp
 )
 
-add_library(faiss SHARED
-        ${CLAPACK_FILES}
-        ${FAISS_FILES}
+file(GLOB FAISS_IMPL_SOURCES
+        thirdparty/faiss/impl/*.cpp
+        thirdparty/faiss/impl/code_distance/*.cpp
 )
 
-target_link_libraries(faiss PRIVATE
-        android
+file(GLOB FAISS_INVLISTS_SOURCES
+        thirdparty/faiss/invlists/*.cpp
 )
 
+file(GLOB FAISS_UTILS_SOURCES
+        thirdparty/faiss/utils/*.cpp
+        thirdparty/faiss/utils/distances_fused/*.cpp
+)
+
+set(FAISS_SOURCES
+        ${FAISS_ROOT_SOURCES}
+        ${FAISS_IMPL_SOURCES}
+        ${FAISS_INVLISTS_SOURCES}
+        ${FAISS_UTILS_SOURCES}
+)
+
+file(GLOB CLAPACK_SOURCES
+        thirdparty/clapack/SRC/*.c
+        thirdparty/clapack/SRC/*.cpp
+)
+list(APPEND FAISS_SOURCES ${CLAPACK_SOURCES})
+
+add_library(faiss SHARED ${FAISS_SOURCES})
+
+target_include_directories(faiss PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty
+)
+
+target_compile_definitions(faiss PRIVATE
+        FAISS_DISABLE_GPU
+        FAISS_DISABLE_PYTHON
+        FAISS_DISABLE_CUDA
+        FAISS_DISABLE_SSE
+        FAISS_DISABLE_AVX
+        FAISS_DISABLE_NEON
+        FAISS_DISABLE_FAST_SCAN
+)
+
+target_compile_options(faiss PRIVATE
+        -O2
+        -fno-strict-aliasing
+        -fno-vectorize
+        -fno-slp-vectorize
+        -fopenmp
+)
+
+set_target_properties(faiss PROPERTIES
+        POSITION_INDEPENDENT_CODE ON
+)
 # -------------------- minmap-core (STATIC, EMBEDDED) --------------------
 
 add_library(minmap-core STATIC
@@ -320,7 +381,7 @@ target_link_libraries(minmap-core PRIVATE
         vlfeat
         poselib
         ceres
-        freeimage
+        FreeImage
         faiss
 )
 
@@ -483,8 +544,7 @@ target_include_directories(renderEngine PUBLIC
 # -------------------- LINK EVERYTHING --------------------
 find_library(vulkan-lib vulkan)
 
-target_link_libraries(
-        renderEngine
+target_link_libraries(renderEngine PRIVATE
         engineBackend
         engineUtils
         engineSystem
@@ -495,7 +555,7 @@ target_link_libraries(
         poselib
         Eigen3
         ceres
-        freeimage
+        FreeImage
         android
         ${vulkan-lib}
         glm

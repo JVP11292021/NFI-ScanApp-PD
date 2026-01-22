@@ -26,6 +26,7 @@ struct IndexFlatCodes : Index {
     MaybeOwnedVector<uint8_t> codes;
 
     IndexFlatCodes();
+    virtual ~IndexFlatCodes() {}
 
     IndexFlatCodes(size_t code_size, idx_t d, MetricType metric = METRIC_L2);
 
