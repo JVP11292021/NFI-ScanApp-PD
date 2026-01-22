@@ -31,84 +31,47 @@ class SessionViewModel(
     application: Application,
     private val storage: ProjectStorage
 ) : AndroidViewModel(application) {
+
+    // --- 1. Core State & Navigation ---
     private val _activeOnderzoek = MutableStateFlow<Onderzoek?>(null)
     val activeOnderzoek: StateFlow<Onderzoek?> = _activeOnderzoek
 
-    val hasActiveOnderzoek: StateFlow<Boolean> =
-        _activeOnderzoek.map { it != null }
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.Eagerly,
-                initialValue = false
-            )
+    val hasActiveOnderzoek: StateFlow<Boolean> = _activeOnderzoek
+        .map { it != null }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    fun startOnderzoek(onderzoek: Onderzoek) {
-        _activeOnderzoek.value = onderzoek
-
-        storage.loadSnapshot(onderzoek)?.let { snapshot ->
-            infoVooraf.clear()
-            infoVooraf.addAll(snapshot.infoVooraf)
-
-            infoTerPlaatse.clear()
-            infoTerPlaatse.addAll(snapshot.infoTerPlaatse)
-
-            observations.clear()
-            observations.addAll(snapshot.observations)
-
-            hoofdthemas.clear()
-            hoofdthemas.addAll(snapshot.hoofdthemas)
-
-            markers.clear()
-            markers.addAll(snapshot.markers)
-
-            appData.clear()
-            appData.putAll(snapshot.appData)
-
-            roomModel = snapshot.roomModel
-        }
-    }
-
-
-    fun closeOnderzoek() {
-        _activeOnderzoek.value = null
-    }
-    
-    val pageCompletion = mutableStateMapOf<AssessmentPage, Boolean>().apply {
-        AssessmentPage.all.forEach { page ->
-            this[page] = false
-        }
-    }
-
-    val markers = mutableStateListOf<Marker>()
-    val appData = mutableStateMapOf<String, String>()
-    var roomModel: RoomModel? by mutableStateOf(null)
     var currentAssessmentPage by mutableStateOf<AssessmentPage>(AssessmentPage.Info)
         private set
 
-    // Image handler functionality
-    fun onPhotoCaptured(uri: Uri) {
-        // TODO: Forward to ExportManager
-        println("Captured photo: $uri")
+    val pageCompletion = mutableStateMapOf<AssessmentPage, Boolean>().apply {
+        AssessmentPage.all.forEach { this[it] = false }
     }
 
-    fun createImageFile(): File {
-        val onderzoek = _activeOnderzoek.value
-            ?: error("No active onderzoek")
-
-        val imageDir = storage.getImageDir(onderzoek)
-
-        if (!imageDir.exists()) {
-            imageDir.mkdirs()
-        }
-
-        val fileName = "IMG_${UUID.randomUUID()}.jpg"
-        return File(imageDir, fileName)
-    }
-
-    // Info page functionality
+    // --- 2. Data State (Snapshotted) ---
     val infoVooraf = mutableStateListOf<String>()
     val infoTerPlaatse = mutableStateListOf<String>()
+    val observations = mutableStateListOf<Observation>()
+    val hoofdthemas = mutableStateListOf<Hoofdthema>()
+    val markers = mutableStateListOf<Marker>()
+    val appData = mutableStateMapOf<String, String>()
+    var roomModel: RoomModel? by mutableStateOf(null)
 
+    // --- 3. Lifecycle & Session Management ---
+    fun startOnderzoek(onderzoek: Onderzoek) {
+        _activeOnderzoek.value = onderzoek
+        loadExistingSnapshot(onderzoek)
+    }
+
+    fun closeOnderzoek() {
+        _activeOnderzoek.value = null
+        // Optional: clear state here if you don't want it persisting in memory after close
+    }
+
+    fun setAssessmentPage(page: AssessmentPage) {
+        currentAssessmentPage = page
+    }
+
+    // --- 4. Feature: Info Page ---
     fun addInfoVooraf(text: String) {
         infoVooraf.add(text)
         autoSave()
@@ -133,18 +96,8 @@ class SessionViewModel(
         }
     }
 
-    fun setAssessmentPage(page: AssessmentPage) {
-        currentAssessmentPage = page
-    }
-
-    // Observation page functionality
-    val observations = mutableStateListOf<Observation>()
-
-    fun addObservation(
-        beschrijving: String,
-        locatie: String,
-        notities: String
-    ) {
+    // --- 5. Feature: Observations ---
+    fun addObservation(beschrijving: String, locatie: String, notities: String) {
         observations += Observation(
             createdAt = Instant.now(),
             beschrijving = beschrijving,
@@ -159,9 +112,17 @@ class SessionViewModel(
         autoSave()
     }
 
-    // Theme page functionality
-    val hoofdthemas = mutableStateListOf<Hoofdthema>()
+    fun toggleBookmark(id: String) {
+        val index = observations.indexOfFirst { it.id == id }
+        if (index != -1) {
+            observations[index] = observations[index].copy(
+                isBookmarked = !observations[index].isBookmarked
+            )
+        }
+        autoSave()
+    }
 
+    // --- 6. Feature: Themes (Hoofdthemas) ---
     fun addHoofdthema(thema: Hoofdthema) {
         hoofdthemas.add(thema)
         autoSave()
@@ -182,18 +143,21 @@ class SessionViewModel(
 
     fun relevantCount(): Int = hoofdthemas.count { it.relevant }
 
-    // Completion checkbox functionality
-    fun toggleBookmark(id: String) {
-        val index = observations.indexOfFirst { it.id == id }
-        if (index != -1) {
-            observations[index] =
-                observations[index].copy(
-                    isBookmarked = !observations[index].isBookmarked
-                )
-        }
-        autoSave()
+    // --- 7. Feature: Media & Files ---
+    fun createImageFile(): File {
+        val onderzoek = _activeOnderzoek.value ?: error("No active onderzoek")
+        val imageDir = storage.getImageDir(onderzoek)
+        if (!imageDir.exists()) imageDir.mkdirs()
+
+        return File(imageDir, "IMG_${UUID.randomUUID()}.jpg")
     }
 
+    fun onPhotoCaptured(uri: Uri) {
+        println("Captured photo: $uri")
+        // TODO: Forward to ExportManager
+    }
+
+    // --- 8. Persistence & Export Logic ---
     fun togglePageCompletion(page: AssessmentPage, completed: Boolean) {
         pageCompletion[page] = completed
         autoSave()
@@ -206,19 +170,29 @@ class SessionViewModel(
             .all { it }
     }
 
-    // Export functionality
-    fun buildExport(): ExportData {
-        return ExportData(
-            roomModel = roomModel,
-            markers = markers.toList(),
-            appData = appData.toMap()
-        )
+    private fun loadExistingSnapshot(onderzoek: Onderzoek) {
+        storage.loadSnapshot(onderzoek)?.let { snapshot ->
+            infoVooraf.apply { clear(); addAll(snapshot.infoVooraf) }
+            infoTerPlaatse.apply { clear(); addAll(snapshot.infoTerPlaatse) }
+            observations.apply { clear(); addAll(snapshot.observations) }
+            hoofdthemas.apply { clear(); addAll(snapshot.hoofdthemas) }
+            markers.apply { clear(); addAll(snapshot.markers) }
+            appData.apply { clear(); putAll(snapshot.appData) }
+            roomModel = snapshot.roomModel
+        }
     }
 
-    private fun buildSnapshot(): ProjectSnapshot {
-        val onderzoek = _activeOnderzoek.value
-            ?: error("No active onderzoek")
+    private fun autoSave() {
+        _activeOnderzoek.value?.let { onderzoek ->
+            try {
+                storage.saveSnapshot(buildSnapshot(onderzoek))
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
 
+    private fun buildSnapshot(onderzoek: Onderzoek): ProjectSnapshot {
         return ProjectSnapshot(
             onderzoek = onderzoek,
             infoVooraf = infoVooraf.toList(),
@@ -231,14 +205,11 @@ class SessionViewModel(
         )
     }
 
-    private fun autoSave() {
-        val onderzoek = _activeOnderzoek.value
-        if (onderzoek != null) {
-            try {
-                storage.saveSnapshot(buildSnapshot())
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
+    fun buildExport(): ExportData {
+        return ExportData(
+            roomModel = roomModel,
+            markers = markers.toList(),
+            appData = appData.toMap()
+        )
     }
 }
