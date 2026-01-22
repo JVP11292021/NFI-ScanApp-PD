@@ -390,97 +390,97 @@ project "GSplats"
 		optimize "on"
 		runtime "Release"
 
-project "SfM"
-	location "SfM"
-	kind "staticlib"
-	language "C++"
-	cppdialect "C++17"
-	staticruntime "on"
+-- project "SfM"
+-- 	location "SfM"
+-- 	kind "staticlib"
+-- 	language "C++"
+-- 	cppdialect "C++17"
+-- 	staticruntime "on"
 
-	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+-- 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+-- 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 
-	files {
-		"%{prj.name}/**.h",
-		"%{prj.name}/**.hpp",
-		"%{prj.name}/**.inl",
-		"%{prj.name}/**.cpp",
-	}
+-- 	files {
+-- 		"%{prj.name}/**.h",
+-- 		"%{prj.name}/**.hpp",
+-- 		"%{prj.name}/**.inl",
+-- 		"%{prj.name}/**.cpp",
+-- 	}
 
-	includedirs {
-		"Libraries/include",
-		"Engine/Engine/EngineBackend",
-		"Engine/Engine/EngineUtils",
-		"Engine/Engine/Systems",
-	}
+-- 	includedirs {
+-- 		"Libraries/include",
+-- 		"Engine/Engine/EngineBackend",
+-- 		"Engine/Engine/EngineUtils",
+-- 		"Engine/Engine/Systems",
+-- 	}
 
-	libdirs {
-		"Libraries/lib",
-	}
+-- 	libdirs {
+-- 		"Libraries/lib",
+-- 	}
 
-	links {
-		"EngineBackend",
-		"EngineUtils",
-		"EngineSystems",
-		"colmap_controllers.lib",
-        "colmap_util.lib",
-        "colmap_feature.lib",
-        "colmap_feature_types.lib",
-        "colmap_sfm.lib",
-		"colmap_sensor.lib",
-		"colmap_math.lib",
-		"colmap_optim.lib",
-		"colmap_mvs.lib",
-		"colmap_image.lib",
-		"colmap_retrieval.lib",
-		"colmap_vlfeat.lib",
-        "ceres.lib",
-        "glog.lib",
-	}
+-- 	links {
+-- 		"EngineBackend",
+-- 		"EngineUtils",
+-- 		"EngineSystems",
+-- 		"colmap_controllers.lib",
+--         "colmap_util.lib",
+--         "colmap_feature.lib",
+--         "colmap_feature_types.lib",
+--         "colmap_sfm.lib",
+-- 		"colmap_sensor.lib",
+-- 		"colmap_math.lib",
+-- 		"colmap_optim.lib",
+-- 		"colmap_mvs.lib",
+-- 		"colmap_image.lib",
+-- 		"colmap_retrieval.lib",
+-- 		"colmap_vlfeat.lib",
+--         "ceres.lib",
+--         "glog.lib",
+-- 	}
 
-	dependson { 
-		"EngineBackend", 
-		"EngineUtils",
-		"EngineSystems"
-	}
+-- 	dependson { 
+-- 		"EngineBackend", 
+-- 		"EngineUtils",
+-- 		"EngineSystems"
+-- 	}
 
-	if vulkan_sdk ~= nil then
-        includedirs {
-            vulkan_sdk .. "/Include"
-        }
+-- 	if vulkan_sdk ~= nil then
+--         includedirs {
+--             vulkan_sdk .. "/Include"
+--         }
 
-        libdirs {
-            vulkan_sdk .. "/Lib"
-        }
+--         libdirs {
+--             vulkan_sdk .. "/Lib"
+--         }
 
-        links {
-            "vulkan-1.lib"
-        }
+--         links {
+--             "vulkan-1.lib"
+--         }
 
-        defines {
-            "USE_VULKAN"
-        }
-    end
+--         defines {
+--             "USE_VULKAN"
+--         }
+--     end
 
-	filter "system:windows"
-		systemversion "latest"
-		defines { "_CRT_SECURE_NO_WARNINGS", "GLOG_NO_ABBREVIATED_SEVERITIES" }
-		buildoptions { "/permissive-" }  -- <-- important
+-- 	filter "system:windows"
+-- 		systemversion "latest"
+-- 		defines { "_CRT_SECURE_NO_WARNINGS", "GLOG_NO_ABBREVIATED_SEVERITIES" }
+-- 		buildoptions { "/permissive-" }  -- <-- important
 
-	filter "configurations:Debug"
-		defines "APP_DEBUG"
-		symbols "on"
-		runtime "Debug"
+-- 	filter "configurations:Debug"
+-- 		defines "APP_DEBUG"
+-- 		symbols "on"
+-- 		runtime "Debug"
 
-	filter "configurations:Release"
-		defines "APP_RELEASE"
-		optimize "on"
-		runtime "Release"
+-- 	filter "configurations:Release"
+-- 		defines "APP_RELEASE"
+-- 		optimize "on"
+-- 		runtime "Release"
 
-	filter "configurations:Dist"
-		defines "APP_DIST"
-		optimize "on"
-		runtime "Release"
+-- 	filter "configurations:Dist"
+-- 		defines "APP_DIST"
+-- 		optimize "on"
+-- 		runtime "Release"
 
 project "TestApp"
 	location "TestApp"
@@ -505,8 +505,8 @@ project "TestApp"
 		"Engine/Engine/EngineUtils",
 		"Engine/Engine/Systems",
 		"RayTracing",
-		"GSplats",
-		"SfM"
+		-- "GSplats",
+		-- "SfM"
 	}
 
 	libdirs {
@@ -518,9 +518,9 @@ project "TestApp"
 		"EngineUtils",
 		"EngineSystems",
 		"RayTracing",
-		"GSplats",
-		"SfM",
-		"opencv_world4120d.lib",
+		-- "GSplats",
+		-- "SfM",
+		-- "opencv_world4120d.lib",
 	}
 
 	dependson { 
@@ -528,7 +528,7 @@ project "TestApp"
 		"EngineUtils",
 		"EngineSystems",
 		"RayTracing",
-		"GSplats",
+		-- "GSplats",
 	}
 
 	debugenvs {
