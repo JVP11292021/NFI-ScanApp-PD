@@ -4,16 +4,14 @@ import java.io.File
 import java.util.UUID
 import android.app.Application
 import android.net.Uri
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.ipmedth_nfi.data.persistence.ProjectSnapshot
 import com.example.ipmedth_nfi.model.ExportData
 import com.example.ipmedth_nfi.model.Hoofdthema
 import com.example.ipmedth_nfi.model.Marker
@@ -45,13 +43,36 @@ class SessionViewModel(
             )
 
     fun startOnderzoek(onderzoek: Onderzoek) {
-        storage.createProject(onderzoek)
         _activeOnderzoek.value = onderzoek
+
+        storage.loadSnapshot(onderzoek)?.let { snapshot ->
+            infoVooraf.clear()
+            infoVooraf.addAll(snapshot.infoVooraf)
+
+            infoTerPlaatse.clear()
+            infoTerPlaatse.addAll(snapshot.infoTerPlaatse)
+
+            observations.clear()
+            observations.addAll(snapshot.observations)
+
+            hoofdthemas.clear()
+            hoofdthemas.addAll(snapshot.hoofdthemas)
+
+            markers.clear()
+            markers.addAll(snapshot.markers)
+
+            appData.clear()
+            appData.putAll(snapshot.appData)
+
+            roomModel = snapshot.roomModel
+        }
     }
+
 
     fun closeOnderzoek() {
         _activeOnderzoek.value = null
     }
+    
     val pageCompletion = mutableStateMapOf<AssessmentPage, Boolean>().apply {
         AssessmentPage.all.forEach { page ->
             this[page] = false
@@ -88,6 +109,30 @@ class SessionViewModel(
     val infoVooraf = mutableStateListOf<String>()
     val infoTerPlaatse = mutableStateListOf<String>()
 
+    fun addInfoVooraf(text: String) {
+        infoVooraf.add(text)
+        autoSave()
+    }
+
+    fun removeInfoVooraf(index: Int) {
+        if (index in infoVooraf.indices) {
+            infoVooraf.removeAt(index)
+            autoSave()
+        }
+    }
+
+    fun addInfoTerPlaatse(text: String) {
+        infoTerPlaatse.add(text)
+        autoSave()
+    }
+
+    fun removeInfoTerPlaatse(index: Int) {
+        if (index in infoTerPlaatse.indices) {
+            infoTerPlaatse.removeAt(index)
+            autoSave()
+        }
+    }
+
     fun setAssessmentPage(page: AssessmentPage) {
         currentAssessmentPage = page
     }
@@ -95,7 +140,6 @@ class SessionViewModel(
     // Observation page functionality
     val observations = mutableStateListOf<Observation>()
 
-    @RequiresApi(Build.VERSION_CODES.O)
     fun addObservation(
         beschrijving: String,
         locatie: String,
@@ -107,10 +151,12 @@ class SessionViewModel(
             locatie = locatie,
             notities = notities
         )
+        autoSave()
     }
 
     fun deleteObservation(id: String) {
         observations.removeAll { it.id == id }
+        autoSave()
     }
 
     // Theme page functionality
@@ -118,16 +164,19 @@ class SessionViewModel(
 
     fun addHoofdthema(thema: Hoofdthema) {
         hoofdthemas.add(thema)
+        autoSave()
     }
 
     fun deleteHoofdthema(id: String) {
         hoofdthemas.removeAll { it.id == id }
+        autoSave()
     }
 
     fun updateHoofdthema(updatedThema: Hoofdthema) {
         val index = hoofdthemas.indexOfFirst { it.id == updatedThema.id }
         if (index != -1) {
             hoofdthemas[index] = updatedThema
+            autoSave()
         }
     }
 
@@ -142,6 +191,12 @@ class SessionViewModel(
                     isBookmarked = !observations[index].isBookmarked
                 )
         }
+        autoSave()
+    }
+
+    fun togglePageCompletion(page: AssessmentPage, completed: Boolean) {
+        pageCompletion[page] = completed
+        autoSave()
     }
 
     fun canCompleteFinish(): Boolean {
@@ -158,5 +213,32 @@ class SessionViewModel(
             markers = markers.toList(),
             appData = appData.toMap()
         )
+    }
+
+    private fun buildSnapshot(): ProjectSnapshot {
+        val onderzoek = _activeOnderzoek.value
+            ?: error("No active onderzoek")
+
+        return ProjectSnapshot(
+            onderzoek = onderzoek,
+            infoVooraf = infoVooraf.toList(),
+            infoTerPlaatse = infoTerPlaatse.toList(),
+            observations = observations.toList(),
+            hoofdthemas = hoofdthemas.toList(),
+            markers = markers.toList(),
+            appData = appData.toMap(),
+            roomModel = roomModel
+        )
+    }
+
+    private fun autoSave() {
+        val onderzoek = _activeOnderzoek.value
+        if (onderzoek != null) {
+            try {
+                storage.saveSnapshot(buildSnapshot())
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 }

@@ -6,7 +6,6 @@ import com.example.ipmedth_nfi.model.Onderzoek
 import com.example.ipmedth_nfi.model.ProjectStorage
 import androidx.compose.runtime.State
 
-
 class AppViewModel(
     private val storage: ProjectStorage
 ) : ViewModel() {
@@ -31,9 +30,5 @@ class AppViewModel(
         if (storage.deleteProject(onderzoek)) {
             refreshOnderzoeken()
         }
-    }
-
-    fun loadOnderzoek(onderzoek: Onderzoek) {
-        // optional: set active project here if needed
     }
 }

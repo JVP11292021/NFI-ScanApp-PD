@@ -1,6 +1,7 @@
 package com.example.ipmedth_nfi.data.export
 
 import android.content.Context
+import com.example.ipmedth_nfi.data.persistence.ProjectSnapshot
 import com.example.ipmedth_nfi.model.Onderzoek
 import com.example.ipmedth_nfi.model.ProjectStorage
 import kotlinx.serialization.json.Json
@@ -49,4 +50,29 @@ class ProjectStorageManager(
         val dir = getProjectDir(onderzoek)
         return dir.exists() && dir.deleteRecursively()
     }
+
+    override fun saveSnapshot(snapshot: ProjectSnapshot) {
+        val file = File(
+            getProjectDir(snapshot.onderzoek),
+            "project_state.json"
+        )
+
+        file.writeText(
+            Json.encodeToString(snapshot)
+        )
+    }
+
+    override fun loadSnapshot(onderzoek: Onderzoek): ProjectSnapshot? {
+        val file = File(
+            getProjectDir(onderzoek),
+            "project_state.json"
+        )
+
+        if (!file.exists()) return null
+
+        return runCatching {
+            Json.decodeFromString<ProjectSnapshot>(file.readText())
+        }.getOrNull()
+    }
+
 }

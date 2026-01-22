@@ -82,7 +82,6 @@ fun StartScreen(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 TextButton(onClick = {
-                    appViewModel.loadOnderzoek(onderzoek)
                     onProjectStarted(onderzoek)
                 }) {
                     Text("${onderzoek.zaaknummer} – ${onderzoek.onderzoeksnaam}")

@@ -1,9 +1,5 @@
 package com.example.ipmedth_nfi.pages.scan
 
-import android.content.ContentValues
-import android.content.Context
-import android.os.Build
-import android.provider.MediaStore
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
@@ -29,8 +25,6 @@ import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.ipmedth_nfi.viewmodel.SessionViewModel
-import java.text.SimpleDateFormat
-import java.util.Locale
 
 @Composable
 fun ScanCameraContent(
