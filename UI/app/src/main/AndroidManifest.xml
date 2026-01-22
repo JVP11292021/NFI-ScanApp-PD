@@ -3,7 +3,6 @@
     xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.CAMERA"/>
 
-    // check vulkan bullshit
     <uses-feature
         android:name="android.hardware.vulkan.level"
         android:required="true" />
