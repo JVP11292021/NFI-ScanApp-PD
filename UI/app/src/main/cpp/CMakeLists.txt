@@ -11,9 +11,9 @@ if(ANDROID)
     add_definitions(-DANDROID)
 endif()
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fopenmp")
+#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+#set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fopenmp")
 
 add_definitions(
         -DVK_USE_PLATFORM_ANDROID_KHR #required
@@ -192,7 +192,6 @@ target_compile_definitions(ceres PRIVATE
         CERES_NO_SUITESPARSE
         CERES_NO_CXSPARSE
         CERES_NO_CUDA
-        CERES_USE_OPENMP
         CERES_USE_EIGEN_SPARSE
         CERES_NO_ACCELERATE_SPARSE
         # Since we are skipping the config.h generation, define the threading model
@@ -280,7 +279,7 @@ target_compile_options(faiss PRIVATE
         -fno-strict-aliasing
         -fno-vectorize
         -fno-slp-vectorize
-        -fopenmp
+#        -fopenmp
 )
 
 set_target_properties(faiss PROPERTIES
@@ -558,9 +557,9 @@ add_library(renderEngine SHARED
         Engine_bridge.cpp
 )
 
-if(ANDROID)
-    target_link_libraries(renderEngine PRIVATE omp)
-endif()
+#if(ANDROID)
+#    target_link_libraries(renderEngine PRIVATE omp)
+#endif()
 
 target_include_directories(renderEngine PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty
