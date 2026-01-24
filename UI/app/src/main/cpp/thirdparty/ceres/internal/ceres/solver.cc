@@ -52,6 +52,7 @@
 #include "ceres/stringprintf.h"
 #include "ceres/types.h"
 #include "ceres/wall_time.h"
+#include "glog/logging.h"
 
 namespace ceres {
 namespace {
@@ -432,7 +433,7 @@ void Minimize(internal::PreprocessedProblem* pp, Solver::Summary* summary) {
         "No non-constant parameter blocks found.";
     summary->termination_type = CONVERGENCE;
     if (pp->options.logging_type != SILENT) {
-      VLOG(1) << summary->message;
+//      VLOG(1) << summary->message;
     }
     summary->initial_cost = summary->fixed_cost;
     summary->final_cost = summary->fixed_cost;

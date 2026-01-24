@@ -143,7 +143,6 @@ int IndependentSetOrdering(const Graph<Vertex>& graph,
   // ordering. At this stage there should only be black or grey
   // vertices in the graph.
   for (const Vertex& vertex : vertex_queue) {
-    DCHECK(vertex_color[vertex] != kWhite);
     if (vertex_color[vertex] != kBlack) {
       ordering->push_back(vertex);
     }
@@ -212,7 +211,6 @@ int StableIndependentSetOrdering(const Graph<Vertex>& graph,
   // ordering. At this stage there should only be black or grey
   // vertices in the graph.
   for (const Vertex& vertex : vertex_queue) {
-    DCHECK(vertex_color[vertex] != kWhite);
     if (vertex_color[vertex] != kBlack) {
       ordering->push_back(vertex);
     }
@@ -232,7 +230,6 @@ template <typename Vertex>
 Vertex FindConnectedComponent(const Vertex& vertex,
                               std::unordered_map<Vertex, Vertex>* union_find) {
   auto it = union_find->find(vertex);
-  DCHECK(it != union_find->end());
   if (it->second != vertex) {
     it->second = FindConnectedComponent(it->second, union_find);
   }

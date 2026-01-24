@@ -41,7 +41,7 @@
 #include "ceres/sparse_matrix.h"
 #include "ceres/trust_region_strategy.h"
 #include "ceres/types.h"
-#include "glog/logging.h"
+#include "ceres/android_log.h"
 
 namespace ceres {
 namespace internal {
@@ -55,10 +55,7 @@ LevenbergMarquardtStrategy::LevenbergMarquardtStrategy(
       max_diagonal_(options.max_lm_diagonal),
       decrease_factor_(2.0),
       reuse_diagonal_(false) {
-  CHECK(linear_solver_ != nullptr);
-  CHECK_GT(min_diagonal_, 0.0);
-  CHECK_LE(min_diagonal_, max_diagonal_);
-  CHECK_GT(max_radius_, 0.0);
+
 }
 
 LevenbergMarquardtStrategy::~LevenbergMarquardtStrategy() = default;
@@ -68,9 +65,6 @@ TrustRegionStrategy::Summary LevenbergMarquardtStrategy::ComputeStep(
     SparseMatrix* jacobian,
     const double* residuals,
     double* step) {
-  CHECK(jacobian != nullptr);
-  CHECK(residuals != nullptr);
-  CHECK(step != nullptr);
 
   const int num_parameters = jacobian->num_cols();
   if (!reuse_diagonal_) {
@@ -109,13 +103,13 @@ TrustRegionStrategy::Summary LevenbergMarquardtStrategy::ComputeStep(
       linear_solver_->Solve(jacobian, residuals, solve_options, step);
 
   if (linear_solver_summary.termination_type == LINEAR_SOLVER_FATAL_ERROR) {
-    LOG(WARNING) << "Linear solver fatal error: "
-                 << linear_solver_summary.message;
+//    LOGD(WARNING) << "Linear solver fatal error: "
+//                 << linear_solver_summary.message;
   } else if (linear_solver_summary.termination_type == LINEAR_SOLVER_FAILURE) {
-    LOG(WARNING) << "Linear solver failure. Failed to compute a step: "
-                 << linear_solver_summary.message;
+//    LOG(WARNING) << "Linear solver failure. Failed to compute a step: "
+//                 << linear_solver_summary.message;
   } else if (!IsArrayValid(num_parameters, step)) {
-    LOG(WARNING) << "Linear solver failure. Failed to compute a finite step.";
+//    LOG(WARNING) << "Linear solver failure. Failed to compute a finite step.";
     linear_solver_summary.termination_type = LINEAR_SOLVER_FAILURE;
   } else {
     VectorRef(step, num_parameters) *= -1.0;
@@ -132,8 +126,7 @@ TrustRegionStrategy::Summary LevenbergMarquardtStrategy::ComputeStep(
                                        residuals,
                                        step,
                                        0)) {
-      LOG(ERROR) << "Unable to dump trust region problem."
-                 << " Filename base: " << per_solve_options.dump_filename_base;
+      LOGE("Unable to dump trust region problem.");
     }
   }
 
@@ -145,7 +138,7 @@ TrustRegionStrategy::Summary LevenbergMarquardtStrategy::ComputeStep(
 }
 
 void LevenbergMarquardtStrategy::StepAccepted(double step_quality) {
-  CHECK_GT(step_quality, 0.0);
+//  CHECK_GT(step_quality, 0.0);
   radius_ =
       radius_ / std::max(1.0 / 3.0, 1.0 - pow(2.0 * step_quality - 1.0, 3));
   radius_ = std::min(max_radius_, radius_);

@@ -53,7 +53,7 @@ std::unique_ptr<Preprocessor> Preprocessor::Create(
     return std::make_unique<LineSearchPreprocessor>();
   }
 
-  LOG(FATAL) << "Unknown minimizer_type: " << minimizer_type;
+//  LOG(FATAL) << "Unknown minimizer_type: " << minimizer_type;
   return nullptr;
 }
 
@@ -65,10 +65,10 @@ void ChangeNumThreadsIfNeeded(Solver::Options* options) {
   }
   const int num_threads_available = MaxNumThreadsAvailable();
   if (options->num_threads > num_threads_available) {
-    LOG(WARNING) << "Specified options.num_threads: " << options->num_threads
-                 << " exceeds maximum available from the threading model Ceres "
-                 << "was compiled with: " << num_threads_available
-                 << ".  Bounding to maximum number available.";
+//    LOG(WARNING) << "Specified options.num_threads: " << options->num_threads
+//                 << " exceeds maximum available from the threading model Ceres "
+//                 << "was compiled with: " << num_threads_available
+//                 << ".  Bounding to maximum number available.";
     options->num_threads = num_threads_available;
   }
 }

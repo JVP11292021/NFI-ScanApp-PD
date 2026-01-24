@@ -50,7 +50,7 @@
 #include "ceres/residual_block.h"
 #include "ceres/stringprintf.h"
 #include "ceres/types.h"
-#include "glog/logging.h"
+#include "ceres/android_log.h"
 
 namespace ceres {
 namespace internal {
@@ -75,7 +75,7 @@ class GradientCheckingCostFunction final : public CostFunction {
         relative_precision_(relative_precision),
         extra_info_(std::move(extra_info)),
         callback_(callback) {
-    CHECK(callback_ != nullptr);
+//    CHECK(callback_ != nullptr);
     const vector<int32_t>& parameter_block_sizes =
         function->parameter_block_sizes();
     *mutable_parameter_block_sizes() = parameter_block_sizes;
@@ -139,7 +139,7 @@ GradientCheckingIterationCallback::GradientCheckingIterationCallback()
 CallbackReturnType GradientCheckingIterationCallback::operator()(
     const IterationSummary& summary) {
   if (gradient_error_detected_) {
-    LOG(ERROR) << "Gradient error detected. Terminating solver.";
+    LOGE("Gradient error detected. Terminating solver.");
     return SOLVER_ABORT;
   }
   return SOLVER_CONTINUE;
@@ -175,7 +175,7 @@ std::unique_ptr<ProblemImpl> CreateGradientCheckingProblemImpl(
     double relative_step_size,
     double relative_precision,
     GradientCheckingIterationCallback* callback) {
-  CHECK(callback != nullptr);
+//  CHECK(callback != nullptr);
   // We create new CostFunctions by wrapping the original CostFunction in a
   // gradient checking CostFunction. So its okay for the ProblemImpl to take
   // ownership of it and destroy it. The LossFunctions and Manifolds are reused

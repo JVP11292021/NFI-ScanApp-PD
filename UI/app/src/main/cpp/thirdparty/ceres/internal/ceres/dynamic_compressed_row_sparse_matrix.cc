@@ -45,10 +45,10 @@ DynamicCompressedRowSparseMatrix::DynamicCompressedRowSparseMatrix(
 void DynamicCompressedRowSparseMatrix::InsertEntry(int row,
                                                    int col,
                                                    const double& value) {
-  CHECK_GE(row, 0);
-  CHECK_LT(row, num_rows());
-  CHECK_GE(col, 0);
-  CHECK_LT(col, num_cols());
+//  CHECK_GE(row, 0);
+//  CHECK_LT(row, num_rows());
+//  CHECK_GE(col, 0);
+//  CHECK_LT(col, num_cols());
   dynamic_cols_[row].push_back(col);
   dynamic_values_[row].push_back(value);
 }
@@ -56,8 +56,8 @@ void DynamicCompressedRowSparseMatrix::InsertEntry(int row,
 void DynamicCompressedRowSparseMatrix::ClearRows(int row_start, int num_rows) {
   for (int r = 0; r < num_rows; ++r) {
     const int i = row_start + r;
-    CHECK_GE(i, 0);
-    CHECK_LT(i, this->num_rows());
+//    CHECK_GE(i, 0);
+//    CHECK_LT(i, this->num_rows());
     dynamic_cols_[i].resize(0);
     dynamic_values_[i].resize(0);
   }
@@ -66,7 +66,7 @@ void DynamicCompressedRowSparseMatrix::ClearRows(int row_start, int num_rows) {
 void DynamicCompressedRowSparseMatrix::Finalize(int num_additional_elements) {
   // `num_additional_elements` is provided as an argument so that additional
   // storage can be reserved when it is known by the finalizer.
-  CHECK_GE(num_additional_elements, 0);
+//  CHECK_GE(num_additional_elements, 0);
 
   // Count the number of non-zeros and resize `cols_` and `values_`.
   int num_jacobian_nonzeros = 0;
@@ -94,9 +94,9 @@ void DynamicCompressedRowSparseMatrix::Finalize(int num_additional_elements) {
   }
   mutable_rows()[num_rows()] = index_into_values_and_cols;
 
-  CHECK_EQ(index_into_values_and_cols, num_jacobian_nonzeros)
-      << "Ceres bug: final index into values_ and cols_ should be equal to "
-      << "the number of jacobian nonzeros. Please contact the developers!";
+//  CHECK_EQ(index_into_values_and_cols, num_jacobian_nonzeros)
+//      << "Ceres bug: final index into values_ and cols_ should be equal to "
+//      << "the number of jacobian nonzeros. Please contact the developers!";
 }
 
 }  // namespace internal

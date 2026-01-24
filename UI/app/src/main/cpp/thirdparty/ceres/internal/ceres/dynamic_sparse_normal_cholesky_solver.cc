@@ -94,10 +94,10 @@ LinearSolver::Summary DynamicSparseNormalCholeskySolver::SolveImpl(
       summary = SolveImplUsingEigen(A, x);
       break;
     default:
-      LOG(FATAL) << "Unsupported sparse linear algebra library for "
-                 << "dynamic sparsity: "
-                 << SparseLinearAlgebraLibraryTypeToString(
-                        options_.sparse_linear_algebra_library_type);
+//      LOG(FATAL) << "Unsupported sparse linear algebra library for "
+//                 << "dynamic sparsity: "
+//                 << SparseLinearAlgebraLibraryTypeToString(
+//                        options_.sparse_linear_algebra_library_type);
   }
 
   if (per_solve_options.D != nullptr) {
@@ -142,11 +142,11 @@ LinearSolver::Summary DynamicSparseNormalCholeskySolver::SolveImplUsingEigen(
   summary.message = "Success.";
 
   solver.analyzePattern(lhs);
-  if (VLOG_IS_ON(2)) {
-    std::stringstream ss;
-    solver.dumpMemory(ss);
-    VLOG(2) << "Symbolic Analysis\n" << ss.str();
-  }
+//  if (VLOG_IS_ON(2)) {
+//    std::stringstream ss;
+//    solver.dumpMemory(ss);
+//    VLOG(2) << "Symbolic Analysis\n" << ss.str();
+//  }
 
   event_logger.AddEvent("Analyze");
   if (solver.info() != Eigen::Success) {

@@ -50,12 +50,12 @@ std::unique_ptr<TrustRegionStrategy> TrustRegionStrategy::Create(
     case DOGLEG:
       return std::make_unique<DoglegStrategy>(options);
     default:
-      LOG(FATAL) << "Unknown trust region strategy: "
-                 << options.trust_region_strategy_type;
+//      LOG(FATAL) << "Unknown trust region strategy: "
+//                 << options.trust_region_strategy_type;
   }
 
-  LOG(FATAL) << "Unknown trust region strategy: "
-             << options.trust_region_strategy_type;
+//  LOG(FATAL) << "Unknown trust region strategy: "
+//             << options.trust_region_strategy_type;
   return nullptr;
 }
 

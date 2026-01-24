@@ -39,6 +39,7 @@
 #include "ceres/float_suitesparse.h"
 #include "ceres/iterative_refiner.h"
 #include "ceres/suitesparse.h"
+#include "ceres/android_log.h"
 
 namespace ceres {
 namespace internal {
@@ -58,7 +59,7 @@ std::unique_ptr<SparseCholesky> SparseCholesky::Create(
       }
       break;
 #else
-      LOG(FATAL) << "Ceres was compiled without support for SuiteSparse.";
+      LOGE("Ceres was compiled without support for SuiteSparse.");
 #endif
 
     case EIGEN_SPARSE:
@@ -70,8 +71,8 @@ std::unique_ptr<SparseCholesky> SparseCholesky::Create(
       }
       break;
 #else
-      LOG(FATAL) << "Ceres was compiled without support for "
-                 << "Eigen's sparse Cholesky factorization routines.";
+      LOGE("Ceres was compiled without support for "
+           "Eigen's sparse Cholesky factorization routines.");
 #endif
 
     case CX_SPARSE:
@@ -83,7 +84,7 @@ std::unique_ptr<SparseCholesky> SparseCholesky::Create(
       }
       break;
 #else
-      LOG(FATAL) << "Ceres was compiled without support for CXSparse.";
+      LOGE("Ceres was compiled without support for CXSparse.");
 #endif
 
     case ACCELERATE_SPARSE:
@@ -96,14 +97,11 @@ std::unique_ptr<SparseCholesky> SparseCholesky::Create(
       }
       break;
 #else
-      LOG(FATAL) << "Ceres was compiled without support for Apple's Accelerate "
-                 << "framework solvers.";
+      LOGE("Ceres was compiled without support for Apple's Accelerate framework solvers.");
 #endif
 
     default:
-      LOG(FATAL) << "Unknown sparse linear algebra library type : "
-                 << SparseLinearAlgebraLibraryTypeToString(
-                        options.sparse_linear_algebra_library_type);
+      LOGE("Unknown sparse linear algebra library type : %s", SparseLinearAlgebraLibraryTypeToString(options.sparse_linear_algebra_library_type));
   }
 
   if (options.max_num_refinement_iterations > 0) {
@@ -151,7 +149,7 @@ LinearSolverTerminationType RefinedSparseCholesky::Factorize(
 LinearSolverTerminationType RefinedSparseCholesky::Solve(const double* rhs,
                                                          double* solution,
                                                          std::string* message) {
-  CHECK(lhs_ != nullptr);
+//  CHECK(lhs_ != nullptr);
   auto termination_type = sparse_cholesky_->Solve(rhs, solution, message);
   if (termination_type != LINEAR_SOLVER_SUCCESS) {
     return termination_type;

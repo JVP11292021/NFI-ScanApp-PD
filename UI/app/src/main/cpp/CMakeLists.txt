@@ -172,17 +172,39 @@ add_subdirectory(thirdparty/Eigen)
 
 # -------------------- ceres (STATIC, EMBEDDED) --------------------
 
-set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
-set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
-set(CERES_USE_CUDA OFF CACHE BOOL "" FORCE)
-set(CERES_USE_OPENMP OFF CACHE BOOL "" FORCE)
-set(CERES_USE_EIGEN_SPARSE ON CACHE BOOL "" FORCE)
-set(CERES_USE_LAPACK OFF CACHE BOOL "" FORCE)
-set(CERES_USE_SUITESPARSE OFF CACHE BOOL "" FORCE)
-set(CERES_USE_CXSparse OFF CACHE BOOL "" FORCE)
+file(GLOB CERES_INTERNAL_SOURCES
+        "thirdparty/ceres/internal/ceres/*.cc"
+)
 
-add_subdirectory(thirdparty/ceres)
+list(FILTER CERES_INTERNAL_SOURCES EXCLUDE REGEX "test|bench|gmock|gtest")
+
+add_library(ceres STATIC ${CERES_INTERNAL_SOURCES})
+
+target_include_directories(ceres PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ceres
+        ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ceres/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ceres/internal
+        ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/Eigen
+)
+
+target_compile_definitions(ceres PRIVATE
+        CERES_NO_LAPACK
+        CERES_NO_SUITESPARSE
+        CERES_NO_CXSPARSE
+        CERES_NO_CUDA
+        CERES_USE_OPENMP
+        CERES_USE_EIGEN_SPARSE
+        CERES_NO_ACCELERATE_SPARSE
+        # Since we are skipping the config.h generation, define the threading model
+        CERES_THREADING_MODEL_OPENMP
+)
+
+set_target_properties(ceres PROPERTIES
+        POSITION_INDEPENDENT_CODE ON
+        OUTPUT_NAME "ceres"  # Forces the file to be libceres.a
+)
+
+target_link_libraries(ceres PRIVATE Eigen3)
 
 # -------------------- FREEIMAGE (STATIC, MINIMAL) --------------------
 
@@ -237,7 +259,7 @@ file(GLOB CLAPACK_SOURCES
 )
 list(APPEND FAISS_SOURCES ${CLAPACK_SOURCES})
 
-add_library(faiss SHARED ${FAISS_SOURCES})
+add_library(faiss STATIC ${FAISS_SOURCES})
 
 target_include_directories(faiss PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty
@@ -376,13 +398,15 @@ target_include_directories(minmap-core PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ceres/include
 )
 
-target_link_libraries(minmap-core PRIVATE
+target_link_libraries(minmap-core
+        PRIVATE
         sqlite3
         vlfeat
         poselib
-        ceres
-        FreeImage
         faiss
+        FreeImage
+        PUBLIC
+        ceres
 )
 
 # -------------------- minmap (STATIC, EMBEDDED) --------------------
@@ -534,6 +558,10 @@ add_library(renderEngine SHARED
         Engine_bridge.cpp
 )
 
+if(ANDROID)
+    target_link_libraries(renderEngine PRIVATE omp)
+endif()
+
 target_include_directories(renderEngine PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty
         ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/VulkanLiteEngine/Engine
@@ -548,17 +576,9 @@ target_link_libraries(renderEngine PRIVATE
         engineBackend
         engineUtils
         engineSystem
-        sqlite3
-        vlfeat
-        minmap-core
         minmap
-        poselib
-        Eigen3
-        ceres
-        FreeImage
         android
         ${vulkan-lib}
-        glm
         log
         ${cpp_shared}
 )

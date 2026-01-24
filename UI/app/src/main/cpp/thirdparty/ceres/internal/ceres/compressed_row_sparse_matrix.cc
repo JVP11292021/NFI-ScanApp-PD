@@ -39,7 +39,7 @@
 #include "ceres/internal/export.h"
 #include "ceres/random.h"
 #include "ceres/triplet_sparse_matrix.h"
-#include "glog/logging.h"
+#include "ceres/android_log.h"
 
 namespace ceres {
 namespace internal {
@@ -168,11 +168,11 @@ CompressedRowSparseMatrix::CompressedRowSparseMatrix(int num_rows,
   cols_.resize(max_num_nonzeros, 0);
   values_.resize(max_num_nonzeros, 0.0);
 
-  VLOG(1) << "# of rows: " << num_rows_ << " # of columns: " << num_cols_
-          << " max_num_nonzeros: " << cols_.size() << ". Allocating "
-          << (num_rows_ + 1) * sizeof(int) +     // NOLINT
-                 cols_.size() * sizeof(int) +    // NOLINT
-                 cols_.size() * sizeof(double);  // NOLINT
+//  VLOG(1) << "# of rows: " << num_rows_ << " # of columns: " << num_cols_
+//          << " max_num_nonzeros: " << cols_.size() << ". Allocating "
+//          << (num_rows_ + 1) * sizeof(int) +     // NOLINT
+//                 cols_.size() * sizeof(int) +    // NOLINT
+//                 cols_.size() * sizeof(double);  // NOLINT
 }
 
 std::unique_ptr<CompressedRowSparseMatrix>
@@ -211,11 +211,11 @@ CompressedRowSparseMatrix::FromTripletSparseMatrix(
   // are broken by column.
   std::sort(index.begin(), index.end(), RowColLessThan(rows, cols));
 
-  VLOG(1) << "# of rows: " << num_rows << " # of columns: " << num_cols
-          << " num_nonzeros: " << input.num_nonzeros() << ". Allocating "
-          << ((num_rows + 1) * sizeof(int) +           // NOLINT
-              input.num_nonzeros() * sizeof(int) +     // NOLINT
-              input.num_nonzeros() * sizeof(double));  // NOLINT
+//  VLOG(1) << "# of rows: " << num_rows << " # of columns: " << num_cols
+//          << " num_nonzeros: " << input.num_nonzeros() << ". Allocating "
+//          << ((num_rows + 1) * sizeof(int) +           // NOLINT
+//              input.num_nonzeros() * sizeof(int) +     // NOLINT
+//              input.num_nonzeros() * sizeof(double));  // NOLINT
 
   std::unique_ptr<CompressedRowSparseMatrix> output =
       std::make_unique<CompressedRowSparseMatrix>(
@@ -245,13 +245,13 @@ CompressedRowSparseMatrix::FromTripletSparseMatrix(
     output_rows[i] += output_rows[i - 1];
   }
 
-  CHECK_EQ(output->num_nonzeros(), input.num_nonzeros());
+//  CHECK_EQ(output->num_nonzeros(), input.num_nonzeros());
   return output;
 }
 
 CompressedRowSparseMatrix::CompressedRowSparseMatrix(const double* diagonal,
                                                      int num_rows) {
-  CHECK(diagonal != nullptr);
+//  CHECK(diagonal != nullptr);
 
   num_rows_ = num_rows;
   num_cols_ = num_rows;
@@ -267,7 +267,7 @@ CompressedRowSparseMatrix::CompressedRowSparseMatrix(const double* diagonal,
     rows_[i + 1] = i + 1;
   }
 
-  CHECK_EQ(num_nonzeros(), num_rows);
+//  CHECK_EQ(num_nonzeros(), num_rows);
 }
 
 CompressedRowSparseMatrix::~CompressedRowSparseMatrix() = default;
@@ -280,8 +280,8 @@ void CompressedRowSparseMatrix::SetZero() {
 // block-aware for higher performance.
 void CompressedRowSparseMatrix::RightMultiply(const double* x,
                                               double* y) const {
-  CHECK(x != nullptr);
-  CHECK(y != nullptr);
+//  CHECK(x != nullptr);
+//  CHECK(y != nullptr);
 
   if (storage_type_ == UNSYMMETRIC) {
     for (int r = 0; r < num_rows_; ++r) {
@@ -336,13 +336,13 @@ void CompressedRowSparseMatrix::RightMultiply(const double* x,
       }
     }
   } else {
-    LOG(FATAL) << "Unknown storage type: " << storage_type_;
+    LOGE("Unknown storage type: %u", storage_type_);
   }
 }
 
 void CompressedRowSparseMatrix::LeftMultiply(const double* x, double* y) const {
-  CHECK(x != nullptr);
-  CHECK(y != nullptr);
+//  CHECK(x != nullptr);
+//  CHECK(y != nullptr);
 
   if (storage_type_ == UNSYMMETRIC) {
     for (int r = 0; r < num_rows_; ++r) {
@@ -357,7 +357,7 @@ void CompressedRowSparseMatrix::LeftMultiply(const double* x, double* y) const {
 }
 
 void CompressedRowSparseMatrix::SquaredColumnNorm(double* x) const {
-  CHECK(x != nullptr);
+//  CHECK(x != nullptr);
 
   std::fill(x, x + num_cols_, 0.0);
   if (storage_type_ == UNSYMMETRIC) {
@@ -409,11 +409,11 @@ void CompressedRowSparseMatrix::SquaredColumnNorm(double* x) const {
       }
     }
   } else {
-    LOG(FATAL) << "Unknown storage type: " << storage_type_;
+    LOGE("Unknown storage type: %u", storage_type_);
   }
 }
 void CompressedRowSparseMatrix::ScaleColumns(const double* scale) {
-  CHECK(scale != nullptr);
+//  CHECK(scale != nullptr);
 
   for (int idx = 0; idx < rows_[num_rows_]; ++idx) {
     values_[idx] *= scale[cols_[idx]];
@@ -421,7 +421,7 @@ void CompressedRowSparseMatrix::ScaleColumns(const double* scale) {
 }
 
 void CompressedRowSparseMatrix::ToDenseMatrix(Matrix* dense_matrix) const {
-  CHECK(dense_matrix != nullptr);
+//  CHECK(dense_matrix != nullptr);
   dense_matrix->resize(num_rows_, num_cols_);
   dense_matrix->setZero();
 
@@ -433,9 +433,9 @@ void CompressedRowSparseMatrix::ToDenseMatrix(Matrix* dense_matrix) const {
 }
 
 void CompressedRowSparseMatrix::DeleteRows(int delta_rows) {
-  CHECK_GE(delta_rows, 0);
-  CHECK_LE(delta_rows, num_rows_);
-  CHECK_EQ(storage_type_, UNSYMMETRIC);
+//  CHECK_GE(delta_rows, 0);
+//  CHECK_LE(delta_rows, num_rows_);
+//  CHECK_EQ(storage_type_, UNSYMMETRIC);
 
   num_rows_ -= delta_rows;
   rows_.resize(num_rows_ + 1);
@@ -459,15 +459,15 @@ void CompressedRowSparseMatrix::DeleteRows(int delta_rows) {
 }
 
 void CompressedRowSparseMatrix::AppendRows(const CompressedRowSparseMatrix& m) {
-  CHECK_EQ(storage_type_, UNSYMMETRIC);
-  CHECK_EQ(m.num_cols(), num_cols_);
-
-  CHECK((row_blocks_.empty() && m.row_blocks().empty()) ||
-        (!row_blocks_.empty() && !m.row_blocks().empty()))
-      << "Cannot append a matrix with row blocks to one without and vice versa."
-      << "This matrix has : " << row_blocks_.size() << " row blocks."
-      << "The matrix being appended has: " << m.row_blocks().size()
-      << " row blocks.";
+//  CHECK_EQ(storage_type_, UNSYMMETRIC);
+//  CHECK_EQ(m.num_cols(), num_cols_);
+//
+//  CHECK((row_blocks_.empty() && m.row_blocks().empty()) ||
+//        (!row_blocks_.empty() && !m.row_blocks().empty()))
+//      << "Cannot append a matrix with row blocks to one without and vice versa."
+//      << "This matrix has : " << row_blocks_.size() << " row blocks."
+//      << "The matrix being appended has: " << m.row_blocks().size()
+//      << " row blocks.";
 
   if (m.num_rows() == 0) {
     return;
@@ -479,7 +479,7 @@ void CompressedRowSparseMatrix::AppendRows(const CompressedRowSparseMatrix& m) {
   }
 
   // Copy the contents of m into this matrix.
-  DCHECK_LT(num_nonzeros(), cols_.size());
+//  DCHECK_LT(num_nonzeros(), cols_.size());
   if (m.num_nonzeros() > 0) {
     std::copy(m.cols(), m.cols() + m.num_nonzeros(), &cols_[num_nonzeros()]);
     std::copy(
@@ -509,7 +509,8 @@ void CompressedRowSparseMatrix::AppendRows(const CompressedRowSparseMatrix& m) {
 }
 
 void CompressedRowSparseMatrix::ToTextFile(FILE* file) const {
-  CHECK(file != nullptr);
+  if (!file)
+      throw std::runtime_error("::ToTextFile has a nullptr argument");
   for (int r = 0; r < num_rows_; ++r) {
     for (int idx = rows_[r]; idx < rows_[r + 1]; ++idx) {
       fprintf(file, "% 10d % 10d %17f\n", r, cols_[idx], values_[idx]);
@@ -531,7 +532,7 @@ void CompressedRowSparseMatrix::ToCRSMatrix(CRSMatrix* matrix) const {
 }
 
 void CompressedRowSparseMatrix::SetMaxNumNonZeros(int num_nonzeros) {
-  CHECK_GE(num_nonzeros, 0);
+//  CHECK_GE(num_nonzeros, 0);
 
   cols_.resize(num_nonzeros);
   values_.resize(num_nonzeros);
@@ -573,8 +574,8 @@ CompressedRowSparseMatrix::CreateBlockDiagonalMatrix(
   *matrix->mutable_row_blocks() = blocks;
   *matrix->mutable_col_blocks() = blocks;
 
-  CHECK_EQ(idx_cursor, num_nonzeros);
-  CHECK_EQ(col_cursor, num_rows);
+//  CHECK_EQ(idx_cursor, num_nonzeros);
+//  CHECK_EQ(col_cursor, num_rows);
   return matrix;
 }
 
@@ -595,7 +596,7 @@ CompressedRowSparseMatrix::Transpose() const {
       transpose->set_storage_type(LOWER_TRIANGULAR);
       break;
     default:
-      LOG(FATAL) << "Unknown storage type: " << storage_type_;
+      LOGE("Unknown storage type: %u", storage_type_);
   };
 
   TransposeForCompressedRowSparseStructure(num_rows(),
@@ -622,16 +623,16 @@ CompressedRowSparseMatrix::Transpose() const {
 std::unique_ptr<CompressedRowSparseMatrix>
 CompressedRowSparseMatrix::CreateRandomMatrix(
     CompressedRowSparseMatrix::RandomMatrixOptions options) {
-  CHECK_GT(options.num_row_blocks, 0);
-  CHECK_GT(options.min_row_block_size, 0);
-  CHECK_GT(options.max_row_block_size, 0);
-  CHECK_LE(options.min_row_block_size, options.max_row_block_size);
+//  CHECK_GT(options.num_row_blocks, 0);
+//  CHECK_GT(options.min_row_block_size, 0);
+//  CHECK_GT(options.max_row_block_size, 0);
+//  CHECK_LE(options.min_row_block_size, options.max_row_block_size);
 
   if (options.storage_type == UNSYMMETRIC) {
-    CHECK_GT(options.num_col_blocks, 0);
-    CHECK_GT(options.min_col_block_size, 0);
-    CHECK_GT(options.max_col_block_size, 0);
-    CHECK_LE(options.min_col_block_size, options.max_col_block_size);
+//    CHECK_GT(options.num_col_blocks, 0);
+//    CHECK_GT(options.min_col_block_size, 0);
+//    CHECK_GT(options.max_col_block_size, 0);
+//    CHECK_LE(options.min_col_block_size, options.max_col_block_size);
   } else {
     // Symmetric matrices (LOWER_TRIANGULAR or UPPER_TRIANGULAR);
     options.num_col_blocks = options.num_row_blocks;
@@ -639,8 +640,8 @@ CompressedRowSparseMatrix::CreateRandomMatrix(
     options.max_col_block_size = options.max_row_block_size;
   }
 
-  CHECK_GT(options.block_density, 0.0);
-  CHECK_LE(options.block_density, 1.0);
+//  CHECK_GT(options.block_density, 0.0);
+//  CHECK_LE(options.block_density, 1.0);
 
   vector<int> row_blocks;
   vector<int> col_blocks;

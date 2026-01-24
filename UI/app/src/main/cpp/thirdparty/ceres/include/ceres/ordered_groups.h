@@ -173,7 +173,7 @@ class OrderedGroups {
   // there are no groups with non-zero elements will result in a
   // crash.
   int MinNonZeroGroup() const {
-    CHECK_NE(NumGroups(), 0);
+//    CHECK_NE(NumGroups(), 0);
     return group_to_elements_.begin()->first;
   }
 

@@ -35,7 +35,6 @@
 #include "ceres/line_search_minimizer.h"
 #include "ceres/trust_region_minimizer.h"
 #include "ceres/types.h"
-#include "glog/logging.h"
 
 namespace ceres {
 namespace internal {
@@ -49,7 +48,7 @@ std::unique_ptr<Minimizer> Minimizer::Create(MinimizerType minimizer_type) {
     return std::make_unique<LineSearchMinimizer>();
   }
 
-  LOG(FATAL) << "Unknown minimizer_type: " << minimizer_type;
+//  LOG(FATAL) << "Unknown minimizer_type: " << minimizer_type;
   return nullptr;
 }
 
@@ -73,18 +72,18 @@ bool Minimizer::RunCallbacks(const Minimizer::Options& options,
       summary->message =
           "User callback returned SOLVER_TERMINATE_SUCCESSFULLY.";
       if (is_not_silent) {
-        VLOG(1) << "Terminating: " << summary->message;
+//        VLOG(1) << "Terminating: " << summary->message;
       }
       return false;
     case SOLVER_ABORT:
       summary->termination_type = USER_FAILURE;
       summary->message = "User callback returned SOLVER_ABORT.";
       if (is_not_silent) {
-        VLOG(1) << "Terminating: " << summary->message;
+//        VLOG(1) << "Terminating: " << summary->message;
       }
       return false;
     default:
-      LOG(FATAL) << "Unknown type of user callback status";
+//      LOG(FATAL) << "Unknown type of user callback status";
   }
   return false;
 }

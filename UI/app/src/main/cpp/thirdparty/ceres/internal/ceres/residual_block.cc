@@ -60,7 +60,7 @@ ResidualBlock::ResidualBlock(
       parameter_blocks_(
           new ParameterBlock*[cost_function->parameter_block_sizes().size()]),
       index_(index) {
-  CHECK(cost_function_ != nullptr);
+//  CHECK(cost_function_ != nullptr);
   std::copy(parameter_blocks.begin(),
             parameter_blocks.end(),
             parameter_blocks_.get());
@@ -126,7 +126,7 @@ bool ResidualBlock::Evaluate(const bool apply_loss_function,
         EvaluationToString(
             *this, parameters.data(), cost, residuals, eval_jacobians);
     // clang-format on
-    LOG(WARNING) << message;
+    LOGD("%s", message.c_str());
     return false;
   }
 

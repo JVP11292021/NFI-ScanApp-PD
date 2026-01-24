@@ -108,7 +108,7 @@ void GradientProblemSolver::Solve(const GradientProblemSolver::Options& options,
 
   double start_time = WallTimeInSeconds();
 
-  CHECK(summary != nullptr);
+//  CHECK(summary != nullptr);
   *summary = Summary();
   // clang-format off
   summary->num_parameters                    = problem.NumParameters();
@@ -122,7 +122,7 @@ void GradientProblemSolver::Solve(const GradientProblemSolver::Options& options,
 
   // Check validity
   if (!options.IsValid(&summary->message)) {
-    LOG(ERROR) << "Terminating: " << summary->message;
+//    LOG(ERROR) << "Terminating: " << summary->message;
     return;
   }
 

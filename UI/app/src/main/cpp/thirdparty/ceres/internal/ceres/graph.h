@@ -40,7 +40,6 @@
 #include "ceres/map_util.h"
 #include "ceres/pair_hash.h"
 #include "ceres/types.h"
-#include "glog/logging.h"
 
 namespace ceres {
 namespace internal {
@@ -79,8 +78,6 @@ class CERES_NO_EXPORT Graph {
   // It is legal to call this method repeatedly for the same set of
   // vertices.
   void AddEdge(const Vertex& vertex1, const Vertex& vertex2) {
-    DCHECK(vertices_.find(vertex1) != vertices_.end());
-    DCHECK(vertices_.find(vertex2) != vertices_.end());
 
     if (edges_[vertex1].insert(vertex2).second) {
       edges_[vertex2].insert(vertex1);
@@ -147,8 +144,8 @@ class WeightedGraph {
   // It is legal to call this method repeatedly for the same set of
   // vertices.
   void AddEdge(const Vertex& vertex1, const Vertex& vertex2, double weight) {
-    DCHECK(vertices_.find(vertex1) != vertices_.end());
-    DCHECK(vertices_.find(vertex2) != vertices_.end());
+//    DCHECK(vertices_.find(vertex1) != vertices_.end());
+//    DCHECK(vertices_.find(vertex2) != vertices_.end());
 
     if (edges_[vertex1].insert(vertex2).second) {
       edges_[vertex2].insert(vertex1);

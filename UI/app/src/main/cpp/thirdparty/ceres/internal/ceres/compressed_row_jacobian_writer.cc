@@ -149,12 +149,12 @@ std::unique_ptr<SparseMatrix> CompressedRowJacobianWriter::CreateJacobian()
         ParameterBlock* parameter_block = residual_block->parameter_blocks()[j];
         parameter_block_description += parameter_block->ToString() + "\n";
       }
-      LOG(FATAL) << "Ceres internal error: "
-                 << "Duplicate parameter blocks detected in a cost function. "
-                 << "This should never happen. Please report this to "
-                 << "the Ceres developers.\n"
-                 << "Residual Block: " << residual_block->ToString() << "\n"
-                 << "Parameter Blocks: " << parameter_block_description;
+//      LOG(FATAL) << "Ceres internal error: "
+//                 << "Duplicate parameter blocks detected in a cost function. "
+//                 << "This should never happen. Please report this to "
+//                 << "the Ceres developers.\n"
+//                 << "Residual Block: " << residual_block->ToString() << "\n"
+//                 << "Parameter Blocks: " << parameter_block_description;
     }
 
     // Update the row indices.
@@ -185,7 +185,7 @@ std::unique_ptr<SparseMatrix> CompressedRowJacobianWriter::CreateJacobian()
     }
     row_pos += num_residuals;
   }
-  CHECK_EQ(num_jacobian_nonzeros, rows[total_num_residuals]);
+//  CHECK_EQ(num_jacobian_nonzeros, rows[total_num_residuals]);
 
   PopulateJacobianRowAndColumnBlockVectors(program_, jacobian.get());
 

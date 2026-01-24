@@ -37,7 +37,6 @@
 #include "ceres/internal/fixed_array.h"
 #include "ceres/internal/householder_vector.h"
 #include "ceres/rotation.h"
-#include "glog/logging.h"
 
 namespace ceres {
 
@@ -65,7 +64,7 @@ bool LocalParameterization::MultiplyByJacobian(const double* x,
 
 IdentityParameterization::IdentityParameterization(const int size)
     : size_(size) {
-  CHECK_GT(size, 0);
+//  CHECK_GT(size, 0);
 }
 
 bool IdentityParameterization::Plus(const double* x,
@@ -100,13 +99,13 @@ SubsetParameterization::SubsetParameterization(
 
   vector<int> constant = constant_parameters;
   std::sort(constant.begin(), constant.end());
-  CHECK_GE(constant.front(), 0) << "Indices indicating constant parameter must "
-                                   "be greater than equal to zero.";
-  CHECK_LT(constant.back(), size)
-      << "Indices indicating constant parameter must be less than the size "
-      << "of the parameter block.";
-  CHECK(std::adjacent_find(constant.begin(), constant.end()) == constant.end())
-      << "The set of constant parameters cannot contain duplicates";
+//  CHECK_GE(constant.front(), 0) << "Indices indicating constant parameter must "
+//                                   "be greater than equal to zero.";
+//  CHECK_LT(constant.back(), size)
+//      << "Indices indicating constant parameter must be less than the size "
+//      << "of the parameter block.";
+//  CHECK(std::adjacent_find(constant.begin(), constant.end()) == constant.end())
+//      << "The set of constant parameters cannot contain duplicates";
   for (int parameter : constant_parameters) {
     constancy_mask_[parameter] = 1;
   }
@@ -232,8 +231,8 @@ bool EigenQuaternionParameterization::ComputeJacobian(const double* x,
 
 HomogeneousVectorParameterization::HomogeneousVectorParameterization(int size)
     : size_(size) {
-  CHECK_GT(size_, 1) << "The size of the homogeneous vector needs to be "
-                     << "greater than 1.";
+//  CHECK_GT(size_, 1) << "The size of the homogeneous vector needs to be "
+//                     << "greater than 1.";
 }
 
 bool HomogeneousVectorParameterization::Plus(const double* x_ptr,

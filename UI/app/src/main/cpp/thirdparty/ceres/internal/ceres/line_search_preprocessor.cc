@@ -73,7 +73,7 @@ bool SetupEvaluator(PreprocessedProblem* pp) {
 bool LineSearchPreprocessor::Preprocess(const Solver::Options& options,
                                         ProblemImpl* problem,
                                         PreprocessedProblem* pp) {
-  CHECK(pp != nullptr);
+//  CHECK(pp != nullptr);
   pp->options = options;
   ChangeNumThreadsIfNeeded(&pp->options);
 

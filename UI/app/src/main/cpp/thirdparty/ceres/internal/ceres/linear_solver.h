@@ -50,7 +50,6 @@
 #include "ceres/internal/export.h"
 #include "ceres/triplet_sparse_matrix.h"
 #include "ceres/types.h"
-#include "glog/logging.h"
 
 namespace ceres {
 namespace internal {
@@ -309,9 +308,6 @@ class TypedLinearSolver : public LinearSolver {
       const LinearSolver::PerSolveOptions& per_solve_options,
       double* x) override {
     ScopedExecutionTimer total_time("LinearSolver::Solve", &execution_summary_);
-    CHECK(A != nullptr);
-    CHECK(b != nullptr);
-    CHECK(x != nullptr);
     return SolveImpl(down_cast<MatrixType*>(A), b, per_solve_options, x);
   }
 

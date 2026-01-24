@@ -263,7 +263,6 @@ bool LexicographicallyOrderResidualBlocks(
     int position =
         MinParameterBlock(residual_block, size_of_first_elimination_group);
     min_position_per_residual[i] = position;
-    DCHECK_LE(position, size_of_first_elimination_group);
     residual_blocks_per_e_block[position]++;
   }
 

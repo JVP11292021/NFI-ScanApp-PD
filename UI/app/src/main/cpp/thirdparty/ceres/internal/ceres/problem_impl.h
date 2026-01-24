@@ -171,8 +171,6 @@ class CERES_NO_EXPORT ProblemImpl {
 
   const ParameterMap& parameter_map() const { return parameter_block_map_; }
   const ResidualBlockSet& residual_block_set() const {
-    CHECK(options_.enable_fast_removal)
-        << "Fast removal not enabled, residual_block_set is not maintained.";
     return residual_block_set_;
   }
 

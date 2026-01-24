@@ -45,6 +45,7 @@
 #include "ceres/internal/eigen.h"
 #include "ceres/internal/export.h"
 #include "ceres/linear_solver.h"
+#include "glog/logging.h"
 
 namespace ceres {
 namespace internal {

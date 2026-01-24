@@ -48,10 +48,10 @@ template <typename XVectorType, typename Scalar, int N>
 void ComputeHouseholderVector(const XVectorType& x,
                               Eigen::Matrix<Scalar, N, 1>* v,
                               Scalar* beta) {
-  CHECK(beta != nullptr);
-  CHECK(v != nullptr);
-  CHECK_GT(x.rows(), 1);
-  CHECK_EQ(x.rows(), v->rows());
+//  CHECK(beta != nullptr);
+//  CHECK(v != nullptr);
+//  CHECK_GT(x.rows(), 1);
+//  CHECK_EQ(x.rows(), v->rows());
 
   Scalar sigma = x.head(x.rows() - 1).squaredNorm();
   *v = x;

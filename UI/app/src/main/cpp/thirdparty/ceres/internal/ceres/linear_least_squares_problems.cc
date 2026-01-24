@@ -42,7 +42,7 @@
 #include "ceres/stringprintf.h"
 #include "ceres/triplet_sparse_matrix.h"
 #include "ceres/types.h"
-#include "glog/logging.h"
+#include "ceres/android_log.h"
 
 namespace ceres {
 namespace internal {
@@ -63,7 +63,7 @@ CreateLinearLeastSquaresProblemFromId(int id) {
     case 4:
       return LinearLeastSquaresProblem4();
     default:
-      LOG(FATAL) << "Unknown problem id requested " << id;
+      LOGE("Unknown problem id requested %d", id);
   }
   return nullptr;
 }
@@ -272,7 +272,6 @@ std::unique_ptr<LinearLeastSquaresProblem> LinearLeastSquaresProblem1() {
   }
 
   A->set_num_nonzeros(nnz);
-  CHECK(A->IsValid());
 
   problem->A = std::move(A);
 
@@ -620,32 +619,30 @@ bool DumpLinearLeastSquaresProblemToConsole(const SparseMatrix* A,
                                             const double* b,
                                             const double* x,
                                             int num_eliminate_blocks) {
-  CHECK(A != nullptr);
   Matrix AA;
   A->ToDenseMatrix(&AA);
-  LOG(INFO) << "A^T: \n" << AA.transpose();
 
-  if (D != nullptr) {
-    LOG(INFO) << "A's appended diagonal:\n" << ConstVectorRef(D, A->num_cols());
-  }
-
-  if (b != nullptr) {
-    LOG(INFO) << "b: \n" << ConstVectorRef(b, A->num_rows());
-  }
-
-  if (x != nullptr) {
-    LOG(INFO) << "x: \n" << ConstVectorRef(x, A->num_cols());
-  }
+//  if (D != nullptr) {
+//    LOG(INFO) << "A's appended diagonal:\n" << ConstVectorRef(D, A->num_cols());
+//  }
+//
+//  if (b != nullptr) {
+//    LOG(INFO) << "b: \n" << ConstVectorRef(b, A->num_rows());
+//  }
+//
+//  if (x != nullptr) {
+//    LOG(INFO) << "x: \n" << ConstVectorRef(x, A->num_cols());
+//  }
   return true;
 }
 
 void WriteArrayToFileOrDie(const string& filename,
                            const double* x,
                            const int size) {
-  CHECK(x != nullptr);
-  VLOG(2) << "Writing array to: " << filename;
+//  CHECK(x != nullptr);
+//  VLOG(2) << "Writing array to: " << filename;
   FILE* fptr = fopen(filename.c_str(), "w");
-  CHECK(fptr != nullptr);
+//  CHECK(fptr != nullptr);
   for (int i = 0; i < size; ++i) {
     fprintf(fptr, "%17f\n", x[i]);
   }
@@ -658,8 +655,8 @@ bool DumpLinearLeastSquaresProblemToTextFile(const string& filename_base,
                                              const double* b,
                                              const double* x,
                                              int num_eliminate_blocks) {
-  CHECK(A != nullptr);
-  LOG(INFO) << "writing to: " << filename_base << "*";
+//  CHECK(A != nullptr);
+  LOGI("writing to: %s %s", filename_base.c_str(), "*");
 
   string matlab_script;
   StringAppendF(&matlab_script,
@@ -670,7 +667,7 @@ bool DumpLinearLeastSquaresProblemToTextFile(const string& filename_base,
   {
     string filename = filename_base + "_A.txt";
     FILE* fptr = fopen(filename.c_str(), "w");
-    CHECK(fptr != nullptr);
+//    CHECK(fptr != nullptr);
     A->ToTextFile(fptr);
     fclose(fptr);
     StringAppendF(
@@ -724,7 +721,7 @@ bool DumpLinearLeastSquaresProblem(const string& filename_base,
       return DumpLinearLeastSquaresProblemToTextFile(
           filename_base, A, D, b, x, num_eliminate_blocks);
     default:
-      LOG(FATAL) << "Unknown DumpFormatType " << dump_format_type;
+      LOGE("Unknown DumpFormatType %d", dump_format_type);
   }
 
   return true;

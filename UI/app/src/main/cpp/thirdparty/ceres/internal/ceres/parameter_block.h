@@ -45,7 +45,7 @@
 #include "ceres/internal/export.h"
 #include "ceres/manifold.h"
 #include "ceres/stringprintf.h"
-#include "glog/logging.h"
+#include "ceres/android_log.h"
 
 namespace ceres {
 namespace internal {
@@ -90,10 +90,10 @@ class CERES_NO_EXPORT ParameterBlock {
 
   // Manipulate the parameter state.
   bool SetState(const double* x) {
-    CHECK(x != nullptr) << "Tried to set the state of constant parameter "
-                        << "with user location " << user_state_;
-    CHECK(!IsConstant()) << "Tried to set the state of constant parameter "
-                         << "with user location " << user_state_;
+//    CHECK(x != nullptr) << "Tried to set the state of constant parameter "
+//                        << "with user location " << user_state_;
+//    CHECK(!IsConstant()) << "Tried to set the state of constant parameter "
+//                         << "with user location " << user_state_;
 
     state_ = x;
     return UpdatePlusJacobian();
@@ -171,25 +171,25 @@ class CERES_NO_EXPORT ParameterBlock {
       return;
     }
 
-    CHECK_EQ(new_manifold->AmbientSize(), size_)
-        << "The parameter block has size = " << size_
-        << " while the manifold has ambient size = "
-        << new_manifold->AmbientSize();
-
-    CHECK_GE(new_manifold->TangentSize(), 0)
-        << "Invalid Manifold. Manifolds must have a "
-        << "non-negative dimensional tangent space.";
-
-    manifold_ = new_manifold;
-    plus_jacobian_ = std::make_unique<double[]>(manifold_->AmbientSize() *
-                                                manifold_->TangentSize());
-    CHECK(UpdatePlusJacobian())
-        << "Manifold::PlusJacobian computation failed for x: "
-        << ConstVectorRef(state_, Size()).transpose();
+//    CHECK_EQ(new_manifold->AmbientSize(), size_)
+//        << "The parameter block has size = " << size_
+//        << " while the manifold has ambient size = "
+//        << new_manifold->AmbientSize();
+//
+//    CHECK_GE(new_manifold->TangentSize(), 0)
+//        << "Invalid Manifold. Manifolds must have a "
+//        << "non-negative dimensional tangent space.";
+//
+//    manifold_ = new_manifold;
+//    plus_jacobian_ = std::make_unique<double[]>(manifold_->AmbientSize() *
+//                                                manifold_->TangentSize());
+//    CHECK(UpdatePlusJacobian())
+//        << "Manifold::PlusJacobian computation failed for x: "
+//        << ConstVectorRef(state_, Size()).transpose();
   }
 
   void SetUpperBound(int index, double upper_bound) {
-    CHECK_LT(index, size_);
+//    CHECK_LT(index, size_);
 
     if (upper_bound >= std::numeric_limits<double>::max() && !upper_bounds_) {
       return;
@@ -206,7 +206,7 @@ class CERES_NO_EXPORT ParameterBlock {
   }
 
   void SetLowerBound(int index, double lower_bound) {
-    CHECK_LT(index, size_);
+//    CHECK_LT(index, size_);
 
     if (lower_bound <= -std::numeric_limits<double>::max() && !lower_bounds_) {
       return;
@@ -267,25 +267,25 @@ class CERES_NO_EXPORT ParameterBlock {
   }
 
   void EnableResidualBlockDependencies() {
-    CHECK(residual_blocks_.get() == nullptr)
-        << "Ceres bug: There is already a residual block collection "
-        << "for parameter block: " << ToString();
+//    CHECK(residual_blocks_.get() == nullptr)
+//        << "Ceres bug: There is already a residual block collection "
+//        << "for parameter block: " << ToString();
     residual_blocks_ = std::make_unique<ResidualBlockSet>();
   }
 
   void AddResidualBlock(ResidualBlock* residual_block) {
-    CHECK(residual_blocks_.get() != nullptr)
-        << "Ceres bug: The residual block collection is null for parameter "
-        << "block: " << ToString();
+//    CHECK(residual_blocks_.get() != nullptr)
+//        << "Ceres bug: The residual block collection is null for parameter "
+//        << "block: " << ToString();
     residual_blocks_->insert(residual_block);
   }
 
   void RemoveResidualBlock(ResidualBlock* residual_block) {
-    CHECK(residual_blocks_.get() != nullptr)
-        << "Ceres bug: The residual block collection is null for parameter "
-        << "block: " << ToString();
-    CHECK(residual_blocks_->find(residual_block) != residual_blocks_->end())
-        << "Ceres bug: Missing residual for parameter block: " << ToString();
+//    CHECK(residual_blocks_.get() != nullptr)
+//        << "Ceres bug: The residual block collection is null for parameter "
+//        << "block: " << ToString();
+//    CHECK(residual_blocks_->find(residual_block) != residual_blocks_->end())
+//        << "Ceres bug: Missing residual for parameter block: " << ToString();
     residual_blocks_->erase(residual_block);
   }
 
@@ -321,19 +321,12 @@ class CERES_NO_EXPORT ParameterBlock {
     const int jacobian_size = Size() * TangentSize();
     InvalidateArray(jacobian_size, plus_jacobian_.get());
     if (!manifold_->PlusJacobian(state_, plus_jacobian_.get())) {
-      LOG(WARNING) << "Manifold::PlusJacobian computation failed"
-                      "for x: "
-                   << ConstVectorRef(state_, Size()).transpose();
+      LOGD("Manifold::PlusJacobian computation failed for x: ");
       return false;
     }
 
     if (!IsArrayValid(jacobian_size, plus_jacobian_.get())) {
-      LOG(WARNING) << "Manifold::PlusJacobian computation returned "
-                   << "an invalid matrix for x: "
-                   << ConstVectorRef(state_, Size()).transpose()
-                   << "\n Jacobian matrix : "
-                   << ConstMatrixRef(
-                          plus_jacobian_.get(), Size(), TangentSize());
+      LOGD("Manifold::PlusJacobian computation returned an invalid matrix for x: ");
       return false;
     }
     return true;

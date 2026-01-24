@@ -40,7 +40,7 @@
 #include <string>
 #include <vector>
 
-#include "Accelerate.h"
+//#include "Accelerate.h"
 #include "ceres/linear_solver.h"
 #include "ceres/sparse_cholesky.h"
 
@@ -55,18 +55,18 @@ struct SparseTypesTrait {};
 
 template <>
 struct SparseTypesTrait<double> {
-  typedef DenseVector_Double DenseVector;
-  typedef SparseMatrix_Double SparseMatrix;
-  typedef SparseOpaqueSymbolicFactorization SymbolicFactorization;
-  typedef SparseOpaqueFactorization_Double NumericFactorization;
+//  typedef DenseVector_Double DenseVector;
+//  typedef SparseMatrix_Double SparseMatrix;
+//  typedef SparseOpaqueSymbolicFactorization SymbolicFactorization;
+//  typedef SparseOpaqueFactorization_Double NumericFactorization;
 };
 
 template <>
 struct SparseTypesTrait<float> {
-  typedef DenseVector_Float DenseVector;
-  typedef SparseMatrix_Float SparseMatrix;
-  typedef SparseOpaqueSymbolicFactorization SymbolicFactorization;
-  typedef SparseOpaqueFactorization_Float NumericFactorization;
+//  typedef DenseVector_Float DenseVector;
+//  typedef SparseMatrix_Float SparseMatrix;
+//  typedef SparseOpaqueSymbolicFactorization SymbolicFactorization;
+//  typedef SparseOpaqueFactorization_Float NumericFactorization;
 };
 
 template <typename Scalar>

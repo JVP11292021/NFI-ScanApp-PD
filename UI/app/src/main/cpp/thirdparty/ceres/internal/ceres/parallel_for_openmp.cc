@@ -36,7 +36,6 @@
 #include "ceres/parallel_for.h"
 #include "ceres/scoped_thread_token.h"
 #include "ceres/thread_token_provider.h"
-#include "glog/logging.h"
 #include "omp.h"
 
 namespace ceres {
@@ -49,8 +48,7 @@ void ParallelFor(ContextImpl* context,
                  int end,
                  int num_threads,
                  const std::function<void(int)>& function) {
-  CHECK_GT(num_threads, 0);
-  CHECK(context != nullptr);
+
   if (end <= start) {
     return;
   }
@@ -69,7 +67,7 @@ void ParallelFor(ContextImpl* context,
                  int end,
                  int num_threads,
                  const std::function<void(int thread_id, int i)>& function) {
-  CHECK(context != nullptr);
+
 
   ThreadTokenProvider thread_token_provider(num_threads);
   ParallelFor(context, start, end, num_threads, [&](int i) {

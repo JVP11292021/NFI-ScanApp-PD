@@ -67,9 +67,9 @@ double WallTimeInSeconds() {
 }
 
 EventLogger::EventLogger(const std::string& logger_name) {
-  if (!VLOG_IS_ON(3)) {
-    return;
-  }
+//  if (!VLOG_IS_ON(3)) {
+//    return;
+//  }
 
   start_time_ = WallTimeInSeconds();
   last_event_time_ = start_time_;
@@ -79,17 +79,17 @@ EventLogger::EventLogger(const std::string& logger_name) {
 }
 
 EventLogger::~EventLogger() {
-  if (!VLOG_IS_ON(3)) {
-    return;
-  }
-  AddEvent("Total");
-  VLOG(3) << "\n" << events_ << "\n";
+//  if (!VLOG_IS_ON(3)) {
+//    return;
+//  }
+//  AddEvent("Total");
+//  VLOG(3) << "\n" << events_ << "\n";
 }
 
 void EventLogger::AddEvent(const std::string& event_name) {
-  if (!VLOG_IS_ON(3)) {
-    return;
-  }
+//  if (!VLOG_IS_ON(3)) {
+//    return;
+//  }
 
   const double current_time = WallTimeInSeconds();
   const double relative_time_delta = current_time - last_event_time_;

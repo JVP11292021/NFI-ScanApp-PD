@@ -59,7 +59,7 @@ class CERES_NO_EXPORT GradientProblemEvaluator final : public Evaluator {
                 double* residuals,
                 double* gradient,
                 SparseMatrix* jacobian) final {
-    CHECK(jacobian == nullptr);
+//    CHECK(jacobian == nullptr);
     ScopedExecutionTimer total_timer("Evaluator::Total", &execution_summary_);
     // The reason we use Residual and Jacobian here even when we are
     // only computing the cost and gradient has to do with the fact

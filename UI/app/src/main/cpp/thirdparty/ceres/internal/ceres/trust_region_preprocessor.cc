@@ -47,6 +47,7 @@
 #include "ceres/suitesparse.h"
 #include "ceres/trust_region_strategy.h"
 #include "ceres/wall_time.h"
+#include "glog/logging.h"
 
 namespace ceres {
 namespace internal {

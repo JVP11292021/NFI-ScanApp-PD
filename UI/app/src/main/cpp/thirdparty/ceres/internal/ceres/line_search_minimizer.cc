@@ -57,7 +57,7 @@
 #include "ceres/stringprintf.h"
 #include "ceres/types.h"
 #include "ceres/wall_time.h"
-#include "glog/logging.h"
+#include "ceres/android_log.h"
 
 namespace ceres {
 namespace internal {
@@ -90,7 +90,7 @@ void LineSearchMinimizer::Minimize(const Minimizer::Options& options,
   double start_time = WallTimeInSeconds();
   double iteration_start_time = start_time;
 
-  CHECK(options.evaluator != nullptr);
+//  CHECK(options.evaluator != nullptr);
   Evaluator* evaluator = options.evaluator.get();
   const int num_parameters = evaluator->NumParameters();
   const int num_effective_parameters = evaluator->NumEffectiveParameters();
@@ -124,7 +124,7 @@ void LineSearchMinimizer::Minimize(const Minimizer::Options& options,
     summary->termination_type = FAILURE;
     summary->message = "Initial cost and jacobian evaluation failed.";
     if (is_not_silent) {
-      LOG(WARNING) << "Terminating: " << summary->message;
+      LOGD("WARNING Terminating: %s", summary->message.c_str());
     }
     return;
   }
@@ -135,7 +135,7 @@ void LineSearchMinimizer::Minimize(const Minimizer::Options& options,
         "Initial cost and jacobian evaluation failed. More details: " +
         summary->message;
     if (is_not_silent) {
-      LOG(WARNING) << "Terminating: " << summary->message;
+        LOGD("WARNING Terminating: %s", summary->message.c_str());
     }
     return;
   }
@@ -152,7 +152,7 @@ void LineSearchMinimizer::Minimize(const Minimizer::Options& options,
                      options.gradient_tolerance);
     summary->termination_type = CONVERGENCE;
     if (is_not_silent) {
-      VLOG(1) << "Terminating: " << summary->message;
+//      VLOG(1) << "Terminating: " << summary->message;
     }
     return;
   }
@@ -200,7 +200,7 @@ void LineSearchMinimizer::Minimize(const Minimizer::Options& options,
   if (line_search.get() == nullptr) {
     summary->termination_type = FAILURE;
     if (is_not_silent) {
-      LOG(ERROR) << "Terminating: " << summary->message;
+      LOGE("Terminating: %s", summary->message.c_str());
     }
     return;
   }
@@ -218,7 +218,7 @@ void LineSearchMinimizer::Minimize(const Minimizer::Options& options,
       summary->message = "Maximum number of iterations reached.";
       summary->termination_type = NO_CONVERGENCE;
       if (is_not_silent) {
-        VLOG(1) << "Terminating: " << summary->message;
+          LOGE("Terminating: %s", summary->message.c_str());
       }
       break;
     }
@@ -229,7 +229,7 @@ void LineSearchMinimizer::Minimize(const Minimizer::Options& options,
       summary->message = "Maximum solver time reached.";
       summary->termination_type = NO_CONVERGENCE;
       if (is_not_silent) {
-        VLOG(1) << "Terminating: " << summary->message;
+          LOGE("Terminating: %s", summary->message.c_str());
       }
       break;
     }
@@ -259,26 +259,26 @@ void LineSearchMinimizer::Minimize(const Minimizer::Options& options,
           options.max_num_line_search_direction_restarts);
       summary->termination_type = FAILURE;
       if (is_not_silent) {
-        LOG(WARNING) << "Terminating: " << summary->message;
+          LOGD("Terminating: %s", summary->message.c_str());
       }
       break;
     } else if (!line_search_status) {
       // Restart line search direction with gradient descent on first iteration
       // as we have not yet reached our maximum number of restarts.
-      CHECK_LT(num_line_search_direction_restarts,
-               options.max_num_line_search_direction_restarts);
+//      CHECK_LT(num_line_search_direction_restarts,
+//               options.max_num_line_search_direction_restarts);
 
       ++num_line_search_direction_restarts;
       if (is_not_silent) {
-        LOG(WARNING) << "Line search direction algorithm: "
-                     << LineSearchDirectionTypeToString(
-                            options.line_search_direction_type)
-                     << ", failed to produce a valid new direction at "
-                     << "iteration: " << iteration_summary.iteration
-                     << ". Restarting, number of restarts: "
-                     << num_line_search_direction_restarts << " / "
-                     << options.max_num_line_search_direction_restarts
-                     << " [max].";
+//        LOG(WARNING) << "Line search direction algorithm: "
+//                     << LineSearchDirectionTypeToString(
+//                            options.line_search_direction_type)
+//                     << ", failed to produce a valid new direction at "
+//                     << "iteration: " << iteration_summary.iteration
+//                     << ". Restarting, number of restarts: "
+//                     << num_line_search_direction_restarts << " / "
+//                     << options.max_num_line_search_direction_restarts
+//                     << " [max].";
       }
       line_search_direction =
           LineSearchDirection::Create(line_search_direction_options);
@@ -314,7 +314,7 @@ void LineSearchMinimizer::Minimize(const Minimizer::Options& options,
           (current_state.cost - previous_state.cost));
       summary->termination_type = FAILURE;
       if (is_not_silent) {
-        LOG(WARNING) << "Terminating: " << summary->message;
+          LOGD("Terminating: %s", summary->message.c_str());
       }
       break;
     }
@@ -333,15 +333,15 @@ void LineSearchMinimizer::Minimize(const Minimizer::Options& options,
           current_state.cost,
           current_state.directional_derivative);
       if (is_not_silent) {
-        LOG(WARNING) << "Terminating: " << summary->message;
+          LOGD("Terminating: %s", summary->message.c_str());
       }
       summary->termination_type = FAILURE;
       break;
     }
 
     const FunctionSample& optimal_point = line_search_summary.optimal_point;
-    CHECK(optimal_point.vector_x_is_valid)
-        << "Congratulations, you found a bug in Ceres. Please report it.";
+//    CHECK(optimal_point.vector_x_is_valid)
+//        << "Congratulations, you found a bug in Ceres. Please report it.";
     current_state.step_size = optimal_point.x;
     previous_state = current_state;
     iteration_summary.step_solver_time_in_seconds =
@@ -362,7 +362,7 @@ void LineSearchMinimizer::Minimize(const Minimizer::Options& options,
         summary->termination_type = FAILURE;
         summary->message = "Cost and jacobian evaluation failed.";
         if (is_not_silent) {
-          LOG(WARNING) << "Terminating: " << summary->message;
+            LOGD("Terminating: %s", summary->message.c_str());
         }
         return;
       }
@@ -378,7 +378,7 @@ void LineSearchMinimizer::Minimize(const Minimizer::Options& options,
           "valid when it was selected by the line search. More details: " +
           summary->message;
       if (is_not_silent) {
-        LOG(WARNING) << "Terminating: " << summary->message;
+          LOGD("Terminating: %s", summary->message.c_str());
       }
       break;
     }
@@ -437,7 +437,7 @@ void LineSearchMinimizer::Minimize(const Minimizer::Options& options,
           options.parameter_tolerance);
       summary->termination_type = CONVERGENCE;
       if (is_not_silent) {
-        VLOG(1) << "Terminating: " << summary->message;
+          LOGD("Terminating: %s", summary->message.c_str());
       }
       return;
     }
@@ -450,7 +450,7 @@ void LineSearchMinimizer::Minimize(const Minimizer::Options& options,
           options.gradient_tolerance);
       summary->termination_type = CONVERGENCE;
       if (is_not_silent) {
-        VLOG(1) << "Terminating: " << summary->message;
+          LOGD("Terminating: %s", summary->message.c_str());
       }
       break;
     }
@@ -466,7 +466,7 @@ void LineSearchMinimizer::Minimize(const Minimizer::Options& options,
           options.function_tolerance);
       summary->termination_type = CONVERGENCE;
       if (is_not_silent) {
-        VLOG(1) << "Terminating: " << summary->message;
+          LOGD("Terminating: %s", summary->message.c_str());
       }
       break;
     }

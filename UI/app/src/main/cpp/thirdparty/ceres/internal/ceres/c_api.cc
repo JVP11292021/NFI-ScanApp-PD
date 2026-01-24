@@ -51,8 +51,8 @@ using ceres::Problem;
 void ceres_init() {
   // This is not ideal, but it's not clear what to do if there is no gflags and
   // no access to command line arguments.
-  char message[] = "<unknown>";
-  google::InitGoogleLogging(message);
+//  char message[] = "<unknown>";
+//  google::InitGoogleLogging(message);
 }
 
 ceres_problem_t* ceres_create_problem() {

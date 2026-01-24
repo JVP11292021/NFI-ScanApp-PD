@@ -50,6 +50,7 @@
 #include "ceres/residual_block.h"
 #include "ceres/stl_util.h"
 #include "ceres/triplet_sparse_matrix.h"
+#include "glog/logging.h"
 
 namespace ceres {
 namespace internal {

@@ -34,7 +34,6 @@
 
 #include "ceres/local_parameterization.h"
 #include "ceres/manifold_adapter.h"
-#include "glog/logging.h"
 
 namespace ceres {
 
@@ -43,7 +42,7 @@ GradientProblem::GradientProblem(FirstOrderFunction* function)
       manifold_(std::make_unique<EuclideanManifold<DYNAMIC>>(
           function_->NumParameters())),
       scratch_(new double[function_->NumParameters()]) {
-  CHECK(function != nullptr);
+//  CHECK(function != nullptr);
 }
 
 GradientProblem::GradientProblem(FirstOrderFunction* function,
@@ -51,7 +50,7 @@ GradientProblem::GradientProblem(FirstOrderFunction* function,
     : function_(function),
       parameterization_(parameterization),
       scratch_(new double[function_->NumParameters()]) {
-  CHECK(function != nullptr);
+//  CHECK(function != nullptr);
   if (parameterization != nullptr) {
     manifold_ =
         std::make_unique<internal::ManifoldAdapter>(parameterization_.get());
@@ -59,20 +58,20 @@ GradientProblem::GradientProblem(FirstOrderFunction* function,
     manifold_ = std::make_unique<EuclideanManifold<DYNAMIC>>(
         function_->NumParameters());
   }
-  CHECK_EQ(function_->NumParameters(), manifold_->AmbientSize());
+//  CHECK_EQ(function_->NumParameters(), manifold_->AmbientSize());
 }
 
 GradientProblem::GradientProblem(FirstOrderFunction* function,
                                  Manifold* manifold)
     : function_(function), scratch_(new double[function_->NumParameters()]) {
-  CHECK(function != nullptr);
+//  CHECK(function != nullptr);
   if (manifold != nullptr) {
     manifold_.reset(manifold);
   } else {
     manifold_ = std::make_unique<EuclideanManifold<DYNAMIC>>(
         function_->NumParameters());
   }
-  CHECK_EQ(function_->NumParameters(), manifold_->AmbientSize());
+//  CHECK_EQ(function_->NumParameters(), manifold_->AmbientSize());
 }
 
 int GradientProblem::NumParameters() const {

@@ -33,7 +33,6 @@
 #include <list>
 
 #include "ceres/internal/eigen.h"
-#include "glog/logging.h"
 
 namespace ceres {
 namespace internal {
@@ -92,10 +91,10 @@ bool LowRankInverseHessian::Update(const Vector& delta_x,
   const double delta_x_dot_delta_gradient = delta_x.dot(delta_gradient);
   if (delta_x_dot_delta_gradient <=
       kLBFGSSecantConditionHessianUpdateTolerance) {
-    VLOG(2) << "Skipping L-BFGS Update, delta_x_dot_delta_gradient too "
-            << "small: " << delta_x_dot_delta_gradient
-            << ", tolerance: " << kLBFGSSecantConditionHessianUpdateTolerance
-            << " (Secant condition).";
+//    VLOG(2) << "Skipping L-BFGS Update, delta_x_dot_delta_gradient too "
+//            << "small: " << delta_x_dot_delta_gradient
+//            << ", tolerance: " << kLBFGSSecantConditionHessianUpdateTolerance
+//            << " (Secant condition).";
     return false;
   }
 
@@ -167,9 +166,9 @@ void LowRankInverseHessian::RightMultiply(const double* x_ptr,
     // [2] Nocedal J., Wright S., Numerical Optimization, Springer, 1999.
     search_direction *= approximate_eigenvalue_scale_;
 
-    VLOG(4) << "Applying approximate_eigenvalue_scale: "
-            << approximate_eigenvalue_scale_ << " to initial inverse Hessian "
-            << "approximation.";
+//    VLOG(4) << "Applying approximate_eigenvalue_scale: "
+//            << approximate_eigenvalue_scale_ << " to initial inverse Hessian "
+//            << "approximation.";
   }
 
   for (const int i : indices_) {

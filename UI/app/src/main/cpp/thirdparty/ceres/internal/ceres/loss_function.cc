@@ -92,8 +92,7 @@ void ArctanLoss::Evaluate(double s, double rho[3]) const {
 
 TolerantLoss::TolerantLoss(double a, double b)
     : a_(a), b_(b), c_(b * log(1.0 + exp(-a / b))) {
-  CHECK_GE(a, 0.0);
-  CHECK_GT(b, 0.0);
+
 }
 
 void TolerantLoss::Evaluate(double s, double rho[3]) const {
@@ -138,8 +137,7 @@ ComposedLoss::ComposedLoss(const LossFunction* f,
                            const LossFunction* g,
                            Ownership ownership_g)
     : f_(f), g_(g), ownership_f_(ownership_f), ownership_g_(ownership_g) {
-  CHECK(f_ != nullptr);
-  CHECK(g_ != nullptr);
+
 }
 
 ComposedLoss::~ComposedLoss() {

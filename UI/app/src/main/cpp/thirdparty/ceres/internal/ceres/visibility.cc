@@ -73,8 +73,8 @@ void ComputeVisibility(const CompressedRowBlockStructure& block_structure,
 
     for (int j = 1; j < cells.size(); ++j) {
       int camera_block_id = cells[j].block_id - num_eliminate_blocks;
-      DCHECK_GE(camera_block_id, 0);
-      DCHECK_LT(camera_block_id, visibility->size());
+//      DCHECK_GE(camera_block_id, 0);
+//      DCHECK_LT(camera_block_id, visibility->size());
       (*visibility)[camera_block_id].insert(block_id);
     }
   }
@@ -130,7 +130,7 @@ std::unique_ptr<WeightedGraph<int>> CreateSchurComplementGraph(
   static constexpr double kSelfEdgeWeight = 1.0;
   for (int i = 0; i < visibility.size(); ++i) {
     graph->AddVertex(i);
-    graph->AddEdge(i, i, kSelfEdgeWeight);
+//    graph->AddEdge(i, i, kSelfEdgeWeight);
   }
 
   // Add an edge for each camera pair.
@@ -138,7 +138,7 @@ std::unique_ptr<WeightedGraph<int>> CreateSchurComplementGraph(
     const int camera1 = camera_pair_count.first.first;
     const int camera2 = camera_pair_count.first.second;
     const int count = camera_pair_count.second;
-    DCHECK_NE(camera1, camera2);
+//    DCHECK_NE(camera1, camera2);
     // Static cast necessary for Windows.
     const double weight =
         static_cast<double>(count) /

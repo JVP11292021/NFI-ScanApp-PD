@@ -61,7 +61,8 @@ using std::vector;
 
 CoordinateDescentMinimizer::CoordinateDescentMinimizer(ContextImpl* context)
     : context_(context) {
-  CHECK(context_ != nullptr);
+
+//  CHECK(context_ != nullptr);
 }
 
 CoordinateDescentMinimizer::~CoordinateDescentMinimizer() = default;
@@ -223,15 +224,15 @@ void CoordinateDescentMinimizer::Solve(Program* program,
   Minimizer::Options minimizer_options;
   minimizer_options.evaluator =
       Evaluator::Create(evaluator_options_, program, &error);
-  CHECK(minimizer_options.evaluator != nullptr);
+//  CHECK(minimizer_options.evaluator != nullptr);
   minimizer_options.jacobian = minimizer_options.evaluator->CreateJacobian();
-  CHECK(minimizer_options.jacobian != nullptr);
+//  CHECK(minimizer_options.jacobian != nullptr);
 
   TrustRegionStrategy::Options trs_options;
   trs_options.linear_solver = linear_solver;
   minimizer_options.trust_region_strategy =
       TrustRegionStrategy::Create(trs_options);
-  CHECK(minimizer_options.trust_region_strategy != nullptr);
+//  CHECK(minimizer_options.trust_region_strategy != nullptr);
   minimizer_options.is_silent = true;
 
   TrustRegionMinimizer minimizer;

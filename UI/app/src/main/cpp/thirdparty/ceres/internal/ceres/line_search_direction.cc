@@ -36,7 +36,7 @@
 #include "ceres/internal/export.h"
 #include "ceres/line_search_minimizer.h"
 #include "ceres/low_rank_inverse_hessian.h"
-#include "glog/logging.h"
+#include "ceres/android_log.h"
 
 namespace ceres {
 namespace internal {
@@ -78,15 +78,14 @@ class CERES_NO_EXPORT NonlinearConjugateGradient final
                 previous.search_direction.dot(gradient_change));
         break;
       default:
-        LOG(FATAL) << "Unknown nonlinear conjugate gradient type: " << type_;
+        LOGE("Unknown nonlinear conjugate gradient type: %d", type_);
     }
 
     *search_direction = -current.gradient + beta * previous.search_direction;
     const double directional_derivative =
         current.gradient.dot(*search_direction);
     if (directional_derivative > -function_tolerance_) {
-      LOG(WARNING) << "Restarting non-linear conjugate gradients: "
-                   << directional_derivative;
+      LOGD("Restarting non-linear conjugate gradients: %f", directional_derivative);
       *search_direction = -current.gradient;
     }
 
@@ -111,10 +110,6 @@ class CERES_NO_EXPORT LBFGS final : public LineSearchDirection {
   bool NextDirection(const LineSearchMinimizer::State& previous,
                      const LineSearchMinimizer::State& current,
                      Vector* search_direction) override {
-    CHECK(is_positive_definite_)
-        << "Ceres bug: NextDirection() called on L-BFGS after inverse Hessian "
-        << "approximation has become indefinite, please contact the "
-        << "developers!";
 
     low_rank_inverse_hessian_.Update(
         previous.search_direction * previous.step_size,
@@ -126,10 +121,9 @@ class CERES_NO_EXPORT LBFGS final : public LineSearchDirection {
     *search_direction *= -1.0;
 
     if (search_direction->dot(current.gradient) >= 0.0) {
-      LOG(WARNING) << "Numerical failure in L-BFGS update: inverse Hessian "
-                   << "approximation is not positive definite, and thus "
-                   << "initial gradient for search direction is positive: "
-                   << search_direction->dot(current.gradient);
+      LOGD("Numerical failure in L-BFGS update: inverse Hessian "
+          "approximation is not positive definite, and thus "
+          "initial gradient for search direction is positive: ");
       is_positive_definite_ = false;
       return false;
     }
@@ -150,12 +144,12 @@ class CERES_NO_EXPORT BFGS final : public LineSearchDirection {
         initialized_(false),
         is_positive_definite_(true) {
     if (num_parameters_ >= 1000) {
-      LOG(WARNING) << "BFGS line search being created with: " << num_parameters_
-                   << " parameters, this will allocate a dense approximate "
-                   << "inverse Hessian of size: " << num_parameters_ << " x "
-                   << num_parameters_
-                   << ", consider using the L-BFGS memory-efficient line "
-                   << "search direction instead.";
+//      LOGD(WARNING) << "BFGS line search being created with: " << num_parameters_
+//                   << " parameters, this will allocate a dense approximate "
+//                   << "inverse Hessian of size: " << num_parameters_ << " x "
+//                   << num_parameters_
+//                   << ", consider using the L-BFGS memory-efficient line "
+//                   << "search direction instead.";
     }
     // Construct inverse_hessian_ after logging warning about size s.t. if the
     // allocation crashes us, the log will highlight what the issue likely was.
@@ -165,10 +159,6 @@ class CERES_NO_EXPORT BFGS final : public LineSearchDirection {
   bool NextDirection(const LineSearchMinimizer::State& previous,
                      const LineSearchMinimizer::State& current,
                      Vector* search_direction) override {
-    CHECK(is_positive_definite_)
-        << "Ceres bug: NextDirection() called on BFGS after inverse Hessian "
-        << "approximation has become indefinite, please contact the "
-        << "developers!";
 
     const Vector delta_x = previous.search_direction * previous.step_size;
     const Vector delta_gradient = current.gradient - previous.gradient;
@@ -210,10 +200,6 @@ class CERES_NO_EXPORT BFGS final : public LineSearchDirection {
     const double kBFGSSecantConditionHessianUpdateTolerance = 1e-14;
     if (delta_x_dot_delta_gradient <=
         kBFGSSecantConditionHessianUpdateTolerance) {
-      VLOG(2) << "Skipping BFGS Update, delta_x_dot_delta_gradient too "
-              << "small: " << delta_x_dot_delta_gradient
-              << ", tolerance: " << kBFGSSecantConditionHessianUpdateTolerance
-              << " (Secant condition).";
     } else {
       // Update dense inverse Hessian approximation.
 
@@ -253,9 +239,6 @@ class CERES_NO_EXPORT BFGS final : public LineSearchDirection {
             delta_x_dot_delta_gradient / delta_gradient.dot(delta_gradient);
         inverse_hessian_ *= approximate_eigenvalue_scale;
 
-        VLOG(4) << "Applying approximate_eigenvalue_scale: "
-                << approximate_eigenvalue_scale << " to initial inverse "
-                << "Hessian approximation.";
       }
       initialized_ = true;
 
@@ -318,10 +301,9 @@ class CERES_NO_EXPORT BFGS final : public LineSearchDirection {
                         (-1.0 * current.gradient);
 
     if (search_direction->dot(current.gradient) >= 0.0) {
-      LOG(WARNING) << "Numerical failure in BFGS update: inverse Hessian "
-                   << "approximation is not positive definite, and thus "
-                   << "initial gradient for search direction is positive: "
-                   << search_direction->dot(current.gradient);
+      LOGD("Numerical failure in BFGS update: inverse Hessian "
+           "approximation is not positive definite, and thus "
+           "initial gradient for search direction is positive: ");
       is_positive_definite_ = false;
       return false;
     }
@@ -363,7 +345,7 @@ std::unique_ptr<LineSearchDirection> LineSearchDirection::Create(
         options.use_approximate_eigenvalue_bfgs_scaling);
   }
 
-  LOG(ERROR) << "Unknown line search direction type: " << options.type;
+  LOGE("Unknown line search direction type: %d",options.type);
   return nullptr;
 }
 

@@ -127,8 +127,8 @@ void BuildJacobianLayout(const Program& program,
 BlockJacobianWriter::BlockJacobianWriter(const Evaluator::Options& options,
                                          Program* program)
     : program_(program) {
-  CHECK_GE(options.num_eliminate_blocks, 0)
-      << "num_eliminate_blocks must be greater than 0.";
+//  CHECK_GE(options.num_eliminate_blocks, 0)
+//      << "num_eliminate_blocks must be greater than 0.";
 
   BuildJacobianLayout(*program,
                       options.num_eliminate_blocks,
@@ -159,8 +159,8 @@ std::unique_ptr<SparseMatrix> BlockJacobianWriter::CreateJacobian() const {
   // Construct the column blocks.
   bs->cols.resize(parameter_blocks.size());
   for (int i = 0, cursor = 0; i < parameter_blocks.size(); ++i) {
-    CHECK_NE(parameter_blocks[i]->index(), -1);
-    CHECK(!parameter_blocks[i]->IsConstant());
+//    CHECK_NE(parameter_blocks[i]->index(), -1);
+//    CHECK(!parameter_blocks[i]->IsConstant());
     bs->cols[i].size = parameter_blocks[i]->TangentSize();
     bs->cols[i].position = cursor;
     cursor += bs->cols[i].size;

@@ -60,11 +60,11 @@ class EigenSparseCholeskyTemplate final : public SparseCholesky {
     if (!analyzed_) {
       solver_.analyzePattern(lhs);
 
-      if (VLOG_IS_ON(2)) {
-        std::stringstream ss;
-        solver_.dumpMemory(ss);
-        VLOG(2) << "Symbolic Analysis\n" << ss.str();
-      }
+//      if (VLOG_IS_ON(2)) {
+//        std::stringstream ss;
+//        solver_.dumpMemory(ss);
+//        VLOG(2) << "Symbolic Analysis\n" << ss.str();
+//      }
 
       if (solver_.info() != Eigen::Success) {
         *message = "Eigen failure. Unable to find symbolic factorization.";
@@ -85,7 +85,7 @@ class EigenSparseCholeskyTemplate final : public SparseCholesky {
   LinearSolverTerminationType Solve(const double* rhs_ptr,
                                     double* solution_ptr,
                                     std::string* message) override {
-    CHECK(analyzed_) << "Solve called without a call to Factorize first.";
+//    CHECK(analyzed_) << "Solve called without a call to Factorize first.";
 
     scalar_rhs_ = ConstVectorRef(rhs_ptr, solver_.cols())
                       .template cast<typename Solver::Scalar>();
@@ -108,7 +108,7 @@ class EigenSparseCholeskyTemplate final : public SparseCholesky {
 
   LinearSolverTerminationType Factorize(CompressedRowSparseMatrix* lhs,
                                         std::string* message) final {
-    CHECK_EQ(lhs->storage_type(), StorageType());
+//    CHECK_EQ(lhs->storage_type(), StorageType());
 
     typename Solver::Scalar* values_ptr = nullptr;
     if (std::is_same<typename Solver::Scalar, double>::value) {

@@ -130,10 +130,10 @@ std::unique_ptr<InnerProductComputer> InnerProductComputer::Create(
     const int start_row_block,
     const int end_row_block,
     CompressedRowSparseMatrix::StorageType product_storage_type) {
-  CHECK(product_storage_type == CompressedRowSparseMatrix::LOWER_TRIANGULAR ||
-        product_storage_type == CompressedRowSparseMatrix::UPPER_TRIANGULAR);
-  CHECK_GT(m.num_nonzeros(), 0)
-      << "Congratulations, you found a bug in Ceres. Please report it.";
+//  CHECK(product_storage_type == CompressedRowSparseMatrix::LOWER_TRIANGULAR ||
+//        product_storage_type == CompressedRowSparseMatrix::UPPER_TRIANGULAR);
+//  CHECK_GT(m.num_nonzeros(), 0)
+//      << "Congratulations, you found a bug in Ceres. Please report it.";
   std::unique_ptr<InnerProductComputer> inner_product_computer(
       new InnerProductComputer(m, start_row_block, end_row_block));
   inner_product_computer->Init(product_storage_type);
@@ -327,7 +327,7 @@ void InnerProductComputer::Compute() {
     }
   }
 
-  CHECK_EQ(cursor, result_offsets_.size());
+//  CHECK_EQ(cursor, result_offsets_.size());
 }
 
 }  // namespace internal

@@ -36,7 +36,6 @@
 #include <utility>
 
 #include "ceres/internal/export.h"
-#include "glog/logging.h"
 
 namespace ceres {
 
@@ -60,7 +59,6 @@ const typename Collection::value_type::second_type& FindOrDie(
     const Collection& collection,
     const typename Collection::value_type::first_type& key) {
   typename Collection::const_iterator it = collection.find(key);
-  CHECK(it != collection.end()) << "Map key not found: " << key;
   return it->second;
 }
 
@@ -122,8 +120,8 @@ void InsertOrDie(Collection* const collection,
                  const typename Collection::value_type::first_type& key,
                  const typename Collection::value_type::second_type& data) {
   using value_type = typename Collection::value_type;
-  CHECK(collection->insert(value_type(key, data)).second)
-      << "duplicate key: " << key;
+//  CHECK(collection->insert(value_type(key, data)).second)
+//      << "duplicate key: " << key;
 }
 
 }  // namespace ceres

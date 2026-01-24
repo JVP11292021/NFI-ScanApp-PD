@@ -1,7 +1,7 @@
 #include "ceres/internal/export.h"
 #include "ceres/local_parameterization.h"
 #include "ceres/manifold.h"
-#include "glog/logging.h"
+#include "ceres/android_log.h"
 
 namespace ceres {
 namespace internal {
@@ -13,7 +13,8 @@ class CERES_NO_EXPORT ManifoldAdapter final : public Manifold {
  public:
   explicit ManifoldAdapter(const LocalParameterization* local_parameterization)
       : local_parameterization_(local_parameterization) {
-    CHECK(local_parameterization != nullptr);
+
+//      CHECK(local_parameterization != nullptr);
   }
 
   bool Plus(const double* x,
@@ -35,12 +36,12 @@ class CERES_NO_EXPORT ManifoldAdapter final : public Manifold {
   }
 
   bool Minus(const double* y, const double* x, double* delta) const override {
-    LOG(FATAL) << "This should never be called.";
+    LOGE("This should never be called.");
     return false;
   }
 
   bool MinusJacobian(const double* x, double* jacobian) const override {
-    LOG(FATAL) << "This should never be called.";
+    LOGE("This should never be called.");
     return false;
   }
 

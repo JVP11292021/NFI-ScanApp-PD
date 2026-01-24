@@ -36,6 +36,7 @@
 #include <vector>
 
 #include "ceres/internal/config.h"
+#include "ceres/android_log.h"
 
 #ifndef CERES_NO_CUDA
 #include "ceres/context_impl.h"
@@ -78,7 +79,7 @@ std::unique_ptr<DenseCholesky> DenseCholesky::Create(
       dense_cholesky = std::make_unique<LAPACKDenseCholesky>();
       break;
 #else
-      LOG(FATAL) << "Ceres was compiled without support for LAPACK.";
+      LOGE("Ceres was compiled without support for LAPACK.");
 #endif
 
     case CUDA:
@@ -86,13 +87,13 @@ std::unique_ptr<DenseCholesky> DenseCholesky::Create(
       dense_cholesky = CUDADenseCholesky::Create(options);
       break;
 #else
-      LOG(FATAL) << "Ceres was compiled without support for CUDA.";
+      LOGE("Ceres was compiled without support for CUDA.");
 #endif
 
     default:
-      LOG(FATAL) << "Unknown dense linear algebra library type : "
-                 << DenseLinearAlgebraLibraryTypeToString(
-                        options.dense_linear_algebra_library_type);
+      LOGE("Unknown dense linear algebra library type : %s",
+           DenseLinearAlgebraLibraryTypeToString(
+                        options.dense_linear_algebra_library_type));
   }
   return dense_cholesky;
 }

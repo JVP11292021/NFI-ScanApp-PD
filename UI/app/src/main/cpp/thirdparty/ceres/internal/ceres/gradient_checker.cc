@@ -61,9 +61,9 @@ bool EvaluateCostFunction(const CostFunction* function,
                           Vector* residuals,
                           std::vector<Matrix>* jacobians,
                           std::vector<Matrix>* local_jacobians) {
-  CHECK(residuals != nullptr);
-  CHECK(jacobians != nullptr);
-  CHECK(local_jacobians != nullptr);
+//  CHECK(residuals != nullptr);
+//  CHECK(jacobians != nullptr);
+//  CHECK(local_jacobians != nullptr);
 
   const vector<int32_t>& block_sizes = function->parameter_block_sizes();
   const int num_parameter_blocks = block_sizes.size();
@@ -91,7 +91,7 @@ bool EvaluateCostFunction(const CostFunction* function,
   }
 
   // Compute residuals & jacobians.
-  CHECK_NE(0, function->num_residuals());
+//  CHECK_NE(0, function->num_residuals());
   residuals->resize(function->num_residuals());
   residuals->setZero();
   if (!function->Evaluate(
@@ -106,7 +106,7 @@ bool EvaluateCostFunction(const CostFunction* function,
     } else {
       int ambient_size = manifolds.at(i)->AmbientSize();
       int tangent_size = manifolds.at(i)->TangentSize();
-      CHECK_EQ(jacobians->at(i).cols(), ambient_size);
+//      CHECK_EQ(jacobians->at(i).cols(), ambient_size);
       Matrix ambient_J_tangent(ambient_size, tangent_size);
       manifolds.at(i)->PlusJacobian(parameters[i], ambient_J_tangent.data());
       local_jacobians->at(i).noalias() = jacobians->at(i) * ambient_J_tangent;
@@ -121,7 +121,7 @@ GradientChecker::GradientChecker(
     const vector<const LocalParameterization*>* local_parameterizations,
     const NumericDiffOptions& options)
     : delete_manifolds_(true), function_(function) {
-  CHECK(function != nullptr);
+//  CHECK(function != nullptr);
   manifolds_.resize(function->parameter_block_sizes().size(), nullptr);
 
   // Wrap the local parameterization into manifold objects using
@@ -151,7 +151,7 @@ GradientChecker::GradientChecker(const CostFunction* function,
                                  const vector<const Manifold*>* manifolds,
                                  const NumericDiffOptions& options)
     : function_(function) {
-  CHECK(function != nullptr);
+//  CHECK(function != nullptr);
   if (manifolds != nullptr) {
     manifolds_ = *manifolds;
   } else {
@@ -245,8 +245,8 @@ bool GradientChecker::Probe(double const* const* parameters,
       results->error_log =
           "Function evaluation with and without Jacobians "
           "resulted in different residuals.";
-      LOG(INFO) << results->residuals.transpose();
-      LOG(INFO) << finite_diff_residuals.transpose();
+//      LOG(INFO) << results->residuals.transpose();
+//      LOG(INFO) << finite_diff_residuals.transpose();
       return false;
     }
   }

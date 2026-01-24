@@ -106,8 +106,8 @@ BlockRandomAccessSparseMatrix::BlockRandomAccessSparseMatrix(
         rows[pos] = block_positions_[row_block_id] + r;
         cols[pos] = block_positions_[col_block_id] + c;
         values[pos] = 1.0;
-        DCHECK_LT(rows[pos], tsm_->num_rows());
-        DCHECK_LT(cols[pos], tsm_->num_rows());
+//        DCHECK_LT(rows[pos], tsm_->num_rows());
+//        DCHECK_LT(cols[pos], tsm_->num_rows());
       }
     }
   }

@@ -37,7 +37,6 @@
 
 #include "ceres/internal/eigen.h"
 #include "ceres/internal/export.h"
-#include "glog/logging.h"
 #include "small_blas_generic.h"
 
 namespace ceres {
@@ -60,18 +59,6 @@ namespace internal {
                    const int col_stride_c)
 
 #define CERES_GEMM_NAIVE_HEADER                                        \
-  DCHECK_GT(num_row_a, 0);                                             \
-  DCHECK_GT(num_col_a, 0);                                             \
-  DCHECK_GT(num_row_b, 0);                                             \
-  DCHECK_GT(num_col_b, 0);                                             \
-  DCHECK_GE(start_row_c, 0);                                           \
-  DCHECK_GE(start_col_c, 0);                                           \
-  DCHECK_GT(row_stride_c, 0);                                          \
-  DCHECK_GT(col_stride_c, 0);                                          \
-  DCHECK((kRowA == Eigen::Dynamic) || (kRowA == num_row_a));           \
-  DCHECK((kColA == Eigen::Dynamic) || (kColA == num_col_a));           \
-  DCHECK((kRowB == Eigen::Dynamic) || (kRowB == num_row_b));           \
-  DCHECK((kColB == Eigen::Dynamic) || (kColB == num_col_b));           \
   const int NUM_ROW_A = (kRowA != Eigen::Dynamic ? kRowA : num_row_a); \
   const int NUM_COL_A = (kColA != Eigen::Dynamic ? kColA : num_col_a); \
   const int NUM_ROW_B = (kRowB != Eigen::Dynamic ? kRowB : num_row_b); \
@@ -177,12 +164,12 @@ CERES_GEMM_BEGIN(MatrixMatrixMultiplyEigen) {
 
 CERES_GEMM_BEGIN(MatrixMatrixMultiplyNaive) {
   CERES_GEMM_NAIVE_HEADER
-  DCHECK_EQ(NUM_COL_A, NUM_ROW_B);
+//  DCHECK_EQ(NUM_COL_A, NUM_ROW_B);
 
   const int NUM_ROW_C = NUM_ROW_A;
   const int NUM_COL_C = NUM_COL_B;
-  DCHECK_LE(start_row_c + NUM_ROW_C, row_stride_c);
-  DCHECK_LE(start_col_c + NUM_COL_C, col_stride_c);
+//  DCHECK_LE(start_row_c + NUM_ROW_C, row_stride_c);
+//  DCHECK_LE(start_col_c + NUM_COL_C, col_stride_c);
   const int span = 4;
 
   // Calculate the remainder part first.
@@ -280,12 +267,12 @@ CERES_GEMM_BEGIN(MatrixTransposeMatrixMultiplyEigen) {
 
 CERES_GEMM_BEGIN(MatrixTransposeMatrixMultiplyNaive) {
   CERES_GEMM_NAIVE_HEADER
-  DCHECK_EQ(NUM_ROW_A, NUM_ROW_B);
+//  DCHECK_EQ(NUM_ROW_A, NUM_ROW_B);
 
   const int NUM_ROW_C = NUM_COL_A;
   const int NUM_COL_C = NUM_COL_B;
-  DCHECK_LE(start_row_c + NUM_ROW_C, row_stride_c);
-  DCHECK_LE(start_col_c + NUM_COL_C, col_stride_c);
+//  DCHECK_LE(start_row_c + NUM_ROW_C, row_stride_c);
+//  DCHECK_LE(start_col_c + NUM_COL_C, col_stride_c);
   const int span = 4;
 
   // Process the remainder part first.
@@ -405,11 +392,6 @@ inline void MatrixVectorMultiply(const double* A,
   }
 #else
 
-  DCHECK_GT(num_row_a, 0);
-  DCHECK_GT(num_col_a, 0);
-  DCHECK((kRowA == Eigen::Dynamic) || (kRowA == num_row_a));
-  DCHECK((kColA == Eigen::Dynamic) || (kColA == num_col_a));
-
   const int NUM_ROW_A = (kRowA != Eigen::Dynamic ? kRowA : num_row_a);
   const int NUM_COL_A = (kColA != Eigen::Dynamic ? kColA : num_col_a);
   const int span = 4;
@@ -491,10 +473,6 @@ inline void MatrixTransposeVectorMultiply(const double* A,
   }
 #else
 
-  DCHECK_GT(num_row_a, 0);
-  DCHECK_GT(num_col_a, 0);
-  DCHECK((kRowA == Eigen::Dynamic) || (kRowA == num_row_a));
-  DCHECK((kColA == Eigen::Dynamic) || (kColA == num_col_a));
 
   const int NUM_ROW_A = (kRowA != Eigen::Dynamic ? kRowA : num_row_a);
   const int NUM_COL_A = (kColA != Eigen::Dynamic ? kColA : num_col_a);
