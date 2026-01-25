@@ -1,5 +1,11 @@
 package com.example.ipmedth_nfi.pages.app.tabs
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,18 +27,27 @@ import androidx.compose.ui.unit.dp
 import com.example.ipmedth_nfi.ui.components.InfoSubheader
 import com.example.ipmedth_nfi.ui.components.attention.AddAandachtspuntSheet
 import com.example.ipmedth_nfi.ui.components.attention.AttentionCard
+import com.example.ipmedth_nfi.ui.components.attention.AandachtspuntDetailsSheet
 import com.example.ipmedth_nfi.ui.components.attention.ThemeMiniCard
 import com.example.ipmedth_nfi.viewmodel.SessionViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
 fun AttentionTab(viewModel: SessionViewModel) {
     val themes = viewModel.hoofdthemas
     val aandachtspunten = viewModel.aandachtspunten
     var showAddSheet by remember { mutableStateOf(false) }
 
+    var selectedDetailsItemId by remember { mutableStateOf<String?>(null) }
+
+    // Determine selected item reference
+    val selected = remember(aandachtspunten, selectedDetailsItemId) {
+        aandachtspunten.find { it.id == selectedDetailsItemId }
+    }
+
     Column(modifier = Modifier.fillMaxSize()) {
 
+        // Header + themes remain visible always (acts like the main header)
         InfoSubheader(
             subject = "Aandachtspunten",
             details = "${aandachtspunten.size} totaal",
@@ -56,26 +71,46 @@ fun AttentionTab(viewModel: SessionViewModel) {
 
         Spacer(Modifier.height(16.dp))
 
-        aandachtspunten.forEach { punt ->
-            AttentionCard(
-                title = punt.title,
-                theme = punt.theme,
-                bulletPoints = punt.bulletPoints,
-                onAddBullet = { bullet ->
-                    viewModel.addBulletToAandachtspunt(punt.id, bullet)
-                },
-                onUpdateBullets = { updatedBullets ->
-                    viewModel.updateAandachtspuntBullets(
-                        punt.id,
-                        updatedBullets
+        // Main area: animate between list and detail sheet so header stays visible
+        AnimatedVisibility(
+            visible = selected == null,
+            enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 }),
+            exit = fadeOut() + slideOutVertically(targetOffsetY = { -it / 2 })
+        ) {
+            // List of attention cards
+            Column {
+                aandachtspunten.forEach { punt ->
+                    AttentionCard(
+                        title = punt.title,
+                        theme = punt.theme,
+                        bulletPoints = punt.bulletPoints,
+                        onAddBullet = { bullet ->
+                            viewModel.addBulletToAandachtspunt(punt.id, bullet)
+                        },
+                        onUpdateBullets = { updatedBullets ->
+                            viewModel.updateAandachtspuntBullets(
+                                punt.id,
+                                updatedBullets
+                            )
+                        },
+                        onDelete = {
+                            viewModel.deleteAandachtspunt(punt.id)
+                        },
+                        onEdit = { /* handled internally now */ },
+                        onDetails = {
+                            selectedDetailsItemId = punt.id
+                        }
                     )
-                },
-                onDelete = {
-                    viewModel.deleteAandachtspunt(punt.id)
-                },
-                onEdit = { /* handled internally now */ },
-                onDetails = { /* later */ }
-            )
+                }
+            }
+        }
+
+        AnimatedVisibility(
+            visible = selected != null,
+            enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
+            exit = fadeOut() + slideOutVertically(targetOffsetY = { it })
+        ) {
+            selected?.let { AandachtspuntDetailsSheet(viewModel = viewModel, item = it, onDismiss = { selectedDetailsItemId = null }) }
         }
 
     }

@@ -263,4 +263,12 @@ class SessionViewModel(
             appData = appData.toMap()
         )
     }
+
+    fun updateAandachtspunt(updated: com.example.ipmedth_nfi.model.Aandachtspunt) {
+        val index = aandachtspunten.indexOfFirst { it.id == updated.id }
+        if (index != -1) {
+            aandachtspunten[index] = updated
+            autoSave()
+        }
+    }
 }
