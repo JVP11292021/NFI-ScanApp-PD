@@ -17,14 +17,18 @@ class ProjectStorageManager(
     override fun getProjectDir(onderzoek: Onderzoek): File =
         File(rootDir, "${onderzoek.zaaknummer}/${onderzoek.onderzoeksnaam}")
 
+    fun getProjectDirPath(onderzoek: Onderzoek): String =
+        getProjectDir(onderzoek).absolutePath
+
     override fun getImageDir(onderzoek: Onderzoek): File =
-        File(getProjectDir(onderzoek), "reconstructie/images")
+        File(getProjectDir(onderzoek), "Reconstruction/images")
 
     override fun createProject(onderzoek: Onderzoek): File {
         val projectDir = getProjectDir(onderzoek)
         val imageDir = getImageDir(onderzoek)
 
         imageDir.mkdirs()
+        File(projectDir, "markers.txt").createNewFile()
 
         File(projectDir, "project.json").writeText(
             Json.encodeToString(onderzoek)
@@ -74,5 +78,6 @@ class ProjectStorageManager(
             Json.decodeFromString<ProjectSnapshot>(file.readText())
         }.getOrNull()
     }
+
 
 }

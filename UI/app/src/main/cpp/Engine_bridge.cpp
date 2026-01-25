@@ -20,7 +20,8 @@ Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeCreate(
         JNIEnv *env,
         jobject vulkanAppBridge,
         jobject surface,
-        jobject pAssetManager
+        jobject pAssetManager,
+        jstring projectDirPath
 ) {
     if (engineApp) {
         delete engineApp;
@@ -34,13 +35,28 @@ Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeCreate(
         return;
     }
 
+    // Convert jstring to const char*
+    const char* projectPath = nullptr;
+    if (projectDirPath != nullptr) {
+        projectPath = env->GetStringUTFChars(projectDirPath, nullptr);
+    }
+
     try {
         engineApp = new AndroidEngine(
-                assetManager, window, ANativeWindow_getWidth(window), ANativeWindow_getHeight(window));
+                assetManager, window, ANativeWindow_getWidth(window), ANativeWindow_getHeight(window), projectPath);
     } catch (std::runtime_error& er) {
         VLE_LOGF(er.what());
+        if (projectPath) {
+            env->ReleaseStringUTFChars(projectDirPath, projectPath);
+        }
         return;
     }
+
+    // Release the string
+    if (projectPath) {
+        env->ReleaseStringUTFChars(projectDirPath, projectPath);
+    }
+
     VLE_LOGD("AndroidEngine app instance created successfully!");
 }
 
@@ -98,4 +114,43 @@ Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeOnStrafe(JNIEnv *
     if(engineApp) {
         engineApp->onStrafe(-delta_x, -delta_y);
     }
+}
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeOnTap(JNIEnv *env, jobject thiz,
+                                                                     jfloat x, jfloat y) {
+    if (engineApp) {
+        engineApp->onTap(static_cast<uint32_t>(x), static_cast<uint32_t>(y));
+    }
+}
+
+extern "C"
+JNIEXPORT jstring JNICALL
+Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeGetProjectDirPath(JNIEnv *env,
+                                                                                 jobject thiz,
+                                                                                 jobject storage_manager,
+                                                                                 jobject onderzoek) {
+    jclass storageClass = env->GetObjectClass(storage_manager);
+    if (!storageClass) {
+        return nullptr;
+    }
+
+    jmethodID getPathMethod = env->GetMethodID(
+            storageClass,
+            "getProjectDirPath",
+            "(Lcom/example/ipmedth_nfi/model/Onderzoek;)Ljava/lang/String;"
+    );
+
+    if (!getPathMethod) {
+        return nullptr;
+    }
+
+    jstring path = (jstring) env->CallObjectMethod(
+            storage_manager,
+            getPathMethod,
+            onderzoek
+    );
+
+    return path;
+
 }

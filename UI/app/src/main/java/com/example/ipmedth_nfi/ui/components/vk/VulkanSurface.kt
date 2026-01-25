@@ -21,7 +21,8 @@ import kotlin.math.abs
 @Composable
 fun VulkanSurface(
     modifier: Modifier = Modifier,
-    engine: NativeAndroidEngine
+    engine: NativeAndroidEngine,
+    projectDirPath: String? = null
 ) {
     val context = LocalContext.current
     val assetManager = context.assets
@@ -33,7 +34,7 @@ fun VulkanSurface(
         holder.addCallback(object : SurfaceHolder.Callback2 {
             override fun surfaceCreated(holder: SurfaceHolder) {
                 // Initialize the native Vulkan engine with the provided surface
-                engine.create(holder.surface, assetManager)
+                engine.create(holder.surface, assetManager, projectDirPath)
             }
 
             override fun surfaceChanged(
@@ -73,6 +74,7 @@ fun VulkanSurface(
                     onTap = { offset ->
                         Log.i("UI", "On tap")
                         Log.i("Tap", "x: ${offset.x}, y: ${offset.y}")
+                        engine.onTap(offset.x, offset.y)
                         engine.draw()
                     }
                 )
