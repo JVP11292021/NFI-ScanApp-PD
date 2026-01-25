@@ -33,6 +33,8 @@ private:
     std::string currentFilePath;
     std::shared_ptr<vle::ShaderModel> markerPinModel;
     int nextMarkerNumber = 1;
+    glm::vec3 defaultMarkerColor = { 0.9f, .9f, .9f };
+    glm::vec3 selectedMarkerColor = { 1.f, .1f, .1f };
 };
 
 #endif

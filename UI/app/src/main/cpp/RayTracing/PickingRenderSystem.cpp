@@ -1,5 +1,4 @@
 #include "PickingRenderSystem.hpp"
-#include "descriptors.hpp"
 #include <array>
 
 PickingRenderSystem::PickingRenderSystem(

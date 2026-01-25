@@ -57,7 +57,7 @@ void MarkerManager::loadMarkersFromTxt(const std::string& filePath, vle::EngineD
 
         auto obj = vle::Object::create();
         obj.model = markerPinModel;
-        obj.color = { 1.f, .1f, .1f };
+        obj.color = defaultMarkerColor;
         obj.transform.translation = { x, y, z };
         obj.transform.scale = { 1.f, 0.8f, 1.f };
         obj.transform.rotation = { glm::pi<float>(), 0.f, 0.f };
@@ -78,7 +78,7 @@ void MarkerManager::createMarker(const glm::vec3& position, vle::EngineDevice& d
 
     auto obj = vle::Object::create();
     obj.model = markerPinModel;
-    obj.color = { 1.f, .1f, .1f };
+    obj.color = defaultMarkerColor;
     obj.transform.translation = position;
     obj.transform.scale = { 1.f, 0.8f, 1.f };
     obj.transform.rotation = { glm::pi<float>(), 0.f, 0.f };

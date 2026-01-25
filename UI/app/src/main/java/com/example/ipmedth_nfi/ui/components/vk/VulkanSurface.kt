@@ -44,17 +44,14 @@ fun VulkanSurface(
                 height: Int
             ) {
                 Log.i("NFI", "Resizing surface to: $width x $height")
-                // Notify the native backend of the new dimensions
                 engine.resize(width, height)
             }
 
             override fun surfaceDestroyed(holder: SurfaceHolder) {
-                // Clean up native resources before the surface is fully removed
                 engine.destroy()
             }
 
             override fun surfaceRedrawNeeded(holder: SurfaceHolder) {
-                // Trigger a frame draw when the system requests a redraw
                 engine.draw()
             }
         })
@@ -70,13 +67,15 @@ fun VulkanSurface(
                         Log.i("UI", "On double tap")
                         Log.i("DoubleTap", "x: ${offset.x}, y: ${offset.y}")
                         engine.onTap(offset.x, offset.y)
-                        engine.draw()
+                        engine.draw()           // 1st draw to place new marker
+                        engine.draw()           // 2nd draw to refresh view
                     },
                     onTap = { offset ->
                         Log.i("UI", "On tap")
                         Log.i("Tap", "x: ${offset.x}, y: ${offset.y}")
                         engine.onDoubleTap(offset.x, offset.y)
-                        engine.draw()
+                        engine.draw()           // 1st draw to remove marker
+                        engine.draw()           // 2nd draw to refresh view
                     }
                 )
             }

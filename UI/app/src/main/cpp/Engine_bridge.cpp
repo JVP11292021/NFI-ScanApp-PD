@@ -1,12 +1,13 @@
 #include "AndroidEngine.h"
-#include "RenderLoopProcess.h"
 
 #include <jni.h>
 #include <android/asset_manager.h>
 #include <android/asset_manager_jni.h>
+#include <android/native_window_jni.h>
 #include <EngineBackend/defs.hpp>
 
 static AndroidEngine* engineApp = nullptr;
+static ANativeWindow* currentWindow = nullptr;
 
 extern "C"
 JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
@@ -28,6 +29,11 @@ Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeCreate(
         engineApp = nullptr;
     }
 
+    if (currentWindow) {
+        ANativeWindow_release(currentWindow);
+        currentWindow = nullptr;
+    }
+
     auto window = ANativeWindow_fromSurface(env, surface);
     auto assetManager = AAssetManager_fromJava(env, pAssetManager);
     if (!window || !assetManager) {
@@ -35,7 +41,8 @@ Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeCreate(
         return;
     }
 
-    // Convert jstring to const char*
+    currentWindow = window;
+
     const char* projectPath = nullptr;
     if (projectDirPath != nullptr) {
         projectPath = env->GetStringUTFChars(projectDirPath, nullptr);
@@ -52,7 +59,6 @@ Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeCreate(
         return;
     }
 
-    // Release the string
     if (projectPath) {
         env->ReleaseStringUTFChars(projectDirPath, projectPath);
     }
@@ -68,6 +74,12 @@ Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeDestroy(JNIEnv *e
         engineApp = nullptr;
         VLE_LOGI("Destroyed the AndroidEngine app instance!");
     }
+
+    if (currentWindow) {
+        ANativeWindow_release(currentWindow);
+        currentWindow = nullptr;
+        VLE_LOGI("Released ANativeWindow reference!");
+    }
 }
 
 extern "C"
@@ -76,14 +88,12 @@ Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeResize(JNIEnv *en
     VLE_LOGD("Resized surface to: ", std::to_string(width).c_str(), "x", std::to_string(height).c_str());
     if (engineApp) {
         engineApp->resize(width, height);
-//        mApplicationInstance->isResizeNeeded = true;
     }
 }
 
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeDraw(JNIEnv *env, jobject vulkanAppBridge) {
-//    VLE_LOGD("Redrawing engine frame");
     if (engineApp) {
         engineApp->drawFrame();
     }

@@ -13,7 +13,7 @@
 #include <Object.hpp>
 #include <Camera.hpp>
 #include <FrameInfo.hpp>
-#include "descriptors.hpp"
+#include <Descriptors.hpp>
 
 #include <array>
 

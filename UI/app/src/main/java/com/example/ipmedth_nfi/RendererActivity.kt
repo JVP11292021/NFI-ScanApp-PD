@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.example.ipmedth_nfi.bridge.NativeAndroidEngine
@@ -28,6 +29,13 @@ class RendererActivity : ComponentActivity() {
 
         setContent {
             val engine = remember { NativeAndroidEngine() }
+
+            DisposableEffect(Unit) {
+                onDispose {
+                    // The actual cleanup happens in surfaceDestroyed callback
+                    // This ensures the engine is only created once per Activity
+                }
+            }
 
             VulkanSurface(
                 modifier = Modifier.fillMaxSize(),

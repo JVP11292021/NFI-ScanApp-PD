@@ -38,7 +38,17 @@ AndroidEngine::AndroidEngine(
 
 }
 
-AndroidEngine::~AndroidEngine() = default;
+AndroidEngine::~AndroidEngine() {
+    vkDeviceWaitIdle(_device.device());
+
+    uboBuffers.clear();
+    uboBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+    globalSetLayout.reset();
+    globalDescriptorSets.clear();
+    globalDescriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
+
+    VLE_LOGI("AndroidEngine destroyed and static resources cleared");
+}
 
 void AndroidEngine::resize(std::int32_t width, std::int32_t height) {
     this->_win.setSize(width, height);
@@ -130,6 +140,11 @@ void AndroidEngine::loadObjects() {
 }
 
 void AndroidEngine::drawFrame() {
+    if (uboBuffers.empty() || !uboBuffers[0] || !globalSetLayout) {
+        VLE_LOGW("DrawFrame called before engine initialization complete - skipping");
+        return;
+    }
+
     auto view = _cam.getViewMatrix();
     auto projection = _cam.getProjMatrix();
     auto inverseView = glm::inverse(view);
