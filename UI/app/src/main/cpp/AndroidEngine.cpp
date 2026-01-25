@@ -16,11 +16,13 @@ AndroidEngine::AndroidEngine(
         AAssetManager* assetManager,
         ANativeWindow* nativeWindow,
         std::int32_t width,
-        std::int32_t height
+        std::int32_t height,
+        const char* projectDirPath
 )
   :
     IAndroidSurface(),
     _assetManager(assetManager),
+    _projectDirPath(projectDirPath ? projectDirPath : ""),
     _win(nativeWindow, width, height, "NFI Scan App"),
     _device(_win, _assetManager),
     _renderer(_win, _device)
@@ -100,11 +102,20 @@ void AndroidEngine::makeSystems() {
 }
 
 void AndroidEngine::loadObjects() {
-//    try {
-        this->markerManager.loadMarkersFromTxt("/storage/emulated/0/Android/data/com.example.ipmedth_nfi/files/NFI_Scanapp/123/testCase/markers.txt", _device, this->objects);
-//    } catch (std::runtime_error& er) {
-//        VLE_LOGW("No markers.txt found in asset folder, starting with no markers.");
-//    }
+    // Use the project directory path passed during construction
+    std::string markersPath = _projectDirPath.empty()
+        ? ""
+        : _projectDirPath + "/markers.txt";
+
+    if (!markersPath.empty()) {
+        try {
+            this->markerManager.loadMarkersFromTxt(markersPath, _device, this->objects);
+        } catch (std::runtime_error& er) {
+            VLE_LOGW("No markers.txt found, starting with no markers: ", er.what());
+        }
+    } else {
+        VLE_LOGW("No project directory provided, starting with no markers.");
+    }
 
     std::shared_ptr<vle::ShaderModel> roomModel =
             vle::ShaderModel::createModelFromFile(_device, "simple_scene.ply");
@@ -242,3 +253,4 @@ void AndroidEngine::onTap(uint32_t x, uint32_t y) {
     this->pickY = y;
     this->shouldPick = true;
 }
+
