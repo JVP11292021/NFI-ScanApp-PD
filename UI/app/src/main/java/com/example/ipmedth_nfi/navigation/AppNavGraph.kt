@@ -6,11 +6,14 @@ import androidx.compose.material3.DrawerState
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.ipmedth_nfi.bridge.NativeAndroidEngine
+import com.example.ipmedth_nfi.data.export.ProjectStorageManager
 import com.example.ipmedth_nfi.pages.app.AppPage
 import com.example.ipmedth_nfi.pages.model.ModelPage
 import com.example.ipmedth_nfi.pages.scan.ScanPage
@@ -30,6 +33,8 @@ fun AppNavGraph(
     val currentRoute =
         navController.currentBackStackEntryAsState().value?.destination?.route
     val assessmentPage = viewModel.currentAssessmentPage
+
+
 
     Scaffold(
         topBar = {
@@ -67,9 +72,17 @@ fun AppNavGraph(
             }
 
             composable(MainRoute.MODEL.route) {
+                val context = LocalContext.current
+                val activeOnderzoek = viewModel.activeOnderzoek.collectAsState().value
+                val projectPath = activeOnderzoek?.let { onderzoek ->
+                    ProjectStorageManager(context).getProjectDirPath(onderzoek)
+                }
+
                 ModelPage(
                     viewModel = viewModel,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
+                    engine = NativeAndroidEngine(),
+                    projectDirPath = projectPath
                 )
             }
 

@@ -22,12 +22,6 @@ class NativeAndroidEngine() {
     private external fun nativeOnTap(x: Float, y: Float)
     private external fun nativeOnDoubleTap(x: Float, y: Float)
 
-    external fun nativeGetProjectDirPath(
-        storageManager: ProjectStorageManager,
-        onderzoek: Onderzoek
-    ): String
-
-
     fun create(surface: Surface, assetManager: AssetManager, projectDirPath: String? = null) {
         nativeCreate(surface, assetManager, projectDirPath)
     }

@@ -229,12 +229,7 @@ void PickingRenderSystem::copyPixelToStaging(VkCommandBuffer cmdBuffer, uint32_t
     if (mouseX >= fbWidth) mouseX = fbWidth - 1;
     if (mouseY >= fbHeight) mouseY = fbHeight - 1;
 
-    VLE_LOGI("copyPixelToStaging: mouse(", std::to_string(mouseX).c_str(), ",",
-             std::to_string(mouseY).c_str(), ") fb(", std::to_string(fbWidth).c_str(),
-             "x", std::to_string(fbHeight).c_str(), ")");
-
     // Memory barrier to ensure render pass writes are complete and images are in correct layout
-    // This is critical on Android tile-based GPUs
     VkImageMemoryBarrier barrierColorPre{};
     barrierColorPre.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
     barrierColorPre.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
@@ -366,9 +361,6 @@ PickResult PickingRenderSystem::readPickResult() {
     result.hit = true;
     result.objectID = pick.objectID;
     result.pointIndex = pick.pointIndex;
-    VLE_LOGI("Picked Object ID: ", std::to_string(pick.objectID).c_str(),
-            " Point Index: ", std::to_string(pick.pointIndex).c_str()
-    );
 
 	result.id = (pick.objectID << 16) | (pick.pointIndex & 0xFFFF);
 
@@ -378,11 +370,5 @@ PickResult PickingRenderSystem::readPickResult() {
     stagingBufferPos->unmap();
 
     result.worldPos = glm::vec3(pos[0], pos[1], pos[2]);
-    VLE_LOGI("Picked ID: ", std::to_string(result.id).c_str(),
-            " at world position: ",
-            std::to_string(result.worldPos.x).c_str(), ", ",
-            std::to_string(result.worldPos.y).c_str(), ", ",
-            std::to_string(result.worldPos.z).c_str()
-    );
     return result;
 }

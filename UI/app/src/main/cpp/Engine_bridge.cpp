@@ -142,34 +142,3 @@ Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeOnDoubleTap(JNIEn
         engineApp->onDoubleTap(static_cast<uint32_t>(x), static_cast<uint32_t>(y));
     }
 }
-
-extern "C"
-JNIEXPORT jstring JNICALL
-Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeGetProjectDirPath(JNIEnv *env,
-                                                                                 jobject thiz,
-                                                                                 jobject storage_manager,
-                                                                                 jobject onderzoek) {
-    jclass storageClass = env->GetObjectClass(storage_manager);
-    if (!storageClass) {
-        return nullptr;
-    }
-
-    jmethodID getPathMethod = env->GetMethodID(
-            storageClass,
-            "getProjectDirPath",
-            "(Lcom/example/ipmedth_nfi/model/Onderzoek;)Ljava/lang/String;"
-    );
-
-    if (!getPathMethod) {
-        return nullptr;
-    }
-
-    jstring path = (jstring) env->CallObjectMethod(
-            storage_manager,
-            getPathMethod,
-            onderzoek
-    );
-
-    return path;
-
-}

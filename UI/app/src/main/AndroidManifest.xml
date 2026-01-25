@@ -35,13 +35,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <activity
-            android:name=".RendererActivity"
-            android:exported="false"
-            android:screenOrientation="portrait"
-            android:configChanges="orientation|keyboardHidden|screenSize"
-            android:theme="@style/Theme.IPMEDTH_NFI" />
     </application>
 
 </manifest>
