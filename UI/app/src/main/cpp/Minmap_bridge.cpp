@@ -28,6 +28,11 @@ Java_com_example_ipmedth_1nfi_bridge_NativeReconstructionEngine_nativeCreate(
 
     std::string datasetPath = jstringToString(env, dataset_path);
     std::string databasePath = jstringToString(env, database_path);
+    LOG(MM_INFO)
+        << "Creating ReconstructionEngine with dataset path: "
+        << datasetPath
+        << ". Creating ReaconstructionEngine with database path: "
+        << databasePath;
 
     engine = new minmap::ReconstructionEngine(datasetPath, databasePath);
     if (engine) {

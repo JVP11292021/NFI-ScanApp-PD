@@ -167,11 +167,12 @@ std::vector<std::string> GetRecursiveFileList(const std::string& path) {
         }
       } catch (const std::filesystem::filesystem_error& e) {
         // Skip entries that cannot be accessed (permission denied, etc.)
+        LOG(MM_WARNING) << "Error accessing file: " << e.what();
         continue;
       }
     }
   } catch (const std::filesystem::filesystem_error& e) {
-    LOG(MM_WARNING) << "Error accessing directory: " << e.what();
+    LOG(MM_ERROR) << "Error accessing directory: " << e.what();
   }
   return file_list;
 }

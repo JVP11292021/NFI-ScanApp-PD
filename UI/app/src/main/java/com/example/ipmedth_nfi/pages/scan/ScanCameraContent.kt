@@ -19,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,6 +36,7 @@ import com.example.ipmedth_nfi.viewmodel.SessionViewModel
 import com.example.ipmedth_nfi.bridge.NativeReconstructionEngine
 import com.example.ipmedth_nfi.data.export.ProjectStorageManager
 import com.example.ipmedth_nfi.model.Onderzoek
+import java.io.File
 
 @Composable
 fun ScanCameraContent(
@@ -50,14 +52,19 @@ fun ScanCameraContent(
         NativeReconstructionEngine()
     }
 
+    val activeOnderzoek = viewModel.activeOnderzoek.collectAsState().value
+    val projectPath = activeOnderzoek?.let { onderzoek ->
+        ProjectStorageManager(context).getProjectDir(onderzoek)
+    }
+
     // TODO make this dynamic
     DisposableEffect(Unit) {
-        val datasetPath = "/storage/emulated/0/Android/data/com.example.ipmedth_nfi/files/NFI_Scanapp/dgbbnj/testCase/Reconstruction/images"
-        val databasePath = "/storage/emulated/0/Android/data/com.example.ipmedth_nfi/files/NFI_Scanapp/dgbbnj/testCase/Reconstruction"
+        val datasetPath = File(projectPath, "/Reconstruction/images")
+        val databasePath = File(projectPath, "/Reconstruction/database.db")
 
         reconstructionEngine.create(
-            datasetPath = datasetPath,
-            databasePath = databasePath
+            datasetPath = datasetPath.absolutePath,
+            databasePath = databasePath.absolutePath
         )
 
         onDispose {
@@ -134,7 +141,6 @@ fun ScanCameraContent(
                     .align(Alignment.BottomEnd)
                     .padding(bottom = 64.dp, end = 24.dp),
                 onClick = {
-                    Log.i("NFI", "On Sfm pipeline");
                     var resultCode = reconstructionEngine.extractMatchFeatures()
 //                    resultCode = reconstructionEngine.reconstruct()
 

@@ -71,6 +71,7 @@ int RunFeatureExtractor(
     const std::string& descriptor_normalization,
     const std::string& image_list_path
 ) {
+    LOG(MM_DEBUG) << "Making options manager";
     colmap::OptionManager options;
     *options.database_path = database_path.string();
     *options.image_path = image_path.string();
@@ -84,12 +85,12 @@ int RunFeatureExtractor(
 
     // Apply camera mode if specified
     if (camera_mode >= 0) {
+        LOG(MM_DEBUG) << "Applying camera mode " << camera_mode;
         UpdateImageReaderOptionsFromCameraMode(reader_options,
             static_cast<CameraMode>(camera_mode));
     }
 
     // SIFT options
-    options.sift_extraction->use_gpu = false;
     std::string desc_norm = descriptor_normalization;
     colmap::StringToLower(&desc_norm);
     if (desc_norm == "l1_root") {
@@ -107,7 +108,6 @@ int RunFeatureExtractor(
 
     // Optional image list
     if (!image_list_path.empty()) {
-        LOG(MM_DEBUG) << "Using image list from " << image_list_path;
         reader_options.image_names = colmap::ReadTextFileLines(image_list_path);
         if (reader_options.image_names.empty()) {
             return EXIT_SUCCESS;

@@ -362,6 +362,7 @@ class FeatureExtractorController : public Thread {
 
       auto custom_sift_options = sift_options_;
       custom_sift_options.use_gpu = false;
+      LOG(MM_DEBUG) << "Using " << num_threads << " threads, to start feature extraction process";
       for (int i = 0; i < num_threads; ++i) {
         extractors_.emplace_back(
             std::make_unique<SiftFeatureExtractorThread>(custom_sift_options,

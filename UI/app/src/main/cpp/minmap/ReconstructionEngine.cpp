@@ -10,7 +10,9 @@
 
 MM_NS_B
 
-ReconstructionEngine::ReconstructionEngine(std::string& datasetPath, std::string& databasePath) {
+ReconstructionEngine::ReconstructionEngine(std::string& datasetPath, std::string& databasePath)
+    : datasetPath(datasetPath), databasePath(databasePath)
+{
 
 }
 

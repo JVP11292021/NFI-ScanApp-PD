@@ -1511,7 +1511,7 @@ void Database::PrepareSQLStatements() {
 
   auto prepare_sql_stmt = [this](const std::string_view sql,
                                  sqlite3_stmt** sql_stmt) {
-    LOG(MM_ERROR) << "Preparing SQL statement: " << sql;
+    LOG(MM_DEBUG) << "Preparing SQL statement: " << sql;
     SQLITE3_CALL(sqlite3_prepare_v2(database_, sql.data(), -1, sql_stmt, 0));
     sql_stmts_.push_back(*sql_stmt);
   };
