@@ -607,7 +607,6 @@ include_directories(${ANDROID_NDK}//sources/android/native_app_glue)
 
 add_library(renderEngine SHARED
         AndroidEngine.cpp
-        RenderLoopProcess.cpp
         Engine_bridge.cpp
         Minmap_bridge.cpp
 )

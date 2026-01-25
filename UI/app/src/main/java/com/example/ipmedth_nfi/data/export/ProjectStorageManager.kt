@@ -30,6 +30,8 @@ class ProjectStorageManager(
         imageDir.mkdirs()
         File(projectDir, "markers.txt").createNewFile()
 
+        File(projectDir, "/Reconstruction/project.db").createNewFile()
+
         File(projectDir, "project.json").writeText(
             Json.encodeToString(onderzoek)
         )

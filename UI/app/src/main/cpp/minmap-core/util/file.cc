@@ -140,13 +140,38 @@ std::vector<std::string> GetFileList(const std::string& path) {
 
 std::vector<std::string> GetRecursiveFileList(const std::string& path) {
   std::vector<std::string> file_list;
-  for (auto it = std::filesystem::recursive_directory_iterator(path);
-       it != std::filesystem::recursive_directory_iterator();
-       ++it) {
-    if (std::filesystem::is_regular_file(*it)) {
-      const std::filesystem::path file_path = *it;
-      file_list.push_back(file_path.string());
+
+  // Validate path exists and is accessible
+  try {
+    if (!std::filesystem::exists(path)) {
+      LOG(MM_WARNING) << "Path does not exist: " << path;
+      return file_list;
     }
+    if (!std::filesystem::is_directory(path)) {
+      LOG(MM_WARNING) << "Path is not a directory: " << path;
+      return file_list;
+    }
+  } catch (const std::filesystem::filesystem_error& e) {
+    LOG(MM_WARNING) << "Error checking path: " << e.what();
+    return file_list;
+  }
+
+  try {
+    for (auto it = std::filesystem::recursive_directory_iterator(path);
+         it != std::filesystem::recursive_directory_iterator();
+         ++it) {
+      try {
+        if (std::filesystem::is_regular_file(*it)) {
+          const std::filesystem::path file_path = *it;
+          file_list.push_back(file_path.string());
+        }
+      } catch (const std::filesystem::filesystem_error& e) {
+        // Skip entries that cannot be accessed (permission denied, etc.)
+        continue;
+      }
+    }
+  } catch (const std::filesystem::filesystem_error& e) {
+    LOG(MM_WARNING) << "Error accessing directory: " << e.what();
   }
   return file_list;
 }
@@ -166,13 +191,38 @@ std::vector<std::string> GetDirList(const std::string& path) {
 
 std::vector<std::string> GetRecursiveDirList(const std::string& path) {
   std::vector<std::string> dir_list;
-  for (auto it = std::filesystem::recursive_directory_iterator(path);
-       it != std::filesystem::recursive_directory_iterator();
-       ++it) {
-    if (std::filesystem::is_directory(*it)) {
-      const std::filesystem::path dir_path = *it;
-      dir_list.push_back(dir_path.string());
+
+  // Validate path exists and is accessible
+  try {
+    if (!std::filesystem::exists(path)) {
+      LOG(MM_WARNING) << "Path does not exist: " << path;
+      return dir_list;
     }
+    if (!std::filesystem::is_directory(path)) {
+      LOG(MM_WARNING) << "Path is not a directory: " << path;
+      return dir_list;
+    }
+  } catch (const std::filesystem::filesystem_error& e) {
+    LOG(MM_WARNING) << "Error checking path: " << e.what();
+    return dir_list;
+  }
+
+  try {
+    for (auto it = std::filesystem::recursive_directory_iterator(path);
+         it != std::filesystem::recursive_directory_iterator();
+         ++it) {
+      try {
+        if (std::filesystem::is_directory(*it)) {
+          const std::filesystem::path dir_path = *it;
+          dir_list.push_back(dir_path.string());
+        }
+      } catch (const std::filesystem::filesystem_error& e) {
+        // Skip directories that cannot be accessed (permission denied, etc.)
+        continue;
+      }
+    }
+  } catch (const std::filesystem::filesystem_error& e) {
+    LOG(MM_WARNING) << "Error accessing directory: " << e.what();
   }
   return dir_list;
 }

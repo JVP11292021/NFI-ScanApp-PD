@@ -30,16 +30,6 @@ class NativeReconstructionEngine {
     fun create(datasetPath: String, databasePath: String) {
 
         check(!isInitialized) { "Engine already initialized" }
-        val dbDir = File(databasePath)
-        if (!dbDir.exists()) {
-            dbDir.mkdirs()
-        }
-
-        val databaseFile = File(dbDir, "database.db")
-        if (!databaseFile.exists()) {
-            databaseFile.createNewFile()
-        }
-
         nativeCreate(datasetPath, databasePath)
         isInitialized = true
     }

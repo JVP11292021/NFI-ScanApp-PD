@@ -135,10 +135,8 @@ fun ScanCameraContent(
                     .padding(bottom = 64.dp, end = 24.dp),
                 onClick = {
                     Log.i("NFI", "On Sfm pipeline");
-                    val resultCode = reconstructionEngine.extractMatchFeatures(
-                        cameraMode = -1,
-                        descriptorNormalization = "l1_root"
-                    )
+                    var resultCode = reconstructionEngine.extractMatchFeatures()
+//                    resultCode = reconstructionEngine.reconstruct()
 
                 }
             ) {

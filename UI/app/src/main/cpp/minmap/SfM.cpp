@@ -5,6 +5,8 @@
 #include <sfm/observation_manager.h>
 #include <util/file.h>
 
+#define MM_ANDROID_LOG_TAG "MINMAP"
+
 MM_NS_B
 
 static std::pair<std::vector<colmap::image_t>, std::vector<Eigen::Vector3d>>

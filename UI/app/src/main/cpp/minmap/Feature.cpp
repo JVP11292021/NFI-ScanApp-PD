@@ -5,6 +5,8 @@
 #include <util/file.h>
 #include <util/misc.h>
 
+#define MM_ANDROID_LOG_TAG "MINMAP"
+
 MM_NS_B
 
 bool VerifyCameraParams(const std::string& camera_model,
@@ -105,6 +107,7 @@ int RunFeatureExtractor(
 
     // Optional image list
     if (!image_list_path.empty()) {
+        LOG(MM_DEBUG) << "Using image list from " << image_list_path;
         reader_options.image_names = colmap::ReadTextFileLines(image_list_path);
         if (reader_options.image_names.empty()) {
             return EXIT_SUCCESS;

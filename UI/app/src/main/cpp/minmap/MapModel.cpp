@@ -5,6 +5,8 @@
 #include <scene/reconstruction_io.h>
 #include <util/file.h>
 
+#define MM_ANDROID_LOG_TAG "MINMAP"
+
 MM_NS_B
 
 static void PrintErrorStats(std::ostream& out, std::vector<double>& vals) {

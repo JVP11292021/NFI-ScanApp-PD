@@ -1,5 +1,4 @@
 #include "AndroidEngine.h"
-#include "RenderLoopProcess.h"
 
 #include <jni.h>
 #include <android/asset_manager.h>

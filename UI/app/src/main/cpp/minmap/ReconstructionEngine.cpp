@@ -6,6 +6,8 @@
 
 #include <util/logging.h>
 
+#define MM_ANDROID_LOG_TAG "MINMAP"
+
 MM_NS_B
 
 ReconstructionEngine::ReconstructionEngine(std::string& datasetPath, std::string& databasePath) {

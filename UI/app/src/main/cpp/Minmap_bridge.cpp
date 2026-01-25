@@ -7,6 +7,8 @@
 #include <minmap/ReconstructionEngine.hpp>
 #include <string>
 
+#define MM_ANDROID_LOG_TAG "MINMAP"
+
 static minmap::ReconstructionEngine* engine = nullptr;
 
 static std::string jstringToString(JNIEnv* env, jstring jstr);
@@ -29,10 +31,10 @@ Java_com_example_ipmedth_1nfi_bridge_NativeReconstructionEngine_nativeCreate(
 
     engine = new minmap::ReconstructionEngine(datasetPath, databasePath);
     if (engine) {
-        LOG(MM_INFO) << "Engine created successfully.";
+        LOG(MM_INFO) << "ReconstructionEngine created successfully.";
     }
     else {
-        LOG(MM_ERROR) << "Failed to create engine.";
+        LOG(MM_ERROR) << "Failed to create ReconstructionEngine.";
         throw std::runtime_error("Failed to create engine.");
     }
 }
@@ -46,9 +48,10 @@ Java_com_example_ipmedth_1nfi_bridge_NativeReconstructionEngine_nativeDestroy(
     if (engine != nullptr) {
         delete engine;
         engine = nullptr;
+        LOG(MM_INFO) << "ReconstructionEngine destroyed successfully.";
     }
     else {
-        LOG(MM_WARNING) << "Engine not initialized or already destroyed. Call create() first.";
+        LOG(MM_WARNING) << "ReconstructionEngine not initialized or already destroyed. Call create() first.";
     }
 }
 
@@ -62,7 +65,7 @@ Java_com_example_ipmedth_1nfi_bridge_NativeReconstructionEngine_nativeExtractMat
         jstring image_list_path
 ) {
     if (engine == nullptr) {
-        LOG(MM_ERROR) << "Engine not initialized. Call create() first.";
+        LOG(MM_ERROR) << "ReconstructionEngine not initialized. Call create() first.";
         return EXIT_FAILURE;
     }
 
@@ -71,13 +74,21 @@ Java_com_example_ipmedth_1nfi_bridge_NativeReconstructionEngine_nativeExtractMat
     std::string imageListPath =
             jstringToString(env, image_list_path);
 
-    return static_cast<jint>(
+    if (std::int8_t featuresResultCode =
             engine->extractFeatures(
-                    camera_mode,
-                    descriptorNormalization,
-                    imageListPath
-            )
-    );
+                camera_mode,
+                descriptorNormalization,
+                imageListPath);
+        featuresResultCode != EXIT_SUCCESS)
+    {
+        return static_cast<jint>(featuresResultCode);
+    } else {
+        auto matchResultCode =
+                engine->matchFeatures();
+
+        return static_cast<jint>(featuresResultCode & matchResultCode);
+    }
+
 }
 
 extern "C"
@@ -91,7 +102,7 @@ Java_com_example_ipmedth_1nfi_bridge_NativeReconstructionEngine_nativeReconstruc
         jboolean fix_existing_frames
 ) {
     if (engine == nullptr) {
-        LOG(MM_ERROR) << "Engine not initialized. Call create() first.";
+        LOG(MM_ERROR) << "ReconstructionEngine not initialized. Call create() first.";
         return EXIT_FAILURE;
     }
 
@@ -120,7 +131,7 @@ Java_com_example_ipmedth_1nfi_bridge_NativeReconstructionEngine_nativeMapModel(
         jboolean skip_distortion
 ) {
     if (engine == nullptr) {
-        LOG(MM_ERROR) << "Engine not initialized. Call create() first.";
+        LOG(MM_ERROR) << "ReconstructionEngine not initialized. Call create() first.";
         return EXIT_FAILURE;
     }
 

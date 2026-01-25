@@ -181,7 +181,8 @@ T ThrowCheckNotNull(const char* file, int line, const char* names, T&& t) {
 #include <string>
 #include <android/log.h>
 
-#define ANDROID_LOG_TAG "COLMAP"
+#define MM_ANDROID_LOG_TAG "MINMAP-CORE"
+
 extern int g_verbosity;
 
 // Option checker macros. In contrast to glog, this function does not abort the
@@ -217,6 +218,7 @@ extern int g_verbosity;
 #define MM_WARNING android_LogPriority::ANDROID_LOG_WARN
 #define MM_ERROR   android_LogPriority::ANDROID_LOG_ERROR
 #define MM_FATAL   android_LogPriority::ANDROID_LOG_FATAL
+#define MM_DEBUG   android_LogPriority::ANDROID_LOG_DEBUG
 
 #define COMPACT_GOOGLE_LOG_FATAL_THROW \
   colmap::LogMessageFatalThrowDefault(__FILE__, __LINE__)
@@ -279,7 +281,7 @@ public:
 protected:
     void Throw() {
         std::string msg = Format();
-        __android_log_print(ANDROID_LOG_FATAL, ANDROID_LOG_TAG, "%s", msg.c_str());
+        __android_log_print(ANDROID_LOG_FATAL, MM_ANDROID_LOG_TAG, "%s", msg.c_str());
         throw std::runtime_error(msg);
     }
 
@@ -311,7 +313,7 @@ public:
 private:
     void Throw() {
         std::string msg = Format();
-        __android_log_print(ANDROID_LOG_FATAL, ANDROID_LOG_TAG, "%s", msg.c_str());
+        __android_log_print(ANDROID_LOG_FATAL, MM_ANDROID_LOG_TAG, "%s", msg.c_str());
         throw Exception(msg);
     }
 
@@ -337,7 +339,7 @@ public:
     ~AndroidLogMessage() {
         std::ostringstream final;
         final << file_ << ":" << line_ << ": " << stream_.str();
-        __android_log_print(prio_, ANDROID_LOG_TAG, "%s", final.str().c_str());
+        __android_log_print(prio_, MM_ANDROID_LOG_TAG, "%s", final.str().c_str());
     }
 
     std::ostringstream& stream() { return stream_; }
@@ -361,7 +363,7 @@ T ThrowCheckNotNull(const char* file,
         std::ostringstream ss;
         ss << file << ":" << line << ": " << expr;
         std::string msg = ss.str();
-        __android_log_print(ANDROID_LOG_FATAL, ANDROID_LOG_TAG, "%s", msg.c_str());
+        __android_log_print(ANDROID_LOG_FATAL, MM_ANDROID_LOG_TAG, "%s", msg.c_str());
         throw std::runtime_error(msg);
     }
     return ptr;
