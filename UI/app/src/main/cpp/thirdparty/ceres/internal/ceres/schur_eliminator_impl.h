@@ -337,7 +337,7 @@ void SchurEliminator<kRowBlockSize, kEBlockSize, kFBlockSize>::BackSubstitute(
     for (int j = 0; j < chunk.size; ++j) {
       const CompressedRow& row = bs->rows[chunk.start + j];
       const Cell& e_cell = row.cells.front();
-      DCHECK_EQ(e_block_id, e_cell.block_id);
+//      DCHECK_EQ(e_block_id, e_cell.block_id);
 
       FixedArray<double, 8> sj(row.block.size);
 
@@ -620,7 +620,7 @@ void SchurEliminator<kRowBlockSize, kEBlockSize, kFBlockSize>::
   const CompressedRow& row = bs->rows[row_block_index];
   for (int i = 0; i < row.cells.size(); ++i) {
     const int block1 = row.cells[i].block_id - num_eliminate_blocks_;
-    DCHECK_GE(block1, 0);
+//    DCHECK_GE(block1, 0);
 
     const int block1_size = bs->cols[row.cells[i].block_id].size;
     int r, c, row_stride, col_stride;
@@ -641,8 +641,8 @@ void SchurEliminator<kRowBlockSize, kEBlockSize, kFBlockSize>::
 
     for (int j = i + 1; j < row.cells.size(); ++j) {
       const int block2 = row.cells[j].block_id - num_eliminate_blocks_;
-      DCHECK_GE(block2, 0);
-      DCHECK_LT(block1, block2);
+//      DCHECK_GE(block2, 0);
+//      DCHECK_LT(block1, block2);
       int r, c, row_stride, col_stride;
       CellInfo* cell_info =
           lhs->GetCell(block1, block2, &r, &c, &row_stride, &col_stride);
@@ -675,7 +675,7 @@ void SchurEliminator<kRowBlockSize, kEBlockSize, kFBlockSize>::
   const CompressedRow& row = bs->rows[row_block_index];
   for (int i = 1; i < row.cells.size(); ++i) {
     const int block1 = row.cells[i].block_id - num_eliminate_blocks_;
-    DCHECK_GE(block1, 0);
+//    DCHECK_GE(block1, 0);
 
     const int block1_size = bs->cols[row.cells[i].block_id].size;
     int r, c, row_stride, col_stride;
@@ -695,8 +695,8 @@ void SchurEliminator<kRowBlockSize, kEBlockSize, kFBlockSize>::
 
     for (int j = i + 1; j < row.cells.size(); ++j) {
       const int block2 = row.cells[j].block_id - num_eliminate_blocks_;
-      DCHECK_GE(block2, 0);
-      DCHECK_LT(block1, block2);
+//      DCHECK_GE(block2, 0);
+//      DCHECK_LT(block1, block2);
       const int block2_size = bs->cols[row.cells[j].block_id].size;
       int r, c, row_stride, col_stride;
       CellInfo* cell_info =

@@ -38,6 +38,22 @@ the terms of the BSD license (see the COPYING file).
 #include "imopv_sse2.h"
 #include "mathop.h"
 
+#define FLT VL_TYPE_FLOAT
+#define VL_IMOPV_INSTANTIATING
+#include "imopv.c"
+
+#define FLT VL_TYPE_DOUBLE
+#define VL_IMOPV_INSTANTIATING
+#include "imopv.c"
+
+#define FLT VL_TYPE_UINT32
+#define VL_IMOPV_INSTANTIATING
+#include "imopv.c"
+
+#define FLT VL_TYPE_INT32
+#define VL_IMOPV_INSTANTIATING
+#include "imopv.c"
+
 /* VL_IMOPV_INSTANTIATING */
 #endif
 

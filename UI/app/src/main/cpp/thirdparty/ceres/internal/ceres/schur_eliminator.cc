@@ -160,3 +160,36 @@ std::unique_ptr<SchurEliminatorBase> SchurEliminatorBase::Create(
 
 }  // namespace internal
 }  // namespace ceres
+
+// Explicit template instantiations - must be outside namespaces
+#include "schur_eliminator_impl.h"
+
+namespace ceres {
+namespace internal {
+
+template class SchurEliminator<2, 2, 2>;
+template class SchurEliminator<2, 2, 3>;
+template class SchurEliminator<2, 2, 4>;
+template class SchurEliminator<2, 2, Eigen::Dynamic>;
+template class SchurEliminator<2, 3, 3>;
+template class SchurEliminator<2, 3, 4>;
+template class SchurEliminator<2, 3, 6>;
+template class SchurEliminator<2, 3, 9>;
+template class SchurEliminator<2, 3, Eigen::Dynamic>;
+template class SchurEliminator<2, 4, 3>;
+template class SchurEliminator<2, 4, 4>;
+template class SchurEliminator<2, 4, 6>;
+template class SchurEliminator<2, 4, 8>;
+template class SchurEliminator<2, 4, 9>;
+template class SchurEliminator<2, 4, Eigen::Dynamic>;
+template class SchurEliminator<2, Eigen::Dynamic, Eigen::Dynamic>;
+template class SchurEliminator<3, 3, 3>;
+template class SchurEliminator<4, 4, 2>;
+template class SchurEliminator<4, 4, 3>;
+template class SchurEliminator<4, 4, 4>;
+template class SchurEliminator<4, 4, Eigen::Dynamic>;
+template class SchurEliminator<Eigen::Dynamic, Eigen::Dynamic, Eigen::Dynamic>;
+
+}  // namespace internal
+}  // namespace ceres
+

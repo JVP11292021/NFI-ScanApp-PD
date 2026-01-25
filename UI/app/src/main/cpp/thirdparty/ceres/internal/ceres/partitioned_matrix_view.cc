@@ -182,3 +182,39 @@ std::unique_ptr<PartitionedMatrixViewBase> PartitionedMatrixViewBase::Create(
 
 }  // namespace internal
 }  // namespace ceres
+
+// Explicit template instantiations - must be outside namespaces
+#include "partitioned_matrix_view_impl.h"
+
+namespace ceres {
+namespace internal {
+
+template class PartitionedMatrixView<2, 2, 2>;
+template class PartitionedMatrixView<2, 2, 3>;
+template class PartitionedMatrixView<2, 2, 4>;
+template class PartitionedMatrixView<2, 2, Eigen::Dynamic>;
+template class PartitionedMatrixView<2, 3, 3>;
+template class PartitionedMatrixView<2, 3, 4>;
+template class PartitionedMatrixView<2, 3, 6>;
+template class PartitionedMatrixView<2, 3, 9>;
+template class PartitionedMatrixView<2, 3, Eigen::Dynamic>;
+template class PartitionedMatrixView<2, 4, 3>;
+template class PartitionedMatrixView<2, 4, 4>;
+template class PartitionedMatrixView<2, 4, 6>;
+template class PartitionedMatrixView<2, 4, 8>;
+template class PartitionedMatrixView<2, 4, 9>;
+template class PartitionedMatrixView<2, 4, Eigen::Dynamic>;
+template class PartitionedMatrixView<2, Eigen::Dynamic, Eigen::Dynamic>;
+template class PartitionedMatrixView<3, 3, 3>;
+template class PartitionedMatrixView<3, 3, 4>;
+template class PartitionedMatrixView<3, 3, 6>;
+template class PartitionedMatrixView<3, 3, 9>;
+template class PartitionedMatrixView<3, 3, Eigen::Dynamic>;
+template class PartitionedMatrixView<4, 4, 2>;
+template class PartitionedMatrixView<4, 4, 3>;
+template class PartitionedMatrixView<4, 4, 4>;
+template class PartitionedMatrixView<4, 4, Eigen::Dynamic>;
+template class PartitionedMatrixView<Eigen::Dynamic, Eigen::Dynamic, Eigen::Dynamic>;
+
+}  // namespace internal
+}  // namespace ceres
