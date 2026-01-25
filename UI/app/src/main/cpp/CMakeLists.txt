@@ -414,6 +414,8 @@ add_library(minmap STATIC
         minmap/Feature.cpp
         minmap/MapModel.cpp
         minmap/SfM.cpp
+        minmap/ReconstructionEngine.cpp
+        minmap/Minmap_bridge.cpp # This is a native bridge element
 )
 
 set_target_properties(minmap PROPERTIES
