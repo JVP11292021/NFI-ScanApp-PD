@@ -44,14 +44,14 @@ void AndroidEngine::resize(std::int32_t width, std::int32_t height) {
 }
 
 void AndroidEngine::mapUniformBufferObjects() {
-    for (std::int32_t i = 0; i < uboBuffers.size(); i++) {
-        uboBuffers[i] = std::make_unique<UboBuffer>(
+    for (auto & uboBuffer : uboBuffers) {
+        uboBuffer = std::make_unique<UboBuffer>(
                 this->_device,
                 sizeof(vle::GlobalUbo),
                 1,
                 VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
-        uboBuffers[i]->map();
+        uboBuffer->map();
     }
 }
 
@@ -75,10 +75,37 @@ void AndroidEngine::makeSystems() {
                 _renderer.getSwapChainRenderPass(),
                 globalSetLayout->getDescriptorSetLayout(),
                 "shaders/point_cloud_shader.vert.spv",
-                "shaders/point_cloud_shader.frag.spv");
+                "shaders/point_cloud_shader.frag.spv"
+            );
+
+    pickingRenderSystem =
+            std::make_unique<PickingRenderSystem>(
+                _device,
+                _win.getWidth(),
+                _win.getHeight(),
+                globalSetLayout->getDescriptorSetLayout(),
+                _renderer.getSwapChainRenderPass(),
+                "shaders/index_shader.vert.spv",
+                "shaders/index_shader.frag.spv"
+            );
+
+    objectRenderSystem =
+            std::make_unique<vle::sys::ObjectRenderSystem>(
+                _device,
+                _renderer.getSwapChainRenderPass(),
+                globalSetLayout->getDescriptorSetLayout(),
+                "shaders/simple_shader.vert.spv",
+                "shaders/simple_shader.frag.spv"
+            );
 }
 
 void AndroidEngine::loadObjects() {
+//    try {
+        this->markerManager.loadMarkersFromTxt("/storage/emulated/0/Android/data/com.example.ipmedth_nfi/files/NFI_Scanapp/123/testCase/markers.txt", _device, this->objects);
+//    } catch (std::runtime_error& er) {
+//        VLE_LOGW("No markers.txt found in asset folder, starting with no markers.");
+//    }
+
     std::shared_ptr<vle::ShaderModel> roomModel =
             vle::ShaderModel::createModelFromFile(_device, "simple_scene.ply");
     auto room = vle::Object::create();
@@ -139,17 +166,49 @@ void AndroidEngine::drawFrame() {
         ubo.ambientLightColor = glm::vec4(1.f, 1.f, 1.f, 1.f);
         ubo.numLights = 0;
 
+        pickingRenderSystem->update(frameInfo, ubo);
+        this->markerManager.updateMarkerRotations(_cam.getPosition(), objects);
+
         uboBuffers[frameIndex]->writeToBuffer(&ubo);
         uboBuffers[frameIndex]->flush();
 
+        pickingRenderSystem->render(frameInfo);
+
+        // Copy pixel data to staging buffer BEFORE ending the frame command buffer
+        // This ensures proper synchronization - the render pass must complete first
+        if (shouldPick) {
+            pickingRenderSystem->copyPixelToStaging(commandBuffer, pickX, pickY);
+            VLE_LOGI("Picking at: ", std::to_string(pickX).c_str(), ", ", std::to_string(pickY).c_str());
+        }
+
         // === RENDER ===
         _renderer.beginSwapChainRenderPass(commandBuffer);
+
+        objectRenderSystem->render(frameInfo);
         pointCloudRenderSystem->render(frameInfo);
         // pointLightSystem.render(frameInfo);
-        // pointCloudRenderSystem.render(frameInfo);
 
         _renderer.endSwapChainRenderPass(commandBuffer);
         _renderer.endFrame();
+
+        // Read pick result AFTER the frame has been submitted and completed
+        if (shouldPick) {
+            // Wait for GPU to finish so we can read the staging buffer
+            vkDeviceWaitIdle(_device.device());
+
+            PickResult pick = pickingRenderSystem->readPickResult();
+
+            if (pick.id != 0xFFFFFFFF) {
+                this->markerManager.createMarker(pick.worldPos, _device, this->objects);
+                VLE_LOGI(
+                        "Placed marker at: ",
+                        std::to_string(pick.worldPos.x).c_str(), ", ",
+                        std::to_string(pick.worldPos.y).c_str(), ", ",
+                        std::to_string(pick.worldPos.z).c_str()
+                );
+            }
+            shouldPick = false;
+        }
     }
 }
 
@@ -176,4 +235,10 @@ void AndroidEngine::onZoom(float scaleFactor) {
     constexpr float ZOOM_SENSITIVITY = 0.5f;
     float zoomDelta = std::log(scaleFactor) * ZOOM_SENSITIVITY;
     _cam.processKeyboard(vle::sys::FORWARD, zoomDelta);
+}
+
+void AndroidEngine::onTap(uint32_t x, uint32_t y) {
+    this->pickX = x;
+    this->pickY = y;
+    this->shouldPick = true;
 }

@@ -18,13 +18,14 @@ class ProjectStorageManager(
         File(rootDir, "${onderzoek.zaaknummer}/${onderzoek.onderzoeksnaam}")
 
     override fun getImageDir(onderzoek: Onderzoek): File =
-        File(getProjectDir(onderzoek), "reconstructie/images")
+        File(getProjectDir(onderzoek), "Reconstruction/images")
 
     override fun createProject(onderzoek: Onderzoek): File {
         val projectDir = getProjectDir(onderzoek)
         val imageDir = getImageDir(onderzoek)
 
         imageDir.mkdirs()
+        File(projectDir, "markers.txt").createNewFile()
 
         File(projectDir, "project.json").writeText(
             Json.encodeToString(onderzoek)
@@ -75,4 +76,17 @@ class ProjectStorageManager(
         }.getOrNull()
     }
 
+    fun getMarkersFile(onderzoek: Onderzoek): File =
+        File(getProjectDir(onderzoek), "markers.txt")
+
+    fun saveMarkers(onderzoek: Onderzoek, markers: String) {
+        val file = getMarkersFile(onderzoek)
+        file.writeText(markers)
+    }
+
+    fun loadMarkers(onderzoek: Onderzoek): String? {
+        val file = getMarkersFile(onderzoek)
+        if (!file.exists()) return null
+        return file.readText()
+    }
 }

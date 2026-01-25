@@ -22,6 +22,9 @@
 #include <Systems/RenderSystem.hpp>
 #include <Systems/ObjectRenderSystem.hpp>
 #include <Systems/PointCloudRenderSystem.hpp>
+#include "RayTracing/MarkerManager.h"
+#include "RayTracing/PickingFramebuffer.hpp"
+#include "RayTracing/PickingRenderSystem.hpp"
 
 using UboBuffer = vle::Buffer;
 
@@ -43,6 +46,7 @@ public:
     void onZoom(float scaleFactor);
     void onStrafe(float dx, float dy);
     void waitForDevice();
+    void onTap(uint32_t x, uint32_t y);
 
 //    inline bool killLoop() { return this->_win.shouldClose(); }
 //    inline float getAspectRatio() { return this->_renderer.getAspectRatio(); }
@@ -59,13 +63,19 @@ private:
     vle::sys::Renderer _renderer;
     vle::sys::CameraSystem _cam;
     std::unique_ptr<vle::sys::PointCloudRenderSystem> pointCloudRenderSystem;
-
+    std::unique_ptr<vle::sys::ObjectRenderSystem> objectRenderSystem;
+    std::unique_ptr<PickingRenderSystem> pickingRenderSystem;
 
 private:
     std::unique_ptr<vle::DescriptorPool> globalPool{};
     vle::ObjectMap objects;
     vle::ObjectMap points;
     std::chrono::steady_clock::time_point _currentTime;
+
+private:
+    MarkerManager markerManager;
+    bool shouldPick = false;
+    uint32_t pickX = 0, pickY = 0;
 };
 
 
