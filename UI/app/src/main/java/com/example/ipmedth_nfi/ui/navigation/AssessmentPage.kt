@@ -21,13 +21,14 @@ sealed class AssessmentPage(
     object Finish : AssessmentPage("Finish", Icons.Outlined.CheckCircle)
 
     companion object {
-        val all = listOf(
-            Info,
-            Observations,
-            Themes,
-            Attention,
-            Plan,
-            Finish
-        )
+        val all: List<AssessmentPage>
+            get() = listOf(
+                Info,
+                Observations,
+                Themes,
+                Attention,
+                Plan,
+                Finish
+            )
     }
 }
