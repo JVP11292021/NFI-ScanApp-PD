@@ -2,6 +2,8 @@ package com.example.ipmedth_nfi.bridge
 
 import android.content.res.AssetManager
 import android.view.Surface
+import com.example.ipmedth_nfi.data.export.ProjectStorageManager
+import com.example.ipmedth_nfi.model.Onderzoek
 
 class NativeAndroidEngine() {
     companion object {
@@ -10,7 +12,7 @@ class NativeAndroidEngine() {
         }
     }
 
-    private external fun nativeCreate(surface: Surface, assetManager: AssetManager)
+    private external fun nativeCreate(surface: Surface, assetManager: AssetManager, projectDirPath: String?)
     private external fun nativeDestroy()
     private external fun nativeResize(width: Int, height: Int)
     private external fun nativeDraw()
@@ -18,10 +20,15 @@ class NativeAndroidEngine() {
     private external fun nativeOnStrafe(deltaX: Float, deltaY: Float)
     private external fun nativeOnPinch(scaleFactor: Float)
     private external fun nativeOnTap(x: Float, y: Float)
-//    private external fun nativeInitMarkerManager(markersBasePath: String)
 
-    fun create(surface: Surface, assetManager: AssetManager) {
-        nativeCreate(surface, assetManager)
+    external fun nativeGetProjectDirPath(
+        storageManager: ProjectStorageManager,
+        onderzoek: Onderzoek
+    ): String
+
+
+    fun create(surface: Surface, assetManager: AssetManager, projectDirPath: String? = null) {
+        nativeCreate(surface, assetManager, projectDirPath)
     }
 
     fun destroy() {
@@ -52,8 +59,4 @@ class NativeAndroidEngine() {
         nativeOnTap(x, y)
     }
 
-//    fun initMarkerManager(onderzoek: Onderzoek) {
-//        val markersBasePath = onderzoek.basepath
-//        nativeInitMarkerManager(markersBasePath)
-//    }
 }
