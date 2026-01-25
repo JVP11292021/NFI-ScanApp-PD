@@ -46,9 +46,9 @@ void MarkerManager::loadMarkersFromTxt(const std::string& filePath, vle::EngineD
         if (line.empty()) continue;
         
         std::istringstream iss(line);
-        std::string markerId, SINnumber;
+        std::string markerId, id;
         float x, y, z;
-        if (!(iss >> markerId >> x >> y >> z >> SINnumber)) continue;
+        if (!(iss >> markerId >> x >> y >> z >> id)) continue;
 
         try {
             int markerNum = std::stoi(markerId.substr(6));
@@ -57,7 +57,12 @@ void MarkerManager::loadMarkersFromTxt(const std::string& filePath, vle::EngineD
 
         auto obj = vle::Object::create();
         obj.model = markerPinModel;
-        obj.color = defaultMarkerColor;
+        if (id == getEvidenceId()) {
+            obj.color = selectedMarkerColor;
+
+        } else {
+            obj.color = defaultMarkerColor;
+        }
         obj.transform.translation = { x, y, z };
         obj.transform.scale = { 1.f, 0.8f, 1.f };
         obj.transform.rotation = { glm::pi<float>(), 0.f, 0.f };
@@ -78,7 +83,7 @@ void MarkerManager::createMarker(const glm::vec3& position, vle::EngineDevice& d
 
     auto obj = vle::Object::create();
     obj.model = markerPinModel;
-    obj.color = defaultMarkerColor;
+    obj.color = selectedMarkerColor;
     obj.transform.translation = position;
     obj.transform.scale = { 1.f, 0.8f, 1.f };
     obj.transform.rotation = { glm::pi<float>(), 0.f, 0.f };
@@ -118,6 +123,7 @@ void MarkerManager::saveMarkersToTxt(const std::string& filePath, const vle::Obj
     if (!file.is_open()) {
         throw std::runtime_error("Cannot open file for writing: " + filePath);
     }
+    std::string tempId = "000002";
 
     int markerNum = 1;
     for (auto markerId : markerIds) {
@@ -128,7 +134,7 @@ void MarkerManager::saveMarkersToTxt(const std::string& filePath, const vle::Obj
             
             file << "Marker" << markerNum++ << " "
                  << pos.x << " " << pos.y << " " << pos.z << " "
-                 << "SIN000" << markerNum - 1 << "\n";
+                 << tempId << "\n";
         }
     }
 

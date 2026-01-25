@@ -75,14 +75,14 @@ fun AppNavGraph(
                 val context = LocalContext.current
                 val activeOnderzoek = viewModel.activeOnderzoek.collectAsState().value
                 val projectPath = activeOnderzoek?.let { onderzoek ->
-                    ProjectStorageManager(context).getProjectDirPath(onderzoek)
+                    ProjectStorageManager(context).getProjectDir(onderzoek)
                 }
 
                 ModelPage(
                     viewModel = viewModel,
                     modifier = Modifier.fillMaxSize(),
                     engine = NativeAndroidEngine(),
-                    projectDirPath = projectPath
+                    projectDirPath = projectPath?.absolutePath
                 )
             }
 
