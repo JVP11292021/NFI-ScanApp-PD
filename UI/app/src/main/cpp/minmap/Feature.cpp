@@ -99,7 +99,7 @@ int RunFeatureExtractor(
             colmap::SiftExtractionOptions::Normalization::L2;
     }
     else {
-//        LOG(ERROR) << "Invalid `descriptor_normalization`";
+        LOG(MM_ERROR) << "Invalid `descriptor_normalization`";
         return EXIT_FAILURE;
     }
 
@@ -113,7 +113,7 @@ int RunFeatureExtractor(
 
     // Check camera model & parameters
     if (!colmap::ExistsCameraModelWithName(reader_options.camera_model)) {
-//        LOG(ERROR) << "Camera model does not exist";
+        LOG(MM_ERROR) << "Camera model does not exist";
         return EXIT_FAILURE;
     }
 
