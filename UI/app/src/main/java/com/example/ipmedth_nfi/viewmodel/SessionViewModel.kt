@@ -12,6 +12,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ipmedth_nfi.data.persistence.ProjectSnapshot
+import com.example.ipmedth_nfi.model.Aandachtspunt
 import com.example.ipmedth_nfi.model.ExportData
 import com.example.ipmedth_nfi.model.Hoofdthema
 import com.example.ipmedth_nfi.model.Marker
@@ -20,11 +21,14 @@ import com.example.ipmedth_nfi.model.Onderzoek
 import com.example.ipmedth_nfi.model.ProjectStorage
 import com.example.ipmedth_nfi.model.RoomModel
 import com.example.ipmedth_nfi.ui.navigation.AssessmentPage
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import java.time.Instant
 
 class SessionViewModel(
@@ -52,9 +56,13 @@ class SessionViewModel(
     val infoTerPlaatse = mutableStateListOf<String>()
     val observations = mutableStateListOf<Observation>()
     val hoofdthemas = mutableStateListOf<Hoofdthema>()
+    val aandachtspunten = mutableStateListOf<Aandachtspunt>()
     val markers = mutableStateListOf<Marker>()
     val appData = mutableStateMapOf<String, String>()
     var roomModel: RoomModel? by mutableStateOf(null)
+
+    private val _showNotification = MutableSharedFlow<String>()
+    val showNotification = _showNotification.asSharedFlow()
 
     // --- 3. Lifecycle & Session Management ---
     fun startOnderzoek(onderzoek: Onderzoek) {
@@ -62,11 +70,49 @@ class SessionViewModel(
         loadExistingSnapshot(onderzoek)
     }
 
+    fun addBulletToAandachtspunt(id: String, bullet: String) {
+        val index = aandachtspunten.indexOfFirst { it.id == id }
+        if (index != -1) {
+            val item = aandachtspunten[index]
+            aandachtspunten[index] = item.copy(
+                bulletPoints = item.bulletPoints + bullet
+            )
+            autoSave()
+        }
+    }
+
+    fun deleteAandachtspunt(id: String) {
+        aandachtspunten.removeAll { it.id == id }
+        autoSave()
+    }
+
+    fun addAandachtspunt(
+        title: String,
+        theme: Hoofdthema
+    ) {
+        aandachtspunten += Aandachtspunt(
+            title = title,
+            theme = theme
+        )
+        autoSave()
+    }
+
+    fun updateAandachtspuntBullets(
+        id: String,
+        bullets: List<String>
+    ) {
+        val index = aandachtspunten.indexOfFirst { it.id == id }
+        if (index != -1) {
+            aandachtspunten[index] =
+                aandachtspunten[index].copy(bulletPoints = bullets)
+            autoSave()
+        }
+    }
+
     fun closeOnderzoek() {
         _activeOnderzoek.value = null
         // Optional: clear state here if you don't want it persisting in memory after close
     }
-
     fun setAssessmentPage(page: AssessmentPage) {
         currentAssessmentPage = page
     }
@@ -155,6 +201,9 @@ class SessionViewModel(
     fun onPhotoCaptured(uri: Uri) {
         println("Captured photo: $uri")
         // TODO: Forward to ExportManager
+        viewModelScope.launch {
+            _showNotification.emit("Photo saved to: ${uri.lastPathSegment}")
+        }
     }
 
     // --- 8. Persistence & Export Logic ---
@@ -176,6 +225,7 @@ class SessionViewModel(
             infoTerPlaatse.apply { clear(); addAll(snapshot.infoTerPlaatse) }
             observations.apply { clear(); addAll(snapshot.observations) }
             hoofdthemas.apply { clear(); addAll(snapshot.hoofdthemas) }
+            aandachtspunten.apply { clear(); addAll(snapshot.aandachtspunten) }
             markers.apply { clear(); addAll(snapshot.markers) }
             appData.apply { clear(); putAll(snapshot.appData) }
             roomModel = snapshot.roomModel
@@ -199,6 +249,7 @@ class SessionViewModel(
             infoTerPlaatse = infoTerPlaatse.toList(),
             observations = observations.toList(),
             hoofdthemas = hoofdthemas.toList(),
+            aandachtspunten = aandachtspunten.toList(),
             markers = markers.toList(),
             appData = appData.toMap(),
             roomModel = roomModel
@@ -211,5 +262,13 @@ class SessionViewModel(
             markers = markers.toList(),
             appData = appData.toMap()
         )
+    }
+
+    fun updateAandachtspunt(updated: com.example.ipmedth_nfi.model.Aandachtspunt) {
+        val index = aandachtspunten.indexOfFirst { it.id == updated.id }
+        if (index != -1) {
+            aandachtspunten[index] = updated
+            autoSave()
+        }
     }
 }
