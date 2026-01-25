@@ -325,6 +325,7 @@ add_library(minmap-core STATIC
         minmap-core/estimators/generalized_pose.cc
         minmap-core/estimators/generalized_relative_pose.cc
         minmap-core/estimators/homography_matrix.cc
+        minmap-core/estimators/pose.cc
         minmap-core/estimators/similarity_transform.cc
         minmap-core/estimators/triangulation.cc
         minmap-core/estimators/two_view_geometry.cc

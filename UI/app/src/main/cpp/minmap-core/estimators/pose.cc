@@ -251,7 +251,7 @@ bool RefineAbsolutePose(const AbsolutePoseRefinementOptions& options,
   ceres::Solver::Summary summary;
   ceres::Solve(solver_options, &problem, &summary);
 
-  if (options.print_summary || VLOG_IS_ON(1)) {
+  if (options.print_summary) {
     PrintSolverSummary(summary, "Pose refinement report");
   }
 
