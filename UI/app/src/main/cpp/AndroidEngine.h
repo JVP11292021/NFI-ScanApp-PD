@@ -48,6 +48,7 @@ public:
     void onStrafe(float dx, float dy);
     void waitForDevice();
     void onTap(uint32_t x, uint32_t y);
+    void onDoubleTap(uint32_t x, uint32_t y);
 
 //    inline bool killLoop() { return this->_win.shouldClose(); }
 //    inline float getAspectRatio() { return this->_renderer.getAspectRatio(); }
@@ -77,6 +78,7 @@ private:
 private:
     MarkerManager markerManager;
     bool shouldPick = false;
+    bool shouldPickForDelete = false;
     uint32_t pickX = 0, pickY = 0;
 };
 

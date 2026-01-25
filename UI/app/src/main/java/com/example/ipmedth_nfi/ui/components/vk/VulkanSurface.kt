@@ -69,12 +69,13 @@ fun VulkanSurface(
                     onDoubleTap = { offset ->
                         Log.i("UI", "On double tap")
                         Log.i("DoubleTap", "x: ${offset.x}, y: ${offset.y}")
+                        engine.onTap(offset.x, offset.y)
                         engine.draw()
                     },
                     onTap = { offset ->
                         Log.i("UI", "On tap")
                         Log.i("Tap", "x: ${offset.x}, y: ${offset.y}")
-                        engine.onTap(offset.x, offset.y)
+                        engine.onDoubleTap(offset.x, offset.y)
                         engine.draw()
                     }
                 )

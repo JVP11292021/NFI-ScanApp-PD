@@ -102,7 +102,6 @@ void AndroidEngine::makeSystems() {
 }
 
 void AndroidEngine::loadObjects() {
-    // Use the project directory path passed during construction
     std::string markersPath = _projectDirPath.empty()
         ? ""
         : _projectDirPath + "/markers.txt";
@@ -154,11 +153,6 @@ void AndroidEngine::drawFrame() {
             fov *= static_cast<float>(this->_win.getHeight()) / static_cast<float>(this->_win.getWidth());
         }
 
-        auto model = glm::mat4(1.0f);
-        // Vulkan clip space has inverted Y and half Z.
-//        auto clip = glm::mat4(1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 0.5f, 1.0f);
-
-
         vle::FrameInfo frameInfo{
                 frameIndex,
                 frameTimeElapsed,
@@ -185,8 +179,6 @@ void AndroidEngine::drawFrame() {
 
         pickingRenderSystem->render(frameInfo);
 
-        // Copy pixel data to staging buffer BEFORE ending the frame command buffer
-        // This ensures proper synchronization - the render pass must complete first
         if (shouldPick) {
             pickingRenderSystem->copyPixelToStaging(commandBuffer, pickX, pickY);
             VLE_LOGI("Picking at: ", std::to_string(pickX).c_str(), ", ", std::to_string(pickY).c_str());
@@ -197,28 +189,42 @@ void AndroidEngine::drawFrame() {
 
         objectRenderSystem->render(frameInfo);
         pointCloudRenderSystem->render(frameInfo);
-        // pointLightSystem.render(frameInfo);
 
         _renderer.endSwapChainRenderPass(commandBuffer);
         _renderer.endFrame();
 
-        // Read pick result AFTER the frame has been submitted and completed
         if (shouldPick) {
-            // Wait for GPU to finish so we can read the staging buffer
             vkDeviceWaitIdle(_device.device());
 
             PickResult pick = pickingRenderSystem->readPickResult();
 
             if (pick.id != 0xFFFFFFFF) {
-                this->markerManager.createMarker(pick.worldPos, _device, this->objects);
-                VLE_LOGI(
-                        "Placed marker at: ",
-                        std::to_string(pick.worldPos.x).c_str(), ", ",
-                        std::to_string(pick.worldPos.y).c_str(), ", ",
-                        std::to_string(pick.worldPos.z).c_str()
-                );
+                if (shouldPickForDelete) {
+                    // Double-tap: Check if the picked object is a marker and delete it
+                    if (this->markerManager.isMarker(pick.objectID)) {
+                        this->markerManager.destroyMarker(pick.objectID, this->objects);
+                        VLE_LOGI(
+                                "Deleted marker at: ",
+                                std::to_string(pick.worldPos.x).c_str(), ", ",
+                                std::to_string(pick.worldPos.y).c_str(), ", ",
+                                std::to_string(pick.worldPos.z).c_str()
+                        );
+                    } else {
+                        VLE_LOGI("Double-tap on non-marker object - no action");
+                    }
+                } else {
+                    // Single-tap: Always create a new marker at the picked position
+                    this->markerManager.createMarker(pick.worldPos, _device, this->objects);
+                    VLE_LOGI(
+                            "Placed marker at: ",
+                            std::to_string(pick.worldPos.x).c_str(), ", ",
+                            std::to_string(pick.worldPos.y).c_str(), ", ",
+                            std::to_string(pick.worldPos.z).c_str()
+                    );
+                }
             }
             shouldPick = false;
+            shouldPickForDelete = false;
         }
     }
 }
@@ -252,5 +258,13 @@ void AndroidEngine::onTap(uint32_t x, uint32_t y) {
     this->pickX = x;
     this->pickY = y;
     this->shouldPick = true;
+    this->shouldPickForDelete = false;
+}
+
+void AndroidEngine::onDoubleTap(uint32_t x, uint32_t y) {
+    this->pickX = x;
+    this->pickY = y;
+    this->shouldPick = true;
+    this->shouldPickForDelete = true;
 }
 

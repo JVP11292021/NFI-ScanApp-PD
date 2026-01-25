@@ -20,6 +20,7 @@ class NativeAndroidEngine() {
     private external fun nativeOnStrafe(deltaX: Float, deltaY: Float)
     private external fun nativeOnPinch(scaleFactor: Float)
     private external fun nativeOnTap(x: Float, y: Float)
+    private external fun nativeOnDoubleTap(x: Float, y: Float)
 
     external fun nativeGetProjectDirPath(
         storageManager: ProjectStorageManager,
@@ -59,4 +60,9 @@ class NativeAndroidEngine() {
         nativeOnTap(x, y)
     }
 
+    fun onDoubleTap(x: Float, y: Float) {
+        nativeOnDoubleTap(x, y)
+    }
+
 }
+

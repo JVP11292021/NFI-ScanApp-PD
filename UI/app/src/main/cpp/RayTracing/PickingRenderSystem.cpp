@@ -31,6 +31,7 @@ PickingRenderSystem::PickingRenderSystem(
     );
     
     this->createPipeline(renderPass, vertPath, fragPath);
+    this->createTrianglePipeline(renderPass, vertPath, fragPath);
 }
 
 void PickingRenderSystem::update(vle::FrameInfo& frameInfo, vle::GlobalUbo& ubo) {
@@ -78,6 +79,7 @@ void PickingRenderSystem::render(vle::FrameInfo& frameInfo) {
         &frameInfo.globalDescriptorSet,
         0, nullptr);
 
+    // Render point cloud objects with point pipeline
     for (auto& kv : frameInfo.pointCloud) {
         vle::Object& obj = kv.second;
         if (!obj.model) continue;
@@ -98,6 +100,40 @@ void PickingRenderSystem::render(vle::FrameInfo& frameInfo) {
 
         obj.model->bind(cmdBuffer);
         obj.model->draw(cmdBuffer);
+    }
+
+    if (trianglePipeline) {
+        trianglePipeline->bind(cmdBuffer);
+
+        vkCmdBindDescriptorSets(
+            cmdBuffer,
+            VK_PIPELINE_BIND_POINT_GRAPHICS,
+            pipelineLayout,
+            0, 1,
+            &frameInfo.globalDescriptorSet,
+            0, nullptr);
+
+        for (auto& kv : frameInfo.gameObjects) {
+            vle::Object& obj = kv.second;
+            if (!obj.model) continue;
+
+            PickingPushConstantData push{};
+            push.modelMatrix = obj.transform.mat4();
+            push.objectID = obj.getId();
+            push.pointSize = 1.0f;
+
+            vkCmdPushConstants(
+                cmdBuffer,
+                pipelineLayout,
+                VLE_PUSH_CONST_VERT_FRAG_FLAG,
+                0,
+                sizeof(PickingPushConstantData),
+                &push
+            );
+
+            obj.model->bind(cmdBuffer);
+            obj.model->draw(cmdBuffer);
+        }
     }
 
     vkCmdEndRenderPass(cmdBuffer);
@@ -121,12 +157,6 @@ void PickingRenderSystem::createPipeline(VkRenderPass renderPass, const std::str
         }
     }
 
-    // Configure 2 color blend attachments for MRT (Multiple Render Targets)
-    // Attachment 0: Object ID (uvec2)
-    // Attachment 1: World Position (vec4)
-    // Using member variable to ensure it stays valid during pipeline creation
-
-    // Both attachments use the same blend settings (no blending, write all components)
     for (auto& attachment : colorBlendAttachments) {
         attachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
                                     VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
@@ -152,8 +182,48 @@ void PickingRenderSystem::createPipeline(VkRenderPass renderPass, const std::str
     );
 }
 
+void PickingRenderSystem::createTrianglePipeline(VkRenderPass renderPass, const std::string& vertPath, const std::string& fragPath) {
+    assert(this->pipelineLayout != nullptr && "Cannot create pipeline before pipeline layout");
+
+    vle::PipelineConfigInfo pipelineConfig{};
+    vle::Pipeline::defaultPipelineConfigInfo(pipelineConfig);
+    pipelineConfig.assemblyInputInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    pipelineConfig.rasterizationInfo.polygonMode = VK_POLYGON_MODE_FILL;
+
+    auto bindings = vle::ShaderModel::Vertex::getBindingDescription();
+    auto allAttributes = vle::ShaderModel::Vertex::getAttributeDescription();
+
+    std::vector<VkVertexInputAttributeDescription> filteredAttributes;
+    for (const auto& attr : allAttributes) {
+        if (attr.location == 0) {  // position
+            filteredAttributes.push_back(attr);
+        }
+    }
+
+    // Configure 2 color blend attachments for MRT
+    for (auto& attachment : colorBlendAttachments) {
+        attachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+                                    VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+        attachment.blendEnable = VK_FALSE;
+    }
+
+    pipelineConfig.colorBlendInfo.attachmentCount = static_cast<uint32_t>(colorBlendAttachments.size());
+    pipelineConfig.colorBlendInfo.pAttachments = colorBlendAttachments.data();
+
+    pipelineConfig.bindingDescriptions = bindings;
+    pipelineConfig.attributeDescriptors = filteredAttributes;
+    pipelineConfig.renderPass = pickingFB.getRenderPass();
+    pipelineConfig.pipelineLayout = this->pipelineLayout;
+
+    this->trianglePipeline = std::make_unique<vle::Pipeline>(
+        device,
+        vertPath,
+        fragPath,
+        pipelineConfig
+    );
+}
+
 void PickingRenderSystem::copyPixelToStaging(VkCommandBuffer cmdBuffer, uint32_t mouseX, uint32_t mouseY) {
-    // Bounds checking - clamp coordinates to framebuffer dimensions
     uint32_t fbWidth = pickingFB.getExtent().width;
     uint32_t fbHeight = pickingFB.getExtent().height;
 
@@ -166,7 +236,7 @@ void PickingRenderSystem::copyPixelToStaging(VkCommandBuffer cmdBuffer, uint32_t
 
     // Memory barrier to ensure render pass writes are complete and images are in correct layout
     // This is critical on Android tile-based GPUs
-    VkImageMemoryBarrier barrierColorPre{};;
+    VkImageMemoryBarrier barrierColorPre{};
     barrierColorPre.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
     barrierColorPre.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
     barrierColorPre.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
@@ -219,6 +289,7 @@ void PickingRenderSystem::copyPixelToStaging(VkCommandBuffer cmdBuffer, uint32_t
 
     // On Android, both touch coordinates and Vulkan image coordinates have Y=0 at the top
     // No Y-flip needed (unlike desktop GLFW where Y=0 is at the bottom)
+    // TODO: Add Desktop vs Android check to invert Y only on Desktop
     uint32_t finalY = mouseY;
 
     regionID.imageOffset = {

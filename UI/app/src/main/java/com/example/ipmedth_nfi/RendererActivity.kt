@@ -15,11 +15,9 @@ class RendererActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Extract project information from intent
         val zaaknummer = intent.getStringExtra("zaaknummer")
         val onderzoeksnaam = intent.getStringExtra("onderzoeksnaam")
 
-        // Create Onderzoek object and get project path
         val projectPath = if (zaaknummer != null && onderzoeksnaam != null) {
             val onderzoek = Onderzoek(zaaknummer, onderzoeksnaam)
             val storageManager = ProjectStorageManager(applicationContext)
@@ -29,7 +27,6 @@ class RendererActivity : ComponentActivity() {
         }
 
         setContent {
-            // Instantiate and remember the engine to keep it across recompositions
             val engine = remember { NativeAndroidEngine() }
 
             VulkanSurface(

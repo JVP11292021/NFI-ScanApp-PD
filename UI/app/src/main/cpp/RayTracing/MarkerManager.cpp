@@ -107,6 +107,11 @@ void MarkerManager::destroyMarker(vle::id_t markerId, vle::ObjectMap& objects)
     }
 }
 
+bool MarkerManager::isMarker(vle::id_t objectId) const
+{
+    return std::find(markerIds.begin(), markerIds.end(), objectId) != markerIds.end();
+}
+
 void MarkerManager::saveMarkersToTxt(const std::string& filePath, const vle::ObjectMap& objects)
 {
     std::ofstream file(filePath);

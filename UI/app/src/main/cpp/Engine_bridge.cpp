@@ -125,6 +125,15 @@ Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeOnTap(JNIEnv *env
 }
 
 extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeOnDoubleTap(JNIEnv *env, jobject thiz,
+                                                                           jfloat x, jfloat y) {
+    if (engineApp) {
+        engineApp->onDoubleTap(static_cast<uint32_t>(x), static_cast<uint32_t>(y));
+    }
+}
+
+extern "C"
 JNIEXPORT jstring JNICALL
 Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeGetProjectDirPath(JNIEnv *env,
                                                                                  jobject thiz,
