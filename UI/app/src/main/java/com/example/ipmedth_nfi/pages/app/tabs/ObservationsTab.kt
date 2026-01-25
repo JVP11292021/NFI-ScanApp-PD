@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,8 +29,12 @@ fun ObservationsTab(
 ) {
     var showAddDialog by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
+    val scrollState = rememberScrollState()
 
-    Column(Modifier.fillMaxSize()) {
+    Column(Modifier
+        .fillMaxSize()
+        .verticalScroll(scrollState)
+    ) {
         val totalCount = viewModel.observations.size
         val bookmarkCount = viewModel.observations.count{ it.isBookmarked }
 

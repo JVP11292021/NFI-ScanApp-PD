@@ -12,6 +12,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ipmedth_nfi.data.persistence.ProjectSnapshot
+import com.example.ipmedth_nfi.model.Aandachtspunt
 import com.example.ipmedth_nfi.model.ExportData
 import com.example.ipmedth_nfi.model.Hoofdthema
 import com.example.ipmedth_nfi.model.Marker
@@ -55,6 +56,7 @@ class SessionViewModel(
     val infoTerPlaatse = mutableStateListOf<String>()
     val observations = mutableStateListOf<Observation>()
     val hoofdthemas = mutableStateListOf<Hoofdthema>()
+    val aandachtspunten = mutableStateListOf<Aandachtspunt>()
     val markers = mutableStateListOf<Marker>()
     val appData = mutableStateMapOf<String, String>()
     var roomModel: RoomModel? by mutableStateOf(null)
@@ -66,6 +68,45 @@ class SessionViewModel(
     fun startOnderzoek(onderzoek: Onderzoek) {
         _activeOnderzoek.value = onderzoek
         loadExistingSnapshot(onderzoek)
+    }
+
+    fun addBulletToAandachtspunt(id: String, bullet: String) {
+        val index = aandachtspunten.indexOfFirst { it.id == id }
+        if (index != -1) {
+            val item = aandachtspunten[index]
+            aandachtspunten[index] = item.copy(
+                bulletPoints = item.bulletPoints + bullet
+            )
+            autoSave()
+        }
+    }
+
+    fun deleteAandachtspunt(id: String) {
+        aandachtspunten.removeAll { it.id == id }
+        autoSave()
+    }
+
+    fun addAandachtspunt(
+        title: String,
+        theme: Hoofdthema
+    ) {
+        aandachtspunten += Aandachtspunt(
+            title = title,
+            theme = theme
+        )
+        autoSave()
+    }
+
+    fun updateAandachtspuntBullets(
+        id: String,
+        bullets: List<String>
+    ) {
+        val index = aandachtspunten.indexOfFirst { it.id == id }
+        if (index != -1) {
+            aandachtspunten[index] =
+                aandachtspunten[index].copy(bulletPoints = bullets)
+            autoSave()
+        }
     }
 
     fun closeOnderzoek() {
@@ -184,6 +225,7 @@ class SessionViewModel(
             infoTerPlaatse.apply { clear(); addAll(snapshot.infoTerPlaatse) }
             observations.apply { clear(); addAll(snapshot.observations) }
             hoofdthemas.apply { clear(); addAll(snapshot.hoofdthemas) }
+            aandachtspunten.apply { clear(); addAll(snapshot.aandachtspunten) }
             markers.apply { clear(); addAll(snapshot.markers) }
             appData.apply { clear(); putAll(snapshot.appData) }
             roomModel = snapshot.roomModel
@@ -207,6 +249,7 @@ class SessionViewModel(
             infoTerPlaatse = infoTerPlaatse.toList(),
             observations = observations.toList(),
             hoofdthemas = hoofdthemas.toList(),
+            aandachtspunten = aandachtspunten.toList(),
             markers = markers.toList(),
             appData = appData.toMap(),
             roomModel = roomModel
