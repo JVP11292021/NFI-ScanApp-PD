@@ -115,11 +115,28 @@ target_include_directories(engineSystem PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/VulkanLiteEngine/Engine/Systems
 )
 
-# ----------------------- Picking ------------------------
+# ----------------------- RayTracing ------------------------
 
-#add_library(picking STATIC
-#
-#)
+add_library(rayTracing STATIC
+        RayTracing/MarkerManager.cpp
+        RayTracing/PickingFramebuffer.cpp
+        RayTracing/PickingRenderSystem.cpp
+)
+
+set_target_properties(rayTracing PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+)
+
+target_link_libraries(rayTracing PUBLIC
+        glm
+        engineBackend
+        engineUtils
+        engineSystem
+)
+
+target_include_directories(rayTracing PUBLIC
+        RayTracing
+)
 
 # -------------------- ENGINE BACKEND BRIDGE --------------------
 
@@ -136,6 +153,7 @@ add_library(renderEngine SHARED
 target_include_directories(renderEngine PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty
         ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/VulkanLiteEngine/Engine
+        ${CMAKE_CURRENT_SOURCE_DIR}/RayTracing
 )
 
 # -------------------- LINK EVERYTHING --------------------
@@ -146,6 +164,7 @@ target_link_libraries(
         engineBackend
         engineUtils
         engineSystem
+        rayTracing
         android
         ${vulkan-lib}
         glm
