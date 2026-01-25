@@ -20,11 +20,14 @@ import com.example.ipmedth_nfi.model.Onderzoek
 import com.example.ipmedth_nfi.model.ProjectStorage
 import com.example.ipmedth_nfi.model.RoomModel
 import com.example.ipmedth_nfi.ui.navigation.AssessmentPage
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import java.time.Instant
 
 class SessionViewModel(
@@ -56,6 +59,9 @@ class SessionViewModel(
     val appData = mutableStateMapOf<String, String>()
     var roomModel: RoomModel? by mutableStateOf(null)
 
+    private val _showNotification = MutableSharedFlow<String>()
+    val showNotification = _showNotification.asSharedFlow()
+
     // --- 3. Lifecycle & Session Management ---
     fun startOnderzoek(onderzoek: Onderzoek) {
         _activeOnderzoek.value = onderzoek
@@ -66,7 +72,6 @@ class SessionViewModel(
         _activeOnderzoek.value = null
         // Optional: clear state here if you don't want it persisting in memory after close
     }
-
     fun setAssessmentPage(page: AssessmentPage) {
         currentAssessmentPage = page
     }
@@ -155,6 +160,9 @@ class SessionViewModel(
     fun onPhotoCaptured(uri: Uri) {
         println("Captured photo: $uri")
         // TODO: Forward to ExportManager
+        viewModelScope.launch {
+            _showNotification.emit("Photo saved to: ${uri.lastPathSegment}")
+        }
     }
 
     // --- 8. Persistence & Export Logic ---
