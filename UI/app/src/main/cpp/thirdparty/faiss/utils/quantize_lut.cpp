@@ -343,3 +343,6 @@ float aq_estimate_norm_scale(
 } // namespace quantize_lut
 
 } // namespace faiss
+
+
+

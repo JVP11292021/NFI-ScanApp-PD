@@ -1,5 +1,6 @@
 package com.example.ipmedth_nfi.pages.scan
 
+import android.util.Log
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
@@ -16,6 +17,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,6 +32,9 @@ import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.ipmedth_nfi.viewmodel.SessionViewModel
+import com.example.ipmedth_nfi.bridge.NativeReconstructionEngine
+import com.example.ipmedth_nfi.data.export.ProjectStorageManager
+import com.example.ipmedth_nfi.model.Onderzoek
 
 @Composable
 fun ScanCameraContent(
@@ -40,6 +45,25 @@ fun ScanCameraContent(
     val lifecycleOwner = LocalLifecycleOwner.current
     val snackbarHostState = remember { SnackbarHostState() }
     var imageCapture by remember { mutableStateOf<ImageCapture?>(null) }
+
+    val reconstructionEngine = remember {
+        NativeReconstructionEngine()
+    }
+
+    // TODO make this dynamic
+    DisposableEffect(Unit) {
+        val datasetPath = "/storage/emulated/0/Android/data/com.example.ipmedth_nfi/files/NFI_Scanapp/dgbbnj/testCase/Reconstruction/images"
+        val databasePath = "/storage/emulated/0/Android/data/com.example.ipmedth_nfi/files/NFI_Scanapp/dgbbnj/testCase/Reconstruction"
+
+        reconstructionEngine.create(
+            datasetPath = datasetPath,
+            databasePath = databasePath
+        )
+
+        onDispose {
+            reconstructionEngine.destroy()
+        }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.showNotification.collect { message ->
@@ -98,14 +122,27 @@ fun ScanCameraContent(
                     .padding(bottom = 64.dp),
                 onClick = {
                     imageCapture?.let {
-                        takePhoto(
-                            imageCapture = it,
-                            viewModel = viewModel
-                        )
+                        takePhoto(it, viewModel)
                     }
                 }
             ) {
                 Text("📸")
+            }
+
+            FloatingActionButton(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(bottom = 64.dp, end = 24.dp),
+                onClick = {
+                    Log.i("NFI", "On Sfm pipeline");
+                    val resultCode = reconstructionEngine.extractMatchFeatures(
+                        cameraMode = -1,
+                        descriptorNormalization = "l1_root"
+                    )
+
+                }
+            ) {
+                Text("⚙️")
             }
         }
     }

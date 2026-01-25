@@ -67,10 +67,9 @@ void IndexIVFFlat::add_core(
 
     DirectMapAdd dm_adder(direct_map, n, xids);
 
-#pragma omp parallel reduction(+ : n_add)
     {
-        int nt = omp_get_num_threads();
-        int rank = omp_get_thread_num();
+        int nt = 1;
+        int rank = 0;
 
         // each thread takes care of a subset of lists
         for (size_t i = 0; i < n; i++) {
@@ -256,3 +255,6 @@ void IndexIVFFlat::reconstruct_from_offset(
 
 
 } // namespace faiss
+
+
+

@@ -100,6 +100,7 @@
 #include "ceres/program.h"
 #include "ceres/residual_block.h"
 #include "ceres/small_blas.h"
+#include "ceres/android_log.h"
 
 namespace ceres {
 namespace internal {
@@ -121,9 +122,9 @@ class ProgramEvaluator final : public Evaluator {
             jacobian_writer_.CreateEvaluatePreparers(options.num_threads))) {
 #ifdef CERES_NO_THREADS
     if (options_.num_threads > 1) {
-      LOG(WARNING) << "No threading support is compiled into this binary; "
-                   << "only options.num_threads = 1 is supported. Switching "
-                   << "to single threaded mode.";
+      LOGI("No threading support is compiled into this binary; "
+           "only options.num_threads = 1 is supported. Switching "
+           "to single threaded mode.");
       options_.num_threads = 1;
     }
 #endif  // CERES_NO_THREADS

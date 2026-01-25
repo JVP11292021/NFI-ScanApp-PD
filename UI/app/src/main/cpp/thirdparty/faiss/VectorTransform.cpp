@@ -1364,3 +1364,6 @@ void RemapDimensionsTransform::check_identical(
     FAISS_THROW_IF_NOT(other);
     FAISS_THROW_IF_NOT(other->map == map);
 }
+
+
+

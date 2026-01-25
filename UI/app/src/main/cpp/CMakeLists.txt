@@ -156,9 +156,11 @@ target_include_directories(vlfeat PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/VLFeat
 )
 
-add_compile_definitions(VL_DISABLE_AVX)
-add_compile_definitions(VL_DISABLE_SSE2)
-add_compile_definitions(VL_DISABLE_OPENMP)
+target_compile_definitions(vlfeat PRIVATE
+        VL_DISABLE_AVX
+        VL_DISABLE_SSE2
+        VL_DISABLE_OPENMP
+)
 
 # -------------------- Eigen (HEADER-ONLY, EMBEDDED) --------------------
 
@@ -176,7 +178,9 @@ file(GLOB CERES_INTERNAL_SOURCES
         "thirdparty/ceres/internal/ceres/*.cc"
 )
 
-list(FILTER CERES_INTERNAL_SOURCES EXCLUDE REGEX "test|bench|gmock|gtest")
+# Exclude test, gmock, gtest, and OpenMP/threading variant files
+# Keep only nothreads variant since we set CERES_THREADING_NO_THREADS
+list(FILTER CERES_INTERNAL_SOURCES EXCLUDE REGEX "(test_util|gmock_gtest_all|gmock_main|parallel_for_cxx|parallel_for_openmp)\\.cc$")
 
 add_library(ceres STATIC ${CERES_INTERNAL_SOURCES})
 
@@ -194,16 +198,30 @@ target_compile_definitions(ceres PRIVATE
         CERES_NO_CUDA
         CERES_USE_EIGEN_SPARSE
         CERES_NO_ACCELERATE_SPARSE
-        # Since we are skipping the config.h generation, define the threading model
-        CERES_THREADING_MODEL_OPENMP
+        CERES_THREADING_NO_THREADS
+        CERES_NO_THREADS
 )
 
 set_target_properties(ceres PROPERTIES
         POSITION_INDEPENDENT_CODE ON
-        OUTPUT_NAME "ceres"  # Forces the file to be libceres.a
+        OUTPUT_NAME "ceres"
 )
 
 target_link_libraries(ceres PRIVATE Eigen3)
+
+#set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+#set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+#set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+#
+#set(CERES_USE_CUDA OFF CACHE BOOL "" FORCE)
+#set(CERES_USE_OPENMP OFF CACHE BOOL "" FORCE)
+#set(CERES_THREADING_MODEL NO_THREADS CACHE STRING "" FORCE)
+#set(CERES_USE_EIGEN_SPARSE ON CACHE BOOL "" FORCE)
+#set(CERES_USE_LAPACK OFF CACHE BOOL "" FORCE)
+#set(CERES_USE_SUITESPARSE OFF CACHE BOOL "" FORCE)
+#set(CERES_USE_CXSparse OFF CACHE BOOL "" FORCE)
+#
+#add_subdirectory(thirdparty/ceres)
 
 # -------------------- FREEIMAGE (STATIC, MINIMAL) --------------------
 
@@ -391,10 +409,13 @@ set_target_properties(minmap-core PROPERTIES
 )
 
 target_include_directories(minmap-core PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/minmap-core
-        ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty
-        ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/Eigen
+        ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ceres/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/Eigen
+        ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/sqlite
+        ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/VLFeat
+        ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/poselib
+        ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty
 )
 
 target_link_libraries(minmap-core
@@ -403,9 +424,9 @@ target_link_libraries(minmap-core
         vlfeat
         poselib
         faiss
-        FreeImage
-        PUBLIC
         ceres
+        Eigen3
+        FreeImage
 )
 
 # -------------------- minmap (STATIC, EMBEDDED) --------------------
@@ -415,7 +436,6 @@ add_library(minmap STATIC
         minmap/MapModel.cpp
         minmap/SfM.cpp
         minmap/ReconstructionEngine.cpp
-        minmap/Minmap_bridge.cpp # This is a native bridge element
 )
 
 set_target_properties(minmap PROPERTIES
@@ -424,11 +444,25 @@ set_target_properties(minmap PROPERTIES
 
 target_include_directories(minmap PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/minmap-core
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ceres/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/Eigen
+        ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/sqlite
+        ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/VLFeat
+        ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/poselib
+        ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty
 )
 
 target_link_libraries(minmap
         PRIVATE
         minmap-core
+        sqlite3
+        vlfeat
+        poselib
+        faiss
+        ceres
+        Eigen3
+        FreeImage
 )
 
 # ------------------------ GLM -------------------------
@@ -574,17 +608,17 @@ add_library(renderEngine SHARED
         AndroidEngine.cpp
         RenderLoopProcess.cpp
         Engine_bridge.cpp
+        Minmap_bridge.cpp
 )
 
-#if(ANDROID)
-#    target_link_libraries(renderEngine PRIVATE omp)
-#endif()
+set_target_properties(renderEngine PROPERTIES
+        POSITION_INDEPENDENT_CODE ON
+)
 
 target_include_directories(renderEngine PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty
         ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/VulkanLiteEngine/Engine
-        ${CMAKE_CURRENT_SOURCE_DIR}/minmap-core
-        ${CMAKE_CURRENT_SOURCE_DIR}/minmap
+        ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/RayTracing
 )
 
@@ -592,6 +626,13 @@ target_include_directories(renderEngine PUBLIC
 find_library(vulkan-lib vulkan)
 
 target_link_libraries(renderEngine PRIVATE
+        sqlite3
+        vlfeat
+        poselib
+        faiss
+        ceres
+        Eigen3
+        FreeImage
         engineBackend
         engineUtils
         engineSystem

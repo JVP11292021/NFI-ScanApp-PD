@@ -1,9 +1,10 @@
 package com.example.ipmedth_nfi.bridge
+import java.io.File
 
 class NativeReconstructionEngine {
     companion object {
         init {
-            System.loadLibrary("minmap")
+            System.loadLibrary("renderEngine")
         }
     }
 
@@ -27,7 +28,18 @@ class NativeReconstructionEngine {
     private var isInitialized = false;
 
     fun create(datasetPath: String, databasePath: String) {
+
         check(!isInitialized) { "Engine already initialized" }
+        val dbDir = File(databasePath)
+        if (!dbDir.exists()) {
+            dbDir.mkdirs()
+        }
+
+        val databaseFile = File(dbDir, "database.db")
+        if (!databaseFile.exists()) {
+            databaseFile.createNewFile()
+        }
+
         nativeCreate(datasetPath, databasePath)
         isInitialized = true
     }

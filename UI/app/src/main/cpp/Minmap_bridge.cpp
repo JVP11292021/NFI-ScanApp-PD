@@ -4,7 +4,8 @@
 // Created by jessy on 1/25/2026.
 //
 
-#include "ReconstructionEngine.hpp"
+#include <minmap/ReconstructionEngine.hpp>
+#include <string>
 
 static minmap::ReconstructionEngine* engine = nullptr;
 
@@ -27,6 +28,13 @@ Java_com_example_ipmedth_1nfi_bridge_NativeReconstructionEngine_nativeCreate(
     std::string databasePath = jstringToString(env, database_path);
 
     engine = new minmap::ReconstructionEngine(datasetPath, databasePath);
+    if (engine) {
+        LOG(MM_INFO) << "Engine created successfully.";
+    }
+    else {
+        LOG(MM_ERROR) << "Failed to create engine.";
+        throw std::runtime_error("Failed to create engine.");
+    }
 }
 
 extern "C"

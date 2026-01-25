@@ -258,3 +258,6 @@ MatrixStats::MatrixStats(size_t n, size_t d, const float* x) : n(n), d(d) {
 }
 
 } // namespace faiss
+
+
+

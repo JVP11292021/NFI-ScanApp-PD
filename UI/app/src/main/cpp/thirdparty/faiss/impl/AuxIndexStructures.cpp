@@ -129,12 +129,9 @@ RangeQueryResult& RangeSearchPartialResult::new_result(idx_t qno) {
 
 void RangeSearchPartialResult::finalize() {
     set_lims();
-#pragma omp barrier
 
-#pragma omp single
     res->do_allocation();
 
-#pragma omp barrier
     copy_result();
 }
 
@@ -265,3 +262,6 @@ void TimeoutCallback::reset(double timeout_in_seconds) {
 }
 
 } // namespace faiss
+
+
+

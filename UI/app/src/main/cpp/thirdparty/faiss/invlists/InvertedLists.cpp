@@ -69,7 +69,6 @@ void InvertedLists::reset() {
 }
 
 void InvertedLists::merge_from(InvertedLists* oivf, size_t add_id) {
-#pragma omp parallel for
     for (idx_t i = 0; i < nlist; i++) {
         size_t list_size = oivf->list_size(i);
         ScopedIds ids(oivf, i);
@@ -799,3 +798,6 @@ void StopWordsInvertedLists::prefetch_lists(const idx_t* list_nos, int nlist)
 }
 
 } // namespace faiss
+
+
+

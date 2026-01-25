@@ -39,7 +39,7 @@ struct Run_pairwise_extra_distances {
            int64_t ldq,
            int64_t ldb,
            int64_t ldd) {
-#pragma omp parallel for if (nq > 10)
+      // OpenMP disabled for Android
         for (int64_t i = 0; i < nq; i++) {
             const float* xqi = xq + i * ldq;
             const float* xbj = xb;
@@ -68,12 +68,12 @@ struct Run_knn_extra_metrics {
         size_t d = vd.d;
         using C = typename VD::C;
         size_t check_period = InterruptCallback::get_period_hint(ny * d);
-        check_period *= omp_get_max_threads();
+        check_period *= 1;  // OpenMP disabled: 1 would return 1 anyway
 
         for (size_t i0 = 0; i0 < nx; i0 += check_period) {
             size_t i1 = std::min(i0 + check_period, nx);
 
-#pragma omp parallel for
+      // OpenMP parallel loop converted to sequential
             for (int64_t i = i0; i < i1; i++) {
                 const float* x_i = x + i * d;
                 const float* y_j = y;
@@ -205,3 +205,6 @@ FlatCodesDistanceComputer* get_extra_distance_computer(
 }
 
 } // namespace faiss
+
+
+
