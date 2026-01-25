@@ -17,6 +17,9 @@ class ProjectStorageManager(
     override fun getProjectDir(onderzoek: Onderzoek): File =
         File(rootDir, "${onderzoek.zaaknummer}/${onderzoek.onderzoeksnaam}")
 
+    fun getProjectDirPath(onderzoek: Onderzoek): String =
+        getProjectDir(onderzoek).absolutePath
+
     override fun getImageDir(onderzoek: Onderzoek): File =
         File(getProjectDir(onderzoek), "Reconstruction/images")
 
@@ -76,17 +79,5 @@ class ProjectStorageManager(
         }.getOrNull()
     }
 
-    fun getMarkersFile(onderzoek: Onderzoek): File =
-        File(getProjectDir(onderzoek), "markers.txt")
 
-    fun saveMarkers(onderzoek: Onderzoek, markers: String) {
-        val file = getMarkersFile(onderzoek)
-        file.writeText(markers)
-    }
-
-    fun loadMarkers(onderzoek: Onderzoek): String? {
-        val file = getMarkersFile(onderzoek)
-        if (!file.exists()) return null
-        return file.readText()
-    }
 }
