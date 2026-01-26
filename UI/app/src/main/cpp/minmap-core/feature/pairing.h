@@ -2,9 +2,7 @@
 
 #include "../feature/matcher.h"
 #include "../scene/database.h"
-//#include "../util/threading.h"
 #include "../util/types.h"
-//#include "../retrieval/utils.h"
 
 #include <unordered_set>
 

@@ -2,6 +2,7 @@
 
 #include "../scene/reconstruction.h"
 
+#include <PoseLib/alignment.h>
 #include <Eigen/Core>
 
 namespace colmap {

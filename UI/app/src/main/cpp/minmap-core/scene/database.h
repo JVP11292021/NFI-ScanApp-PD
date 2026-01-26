@@ -12,7 +12,9 @@
 #include <unordered_map>
 #include <vector>
 
+#include <PoseLib/alignment.h>
 #include <Eigen/Core>
+
 #include <sqlite/sqlite3.h>
 
 namespace colmap {

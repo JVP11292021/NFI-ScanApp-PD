@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 
+#include <PoseLib/alignment.h>
 #include <Eigen/Core>
 #include <Eigen/LU>
 #include <ceres/jet.h>

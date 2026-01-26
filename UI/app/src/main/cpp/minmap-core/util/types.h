@@ -28,6 +28,7 @@ typedef unsigned __int64 uint64_t;
 // NOLINTNEXTLINE(bugprone-macro-parentheses)
 #define NON_MOVABLE(class_name) class_name(class_name&&) = delete;
 
+#include <PoseLib/alignment.h>
 #include <Eigen/Core>
 
 namespace Eigen {

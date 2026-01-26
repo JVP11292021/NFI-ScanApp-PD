@@ -2,6 +2,7 @@
 
 #include <vector>
 
+#include <PoseLib/alignment.h>
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 

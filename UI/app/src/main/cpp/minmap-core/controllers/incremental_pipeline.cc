@@ -5,6 +5,8 @@
 #include "../util/misc.h"
 #include "../util/timer.h"
 
+#include <PoseLib/alignment.h>
+
 namespace colmap {
 namespace {
 

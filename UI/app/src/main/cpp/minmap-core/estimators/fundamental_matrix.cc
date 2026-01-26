@@ -8,6 +8,7 @@
 #include <complex>
 #include <vector>
 
+#include <PoseLib/alignment.h>
 #include <Eigen/Geometry>
 #include <Eigen/LU>
 #include <Eigen/SVD>

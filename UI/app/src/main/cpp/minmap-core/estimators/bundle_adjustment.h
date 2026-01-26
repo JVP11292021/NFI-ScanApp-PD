@@ -5,9 +5,11 @@
 #include <memory>
 #include <unordered_set>
 
+#include <PoseLib/alignment.h>
 #include <Eigen/Core>
 
 #include <ceres/ceres.h>
+
 
 namespace colmap {
 

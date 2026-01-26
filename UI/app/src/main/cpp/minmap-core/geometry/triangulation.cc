@@ -3,6 +3,7 @@
 #include "../geometry/essential_matrix.h"
 #include "../geometry/pose.h"
 
+#include <PoseLib/alignment.h>
 #include <Eigen/Dense>
 
 namespace colmap {

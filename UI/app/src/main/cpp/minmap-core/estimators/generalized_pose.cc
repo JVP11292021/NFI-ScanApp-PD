@@ -14,6 +14,7 @@
 #include "../sensor/models.h"
 #include "../util/logging.h"
 
+#include <PoseLib/alignment.h>
 #include <Eigen/Core>
 #include <ceres/ceres.h>
 

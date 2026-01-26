@@ -11,8 +11,10 @@
 #include <cmath>
 #include <stdexcept>
 
-#include <solvers/p4pf.h>
-#include <solvers/p3p.h>
+#include <PoseLib/solvers/p4pf.h>
+#include <PoseLib/solvers/p3p.h>
+
+#include <PoseLib/alignment.h>
 
 namespace colmap {
 

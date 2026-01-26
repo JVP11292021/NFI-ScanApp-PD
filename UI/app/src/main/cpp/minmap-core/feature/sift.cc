@@ -15,6 +15,7 @@
 #include <memory>
 #include <mutex>
 
+#include <PoseLib/alignment.h>
 #include <Eigen/Geometry>
 
 namespace colmap {

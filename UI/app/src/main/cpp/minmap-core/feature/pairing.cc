@@ -1,11 +1,8 @@
 #include "pairing.h"
 
-//#include "../feature/utils.h"
-//#include "../geometry/gps.h"
 #include "../util/file.h"
 #include "../util/logging.h"
-//#include "../util/misc.h"
-//#include "../util/timer.h"
+
 
 #include <fstream>
 #include <numeric>
@@ -13,7 +10,7 @@
 #include <unordered_set>
 #include <vector>
 
-//#include <faiss/IndexFlat.h>
+#include <faiss/IndexFlat.h>
 #include <omp.h>
 
 namespace colmap {

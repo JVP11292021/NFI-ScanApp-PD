@@ -6,6 +6,7 @@
 
 #include <vector>
 
+#include <PoseLib/alignment.h>
 #include <Eigen/Geometry>
 
 namespace colmap {

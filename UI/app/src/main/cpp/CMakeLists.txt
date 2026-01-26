@@ -72,6 +72,9 @@ target_compile_options(poselib PRIVATE
         -fno-strict-aliasing
         -fno-vectorize
         -fno-slp-vectorize
+        -DEIGEN_ALIGN_MALLOC=1
+        -DEIGEN_DONT_ALIGN_STACK=1
+        -DEIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT=1
 )
 
 target_compile_definitions(poselib PRIVATE
@@ -418,6 +421,13 @@ set_target_properties(minmap-core PROPERTIES
         POSITION_INDEPENDENT_CODE ON
 )
 
+# Add Eigen alignment support for ARM64 Android
+target_compile_options(minmap-core PRIVATE
+        -DEIGEN_ALIGN_MALLOC=1
+        -DEIGEN_DONT_ALIGN_STACK=1
+        -DEIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT=1
+)
+
 target_include_directories(minmap-core PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ceres/include
@@ -441,6 +451,16 @@ target_link_libraries(minmap-core
 
 target_compile_definitions(minmap-core PRIVATE
         MINMAP_SINGLE_THREADED
+        EIGEN_ALIGN_MALLOC=1
+        EIGEN_DONT_ALIGN_STACK=1
+        EIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT=1
+        EIGEN_DONT_VECTORIZE
+)
+
+target_compile_options(minmap-core PRIVATE
+        -fno-strict-aliasing
+        -fno-vectorize
+        -fno-slp-vectorize
 )
 
 # -------------------- minmap (STATIC, EMBEDDED) --------------------
@@ -477,6 +497,19 @@ target_link_libraries(minmap
         ceres
         Eigen3
         FreeImage
+)
+
+target_compile_options(minmap PRIVATE
+        -fno-strict-aliasing
+        -fno-vectorize
+        -fno-slp-vectorize
+)
+
+target_compile_definitions(minmap PRIVATE
+        EIGEN_ALIGN_MALLOC=1
+        EIGEN_DONT_ALIGN_STACK=1
+        EIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT=1
+        EIGEN_DONT_VECTORIZE
 )
 
 # ------------------------ GLM -------------------------
@@ -626,6 +659,13 @@ add_library(renderEngine SHARED
 
 set_target_properties(renderEngine PROPERTIES
         POSITION_INDEPENDENT_CODE ON
+)
+
+# Add Eigen alignment support for ARM64 Android
+target_compile_options(renderEngine PRIVATE
+        -DEIGEN_ALIGN_MALLOC=1
+        -DEIGEN_DONT_ALIGN_STACK=1
+        -DEIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT=1
 )
 
 target_include_directories(renderEngine PUBLIC

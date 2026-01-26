@@ -2,6 +2,7 @@
 
 #include "../util/logging.h"
 
+#include <PoseLib/alignment.h>
 #include <Eigen/Eigenvalues>
 
 namespace colmap {

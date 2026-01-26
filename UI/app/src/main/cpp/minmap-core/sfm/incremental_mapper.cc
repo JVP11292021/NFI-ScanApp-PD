@@ -8,6 +8,7 @@
 #include "../scene/projection.h"
 #include "../sensor/bitmap.h"
 #include "../util/misc.h"
+#include <PoseLib/alignment.h>
 
 #include <array>
 #include <fstream>
@@ -567,7 +568,8 @@ bool IncrementalMapper::RegisterNextGeneralFrame(const Options& options,
 
 size_t IncrementalMapper::TriangulateImage(
     const IncrementalTriangulator::Options& tri_options,
-    const image_t image_id) {
+    const image_t image_id
+) {
   THROW_CHECK_NOTNULL(reconstruction_);
   VLOG(1) << "=> Continued observations: "
           << reconstruction_->Image(image_id).NumPoints3D();

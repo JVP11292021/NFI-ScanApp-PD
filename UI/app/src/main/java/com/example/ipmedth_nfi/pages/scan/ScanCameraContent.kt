@@ -99,8 +99,7 @@ fun ScanCameraContent(
             withContext(Dispatchers.Default) {
                 reconstructionEngine.extractMatchFeatures()
                 reconstructionEngine.reconstruct(
-                    File(projectPath, "/Reconstruction/sparse").absolutePath,
-                    File(projectPath, "/Reconstruction/images").absolutePath);
+                    File(projectPath, "/Reconstruction/sparse").absolutePath);
 
             }
         } finally {

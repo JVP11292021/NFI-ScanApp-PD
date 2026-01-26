@@ -23,7 +23,7 @@ class NativeReconstructionEngine {
         inputPath: String,
         outputPath: String,
         outputType: String,
-        skipDistortion: Boolean): Int;
+        skipDistortion: Boolean = false): Int;
 
     private var isInitialized = false;
 

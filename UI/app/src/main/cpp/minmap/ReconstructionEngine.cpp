@@ -5,6 +5,7 @@
 #include "ReconstructionEngine.hpp"
 
 #include <util/logging.h>
+#include <PoseLib/alignment.h>
 
 #define MM_ANDROID_LOG_TAG "MINMAP"
 

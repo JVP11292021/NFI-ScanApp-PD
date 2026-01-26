@@ -50,6 +50,7 @@ int RunMapper(
     const std::string& image_list_path,
     bool fix_existing_frames
 ) {
+    LOG(MM_DEBUG) << "Creating SFM options";
     colmap::OptionManager options(false);
     *options.database_path = database_path.string();
     *options.image_path = image_path.string();
@@ -64,6 +65,11 @@ int RunMapper(
 
     options.mapper->fix_existing_frames = fix_existing_frames;
 
+    // Android-specific optimizations for mobile devices
+    // Reduce computational load during pose estimation to prevent alignment issues
+    options.mapper->min_focal_length_ratio = 0.1;
+    options.mapper->max_focal_length_ratio = 10.0;
+
     // Ensure output directory exists
     if (!colmap::ExistsDir(output_path.string())) {
         LOG(MM_ERROR) << "`output_path` is not a directory.";
@@ -71,6 +77,7 @@ int RunMapper(
     }
 
     // Reconstruction manager
+    LOG(MM_DEBUG) << "Creating reconstruction manager";
     auto reconstruction_manager = std::make_shared<colmap::ReconstructionManager>();
 
     std::vector<Eigen::Vector3d> orig_fixed_image_positions;
@@ -81,6 +88,7 @@ int RunMapper(
             LOG(MM_ERROR) << "`input_path` is not a directory.";
             return EXIT_FAILURE;
         }
+        LOG(MM_DEBUG) << "Reading the existing reconstruction";
         reconstruction_manager->Read(input_path);
 
         if (fix_existing_frames && reconstruction_manager->Size() > 0) {

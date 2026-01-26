@@ -6,13 +6,14 @@
 #include <optional>
 #include <vector>
 
-#define EIGEN_DONT_VECTORIZE
-#define EIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT
+#include <PoseLib/alignment.h>
+
+//#define EIGEN_DONT_VECTORIZE
+//#define EIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 #include <Eigen/Dense>
 
-#include <PoseLib/alignment.h>
 
 namespace colmap {
 
