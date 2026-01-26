@@ -90,11 +90,6 @@ fun FinishTab(viewModel: SessionViewModel) {
             }
 
             Spacer(modifier = Modifier.padding(12.dp))
-
-            // Main finish content (kept simple)
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Finish Tab")
-            }
         }
     }
 }
