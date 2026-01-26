@@ -43,6 +43,8 @@ fun PlanCard(
                 val actionText = listOfNotNull(action.beschrijvingEnLocatie, action.andersBeschrijving, action.subType?.name).joinToString(" ")
                 otherText.contains(actionText, ignoreCase = true) || actionText.contains(otherText, ignoreCase = true)
             }
+            // Icon area: shown only for Veiligstellen or Bemonsteren
+            val showActionButtons = action.type == ActionType.Veiligstellen || action.type == ActionType.Bemonsteren
 
             Card(
                 modifier = Modifier
@@ -84,31 +86,29 @@ fun PlanCard(
                             }
                         }
                     }
-
-                    // Icon area: shown only for Veiligstellen or Bemonsteren
-                    val showActionButtons = action.type == ActionType.Veiligstellen || action.type == ActionType.Bemonsteren
-
                     if (showActionButtons) {
                         Column(modifier = Modifier.padding(start = 8.dp)) {
-                            // Edit icon for this action
-                            IconButton(onClick = { onEditAction(action) }) {
-                                Icon(Icons.Filled.Edit, contentDescription = "Edit Action")
-                            }
-
                             Spacer(modifier = Modifier.height(8.dp))
 
                             IconButton(onClick = { /* marker action - could open map/marker */ }) {
                                 Icon(TablerCube3dSphere, contentDescription = "Marker")
                             }
-
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            // SIN button visible only for these action types
-                            Button(onClick = { onScanSinForAction(action) }) {
-                                Icon(Icons.Filled.Add, contentDescription = "Scan SIN")
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text(text = "Scan SIN")
-                            }
+                        }
+                    }
+                }
+                if (showActionButtons) {
+                    Row(
+                        modifier = Modifier
+                            .padding(12.dp)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Start
+                    ) {
+                        Button(
+                            modifier = Modifier.fillMaxWidth(),
+                            onClick = { onScanSinForAction(action) }) {
+                            Icon(Icons.Filled.Add, contentDescription = "Scan SIN")
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(text = "Scan SIN")
                         }
                     }
                 }
