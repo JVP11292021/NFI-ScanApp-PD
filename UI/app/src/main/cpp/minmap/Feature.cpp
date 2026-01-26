@@ -106,6 +106,21 @@ int RunFeatureExtractor(
         return EXIT_FAILURE;
     }
 
+    // Mobile-optimized SIFT extraction parameters
+    // For Android devices with limited RAM, reduce image size and adjust octave settings
+    options.sift_extraction->max_image_size = 1024;  // Reduce further to 1024px to prevent memory pressure
+    options.sift_extraction->first_octave = 0;       // Extract from all octaves
+    options.sift_extraction->num_octaves = 3;        // Reduce from 4 to 3 octaves for less computation
+    options.sift_extraction->octave_resolution = 3;  // Standard resolution per octave
+    options.sift_extraction->num_threads = 1;        // Use single thread on mobile to reduce memory spike
+    options.sift_extraction->use_gpu = false;        // Ensure GPU is disabled for mobile
+
+    LOG(MM_DEBUG) << "SIFT extraction configured for mobile:"
+                  << " max_image_size=" << options.sift_extraction->max_image_size
+                  << " first_octave=" << options.sift_extraction->first_octave
+                  << " num_octaves=" << options.sift_extraction->num_octaves
+                  << " num_threads=" << options.sift_extraction->num_threads;
+
     // Optional image list
     if (!image_list_path.empty()) {
         reader_options.image_names = colmap::ReadTextFileLines(image_list_path);

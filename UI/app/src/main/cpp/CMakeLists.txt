@@ -439,6 +439,10 @@ target_link_libraries(minmap-core
         FreeImage
 )
 
+target_compile_definitions(minmap-core PRIVATE
+        MINMAP_SINGLE_THREADED
+)
+
 # -------------------- minmap (STATIC, EMBEDDED) --------------------
 
 add_library(minmap STATIC

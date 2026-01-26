@@ -235,16 +235,22 @@ int ThreadPool::GetThreadIndex() {
 }
 
 int GetEffectiveNumThreads(const int num_threads) {
-  int num_effective_threads = num_threads;
-  if (num_threads <= 0) {
-    num_effective_threads = std::thread::hardware_concurrency();
-  }
+#if MINMAP_SINGLE_THREADED
+    return 1;
+#else
+    int num_effective_threads = num_threads;
+    if (num_threads <= 0) {
+        num_effective_threads = std::thread::hardware_concurrency();
+        LOG(MM_DEBUG) << "Using " << num_effective_threads << " threads";
+    }
 
-  if (num_effective_threads <= 0) {
-    num_effective_threads = 1;
-  }
+    if (num_effective_threads <= 0) {
+        num_effective_threads = 1;
+        LOG(MM_DEBUG) << "Set system to 1 thread";
+    }
 
-  return num_effective_threads;
+    return static_cast<int>(std::ceil((double)num_effective_threads * 0.5));
+#endif
 }
 
 }  // namespace colmap
