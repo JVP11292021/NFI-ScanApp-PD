@@ -1,0 +1,260 @@
+/*
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+// -*- c++ -*-
+
+#include <faiss/IndexIVFFlat.h>
+
+#include <omp.h>
+
+#include <cinttypes>
+#include <cstdio>
+#include <numeric>
+
+#include <faiss/IndexFlat.h>
+
+#include <faiss/impl/AuxIndexStructures.h>
+
+#include <faiss/impl/FaissAssert.h>
+#include <faiss/utils/distances.h>
+#include <faiss/utils/extra_distances.h>
+#include <faiss/utils/utils.h>
+
+namespace faiss {
+
+/*****************************************
+ * IndexIVFFlat implementation
+ ******************************************/
+
+IndexIVFFlat::IndexIVFFlat(
+        Index* quantizer,
+        size_t d,
+        size_t nlist,
+        MetricType metric,
+        bool own_invlists)
+        : IndexIVF(
+                  quantizer,
+                  d,
+                  nlist,
+                  sizeof(float) * d,
+                  metric,
+                  own_invlists) {
+    code_size = sizeof(float) * d;
+    by_residual = false;
+}
+
+IndexIVFFlat::IndexIVFFlat() {
+    by_residual = false;
+}
+
+void IndexIVFFlat::add_core(
+        idx_t n,
+        const float* x,
+        const idx_t* xids,
+        const idx_t* coarse_idx,
+        void* inverted_list_context) {
+    FAISS_THROW_IF_NOT(is_trained);
+    FAISS_THROW_IF_NOT(coarse_idx);
+    FAISS_THROW_IF_NOT(!by_residual);
+    assert(invlists);
+    direct_map.check_can_add(xids);
+
+    int64_t n_add = 0;
+
+    DirectMapAdd dm_adder(direct_map, n, xids);
+
+    {
+        int nt = 1;
+        int rank = 0;
+
+        // each thread takes care of a subset of lists
+        for (size_t i = 0; i < n; i++) {
+            idx_t list_no = coarse_idx[i];
+
+            if (list_no >= 0 && list_no % nt == rank) {
+                idx_t id = xids ? xids[i] : ntotal + i;
+                const float* xi = x + i * d;
+                size_t offset = invlists->add_entry(
+                        list_no, id, (const uint8_t*)xi, inverted_list_context);
+                dm_adder.add(i, list_no, offset);
+                n_add++;
+            } else if (rank == 0 && list_no == -1) {
+                dm_adder.add(i, -1, 0);
+            }
+        }
+    }
+
+    if (verbose) {
+        printf("IndexIVFFlat::add_core: added %" PRId64 " / %" PRId64
+               " vectors\n",
+               n_add,
+               n);
+    }
+    ntotal += n;
+}
+
+void IndexIVFFlat::encode_vectors(
+        idx_t n,
+        const float* x,
+        const idx_t* list_nos,
+        uint8_t* codes,
+        bool include_listnos) const {
+    FAISS_THROW_IF_NOT(!by_residual);
+    if (!include_listnos) {
+        memcpy(codes, x, code_size * n);
+    } else {
+        size_t coarse_size = coarse_code_size();
+        for (size_t i = 0; i < n; i++) {
+            int64_t list_no = list_nos[i];
+            uint8_t* code = codes + i * (code_size + coarse_size);
+            const float* xi = x + i * d;
+            if (list_no >= 0) {
+                encode_listno(list_no, code);
+                memcpy(code + coarse_size, xi, code_size);
+            } else {
+                memset(code, 0, code_size + coarse_size);
+            }
+        }
+    }
+}
+
+void IndexIVFFlat::decode_vectors(
+        idx_t n,
+        const uint8_t* codes,
+        const idx_t* /*listnos*/,
+        float* x) const {
+    for (size_t i = 0; i < n; i++) {
+        const uint8_t* code = codes + i * code_size;
+        float* xi = x + i * d;
+        memcpy(xi, code, code_size);
+    }
+}
+
+void IndexIVFFlat::sa_decode(idx_t n, const uint8_t* bytes, float* x) const {
+    size_t coarse_size = coarse_code_size();
+    for (size_t i = 0; i < n; i++) {
+        const uint8_t* code = bytes + i * (code_size + coarse_size);
+        float* xi = x + i * d;
+        memcpy(xi, code + coarse_size, code_size);
+    }
+}
+
+namespace {
+
+template <typename VectorDistance, bool use_sel>
+struct IVFFlatScanner : InvertedListScanner {
+    VectorDistance vd;
+    using C = typename VectorDistance::C;
+
+    IVFFlatScanner(
+            const VectorDistance& vd,
+            bool store_pairs,
+            const IDSelector* sel)
+            : InvertedListScanner(store_pairs, sel), vd(vd) {
+        keep_max = vd.is_similarity;
+        code_size = vd.d * sizeof(float);
+    }
+
+    const float* xi;
+    void set_query(const float* query) override {
+        this->xi = query;
+    }
+
+    void set_list(idx_t list_no, float /* coarse_dis */) override {
+        this->list_no = list_no;
+    }
+
+    float distance_to_code(const uint8_t* code) const override {
+        const float* yj = (float*)code;
+        return vd(xi, yj);
+    }
+
+    size_t scan_codes(
+            size_t list_size,
+            const uint8_t* codes,
+            const idx_t* ids,
+            float* simi,
+            idx_t* idxi,
+            size_t k) const override {
+        const float* list_vecs = (const float*)codes;
+        size_t nup = 0;
+        for (size_t j = 0; j < list_size; j++) {
+            const float* yj = list_vecs + vd.d * j;
+            if (use_sel && !sel->is_member(ids[j])) {
+                continue;
+            }
+            float dis = vd(xi, yj);
+            if (C::cmp(simi[0], dis)) {
+                int64_t id = store_pairs ? lo_build(list_no, j) : ids[j];
+                heap_replace_top<C>(k, simi, idxi, dis, id);
+                nup++;
+            }
+        }
+        return nup;
+    }
+
+    void scan_codes_range(
+            size_t list_size,
+            const uint8_t* codes,
+            const idx_t* ids,
+            float radius,
+            RangeQueryResult& res) const override {
+        const float* list_vecs = (const float*)codes;
+        for (size_t j = 0; j < list_size; j++) {
+            const float* yj = list_vecs + vd.d * j;
+            if (use_sel && !sel->is_member(ids[j])) {
+                continue;
+            }
+            float dis = vd(xi, yj);
+            if (C::cmp(radius, dis)) {
+                int64_t id = store_pairs ? lo_build(list_no, j) : ids[j];
+                res.add(dis, id);
+            }
+        }
+    }
+};
+
+struct Run_get_InvertedListScanner {
+    using T = InvertedListScanner*;
+
+    template <class VD>
+    InvertedListScanner* f(
+            VD& vd,
+            const IndexIVFFlat* ivf,
+            bool store_pairs,
+            const IDSelector* sel) {
+        if (sel) {
+            return new IVFFlatScanner<VD, true>(vd, store_pairs, sel);
+        } else {
+            return new IVFFlatScanner<VD, false>(vd, store_pairs, sel);
+        }
+    }
+};
+
+} // anonymous namespace
+
+InvertedListScanner* IndexIVFFlat::get_InvertedListScanner(
+        bool store_pairs,
+        const IDSelector* sel,
+        const IVFSearchParameters*) const {
+    Run_get_InvertedListScanner run;
+    return dispatch_VectorDistance(
+            d, metric_type, metric_arg, run, this, store_pairs, sel);
+}
+
+void IndexIVFFlat::reconstruct_from_offset(
+        int64_t list_no,
+        int64_t offset,
+        float* recons) const {
+    memcpy(recons, invlists->get_single_code(list_no, offset), code_size);
+}
+
+
+} // namespace faiss
+
+
+

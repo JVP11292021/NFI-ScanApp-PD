@@ -17,7 +17,8 @@ import com.example.ipmedth_nfi.viewmodel.SessionViewModel
 fun AppPage(
     viewModel: SessionViewModel,
     onMenuClick: () -> Unit,
-    onPageChanged: (AssessmentPage) -> Unit
+    onPageChanged: (AssessmentPage) -> Unit,
+    onNavigateToAnnotation: (String) -> Unit = {}
 ) {
     val pagerState = rememberPagerState(pageCount = { AssessmentPage.all.size })
 
@@ -39,7 +40,8 @@ fun AppPage(
         ) { pageIndex ->
             AssessmentContent(
                 page = AssessmentPage.all[pageIndex],
-                viewModel = viewModel
+                viewModel = viewModel,
+                onNavigateToAnnotation = onNavigateToAnnotation
             )
         }
     }

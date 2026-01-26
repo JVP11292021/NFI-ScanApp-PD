@@ -13,7 +13,7 @@
 #include <Object.hpp>
 #include <Camera.hpp>
 #include <FrameInfo.hpp>
-#include "descriptors.hpp"
+#include <Descriptors.hpp>
 
 #include <array>
 
@@ -61,13 +61,15 @@ public:
 
 private:
     void createPipeline(VkRenderPass renderPass, const std::string& vertPath, const std::string& fragPath);
+    void createTrianglePipeline(VkRenderPass renderPass, const std::string& vertPath, const std::string& fragPath);
 
 private:
     PickingFramebuffer pickingFB;
     std::unique_ptr<vle::Buffer> stagingBufferID;
     std::unique_ptr<vle::Buffer> stagingBufferPos;
 
-    // MRT color blend attachments - must persist for pipeline lifetime
+    std::unique_ptr<vle::Pipeline> trianglePipeline;
+
     std::array<VkPipelineColorBlendAttachmentState, 2> colorBlendAttachments{};
 };
 

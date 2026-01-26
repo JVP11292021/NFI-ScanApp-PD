@@ -17,9 +17,6 @@ class ProjectStorageManager(
     override fun getProjectDir(onderzoek: Onderzoek): File =
         File(rootDir, "${onderzoek.zaaknummer}/${onderzoek.onderzoeksnaam}")
 
-    fun getProjectDirPath(onderzoek: Onderzoek): String =
-        getProjectDir(onderzoek).absolutePath
-
     override fun getImageDir(onderzoek: Onderzoek): File =
         File(getProjectDir(onderzoek), "Reconstruction/images")
 
@@ -29,6 +26,9 @@ class ProjectStorageManager(
 
         imageDir.mkdirs()
         File(projectDir, "markers.txt").createNewFile()
+
+        File(projectDir, "/Reconstruction/database.db").createNewFile()
+        File(projectDir, "/Reconstruction/sparse").mkdir();
 
         File(projectDir, "project.json").writeText(
             Json.encodeToString(onderzoek)

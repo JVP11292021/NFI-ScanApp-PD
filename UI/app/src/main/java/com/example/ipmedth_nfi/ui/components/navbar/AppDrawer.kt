@@ -14,12 +14,14 @@ fun AppDrawer(onSelect: (String) -> Unit) {
     ModalDrawerSheet() {
         Text("Main Pages", modifier = Modifier.padding(16.dp))
 
-        MainRoute.entries.forEach { route ->
-            NavigationDrawerItem(
-                label = { Text(route.title)},
-                selected = false,
-                onClick = { onSelect(route.route)}
-            )
-        }
+        MainRoute.entries
+            .filter { it != MainRoute.ANNOTATION }
+            .forEach { route ->
+                NavigationDrawerItem(
+                    label = { Text(route.title)},
+                    selected = false,
+                    onClick = { onSelect(route.route)}
+                )
+            }
     }
 }
