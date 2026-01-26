@@ -39,7 +39,7 @@ void MarkerManager::loadMarkersFromTxt(const std::string& filePath, vle::EngineD
     }
 
     if (!markerPinModel) {
-        markerPinModel = vle::ShaderModel::createModelFromFile(device, "markerPin.obj");
+        markerPinModel = vle::ShaderModel::createModelFromFile(device, "markerPin.obj", vle::ModelLoadMode::ASSET_MANAGER);
     }
 
     std::string line;
@@ -82,7 +82,7 @@ void MarkerManager::loadMarkersFromTxt(const std::string& filePath, vle::EngineD
 void MarkerManager::createMarker(const glm::vec3& position, vle::EngineDevice& device, vle::ObjectMap& objects)
 {
     if (!markerPinModel) {
-        markerPinModel = vle::ShaderModel::createModelFromFile(device, "markerPin.obj");
+        markerPinModel = vle::ShaderModel::createModelFromFile(device, "markerPin.obj", vle::ModelLoadMode::ASSET_MANAGER);
     }
 
     auto obj = vle::Object::create();

@@ -131,8 +131,33 @@ void AndroidEngine::loadObjects() {
         VLE_LOGW("No project directory provided, starting with no markers.");
     }
 
-    std::shared_ptr<vle::ShaderModel> roomModel =
-            vle::ShaderModel::createModelFromFile(_device, _projectDirPath + "/Reconstruction/sparse/spare.ply");
+    std::shared_ptr<vle::ShaderModel> roomModel;
+
+
+    // Attempt to load sparse.ply from external storage
+    try {
+        roomModel = vle::ShaderModel::createModelFromFile(
+                _device,
+                _projectDirPath + "/Reconstruction/sparse/sparse.ply",
+                vle::ModelLoadMode::DIRECT_PATH
+        );
+        VLE_LOGI("Loaded room model from external storage");
+    } catch (const std::exception& e) {
+        VLE_LOGW("Failed to load sparse.ply, falling back to assets: ", e.what());
+        // Fallback: Load simple_scene.ply from assets
+        try {
+            roomModel = vle::ShaderModel::createModelFromFile(
+                    _device,
+                    "simple_scene.ply",
+                    vle::ModelLoadMode::ASSET_MANAGER
+            );
+            VLE_LOGI("Loaded fallback room model from assets");
+        } catch (const std::exception& fallbackError) {
+            VLE_LOGE("Failed to load fallback model: ", fallbackError.what());
+            throw;
+        }
+    }
+
     auto room = vle::Object::create();
     room.model = roomModel;
     room.transform.translation = { 0.f, .5f, 8.f };
