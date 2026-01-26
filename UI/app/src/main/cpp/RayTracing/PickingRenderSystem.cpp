@@ -1,6 +1,11 @@
 #include "PickingRenderSystem.hpp"
 #include <array>
 
+
+//TODO: Add area selection picking support
+// Achieve this by allowing the user to pick 4 points to form a rectangle
+
+
 PickingRenderSystem::PickingRenderSystem(
         vle::EngineDevice& device,
         uint32_t width,

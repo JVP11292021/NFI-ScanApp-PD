@@ -35,7 +35,8 @@ public:
             ANativeWindow* nativeWindow,
             std::int32_t width,
             std::int32_t height,
-            const char* projectDirPath);
+            const char* projectDirPath,
+            const char* actionId = nullptr);
     ~AndroidEngine() override;
 
     NON_COPYABLE(AndroidEngine)
@@ -61,6 +62,7 @@ private:
 private:
     AAssetManager* _assetManager = nullptr;
     std::string _projectDirPath;
+    std::string _actionId;
     vle::AndroidWindow _win;
     vle::EngineDevice _device;
     vle::sys::Renderer _renderer;

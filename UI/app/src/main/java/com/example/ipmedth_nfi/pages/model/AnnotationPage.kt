@@ -2,7 +2,6 @@ package com.example.ipmedth_nfi.pages.model
 
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
-import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -18,12 +17,12 @@ import kotlin.math.abs
 import kotlin.math.hypot
 
 @Composable
-fun ModelPage(
+fun Annotation(
     viewModel: SessionViewModel,
     modifier: Modifier = Modifier,
     engine: NativeAndroidEngine,
     projectDirPath: String? = null,
-    actionId: String? = "01"
+    actionId: String? = "000000"
 ) {
     // Track whether two fingers are active so single-finger pan can be suppressed
     var twoFingerActive by remember { mutableStateOf(false) }
@@ -33,7 +32,6 @@ fun ModelPage(
         projectDirPath = projectDirPath,
         actionId = actionId,
         modifier = modifier
-            //TODO: Remove tap and double tap gestures from model page as it is view only
             .pointerInput(Unit) {
                 detectTapGestures(
                     onDoubleTap = { offset ->
@@ -122,3 +120,4 @@ fun ModelPage(
             }
     )
 }
+

@@ -22,7 +22,8 @@ Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeCreate(
         jobject vulkanAppBridge,
         jobject surface,
         jobject pAssetManager,
-        jstring projectDirPath
+        jstring projectDirPath,
+        jstring actionId
 ) {
     if (engineApp) {
         delete engineApp;
@@ -48,19 +49,31 @@ Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeCreate(
         projectPath = env->GetStringUTFChars(projectDirPath, nullptr);
     }
 
+    const char* action = nullptr;
+    if (actionId != nullptr) {
+        action = env->GetStringUTFChars(actionId, nullptr);
+    }
+
     try {
         engineApp = new AndroidEngine(
-                assetManager, window, ANativeWindow_getWidth(window), ANativeWindow_getHeight(window), projectPath);
+                assetManager, window, ANativeWindow_getWidth(window), ANativeWindow_getHeight(window), projectPath, action);
     } catch (std::runtime_error& er) {
         VLE_LOGF(er.what());
         if (projectPath) {
             env->ReleaseStringUTFChars(projectDirPath, projectPath);
+        }
+        if (action) {
+            env->ReleaseStringUTFChars(actionId, action);
         }
         return;
     }
 
     if (projectPath) {
         env->ReleaseStringUTFChars(projectDirPath, projectPath);
+    }
+
+    if (action) {
+        env->ReleaseStringUTFChars(actionId, action);
     }
 
     VLE_LOGD("AndroidEngine app instance created successfully!");

@@ -17,16 +17,21 @@ AndroidEngine::AndroidEngine(
         ANativeWindow* nativeWindow,
         std::int32_t width,
         std::int32_t height,
-        const char* projectDirPath
+        const char* projectDirPath,
+        const char* actionId
 )
   :
     IAndroidSurface(),
     _assetManager(assetManager),
     _projectDirPath(projectDirPath ? projectDirPath : ""),
+    _actionId(actionId ? actionId : ""),
     _win(nativeWindow, width, height, "NFI Scan App"),
     _device(_win, _assetManager),
-    _renderer(_win, _device)
+    _renderer(_win, _device),
+    markerManager(_actionId)
 {
+    VLE_LOGD("AndroidEngine initialized with actionId: ", _actionId.empty() ? "<empty>" : _actionId.c_str());
+
     this->globalPool = vle::DescriptorPool::Builder(this->_device)
             .setMaxSets(MAX_FRAMES_IN_FLIGHT)
             .addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, MAX_FRAMES_IN_FLIGHT)

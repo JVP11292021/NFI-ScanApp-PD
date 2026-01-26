@@ -12,7 +12,7 @@ class NativeAndroidEngine() {
         }
     }
 
-    private external fun nativeCreate(surface: Surface, assetManager: AssetManager, projectDirPath: String?)
+    private external fun nativeCreate(surface: Surface, assetManager: AssetManager, projectDirPath: String?, actionId: String?)
     private external fun nativeDestroy()
     private external fun nativeResize(width: Int, height: Int)
     private external fun nativeDraw()
@@ -22,8 +22,8 @@ class NativeAndroidEngine() {
     private external fun nativeOnTap(x: Float, y: Float)
     private external fun nativeOnDoubleTap(x: Float, y: Float)
 
-    fun create(surface: Surface, assetManager: AssetManager, projectDirPath: String? = null) {
-        nativeCreate(surface, assetManager, projectDirPath)
+    fun create(surface: Surface, assetManager: AssetManager, projectDirPath: String? = null, actionId: String? = null) {
+        nativeCreate(surface, assetManager, projectDirPath, actionId)
     }
 
     fun destroy() {
