@@ -102,8 +102,7 @@ fun ScanCameraContent(
                 reconstructionEngine.extractMatchFeatures())
                 throwIfNotZero(
                 reconstructionEngine.reconstruct(
-                    File(projectPath, "/Reconstruction/sparse").absolutePath,
-                    File(projectPath, "/Reconstruction/sparse/0").absolutePath))
+                    File(projectPath, "/Reconstruction/sparse").absolutePath))
                 throwIfNotZero(
                     reconstructionEngine.mapModel(
                         File(projectPath, "/Reconstruction/sparse/0").absolutePath,
