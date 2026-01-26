@@ -41,6 +41,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.ipmedth_nfi.viewmodel.SessionViewModel
 import com.example.ipmedth_nfi.bridge.NativeReconstructionEngine
 import com.example.ipmedth_nfi.data.export.ProjectStorageManager
+import com.example.ipmedth_nfi.exception.ReconstructionException
 import com.example.ipmedth_nfi.model.Onderzoek
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -97,12 +98,27 @@ fun ScanCameraContent(
         isLoading = true
         try {
             withContext(Dispatchers.Default) {
-                reconstructionEngine.extractMatchFeatures()
+                throwIfNotZero(
+                reconstructionEngine.extractMatchFeatures())
+                throwIfNotZero(
                 reconstructionEngine.reconstruct(
-                    File(projectPath, "/Reconstruction/sparse").absolutePath);
+                    File(projectPath, "/Reconstruction/sparse").absolutePath,
+                    File(projectPath, "/Reconstruction/sparse/0").absolutePath))
+                throwIfNotZero(
+                    reconstructionEngine.mapModel(
+                        File(projectPath, "/Reconstruction/sparse/0").absolutePath,
+                        File(projectPath, "/Reconstruction/sparse/sparse.ply").absolutePath,
+                        "PLY"))
 
             }
-        } finally {
+        }
+        catch (e: ReconstructionException) {
+            snackbarHostState.showSnackbar(
+                message = e.toString(),
+                duration = SnackbarDuration.Short
+            )
+        }
+        finally {
             isLoading = false
             runReconstruction = false
         }
@@ -223,4 +239,10 @@ private fun takePhoto(
             }
         }
     )
+}
+
+private fun throwIfNotZero(resultCode: Int, message: String = "") {
+    if (resultCode != 0) {
+        throw ReconstructionException("Native engine error: $resultCode, $message")
+    }
 }
