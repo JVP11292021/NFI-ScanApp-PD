@@ -47,6 +47,8 @@ class SessionViewModel(
     var currentAssessmentPage by mutableStateOf<AssessmentPage>(AssessmentPage.Info)
         private set
 
+    var selectedActionId by mutableStateOf<String?>(null)
+
     val pageCompletion = mutableStateMapOf<AssessmentPage, Boolean>().apply {
         AssessmentPage.all.forEach { this[it] = false }
     }

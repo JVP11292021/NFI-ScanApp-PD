@@ -1,8 +1,5 @@
-package com.example.ipmedth_nfi.ui.components.vk
+package com.example.ipmedth_nfi.pages.model
 
-import android.util.Log
-import android.view.SurfaceView
-import android.view.SurfaceHolder
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.runtime.Composable
@@ -13,69 +10,39 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.viewinterop.AndroidView
 import com.example.ipmedth_nfi.bridge.NativeAndroidEngine
+import com.example.ipmedth_nfi.ui.vk.VulkanRenderer
+import com.example.ipmedth_nfi.viewmodel.SessionViewModel
 import kotlin.math.abs
+import kotlin.math.hypot
 
 @Composable
-fun VulkanSurface(
+fun AnnotationPage(
+    viewModel: SessionViewModel,
     modifier: Modifier = Modifier,
     engine: NativeAndroidEngine,
-    projectDirPath: String? = null
+    projectDirPath: String? = null,
+    actionId: String? = "01"
 ) {
-    val context = LocalContext.current
-    val assetManager = context.assets
-
     // Track whether two fingers are active so single-finger pan can be suppressed
     var twoFingerActive by remember { mutableStateOf(false) }
 
-    val surfaceView = SurfaceView(context).apply {
-        holder.addCallback(object : SurfaceHolder.Callback2 {
-            override fun surfaceCreated(holder: SurfaceHolder) {
-                // Initialize the native Vulkan engine with the provided surface
-                engine.create(holder.surface, assetManager, projectDirPath)
-            }
-
-            override fun surfaceChanged(
-                holder: SurfaceHolder,
-                format: Int,
-                width: Int,
-                height: Int
-            ) {
-                Log.i("NFI", "Resizing surface to: $width x $height")
-                // Notify the native backend of the new dimensions
-                engine.resize(width, height)
-            }
-
-            override fun surfaceDestroyed(holder: SurfaceHolder) {
-                // Clean up native resources before the surface is fully removed
-                engine.destroy()
-            }
-
-            override fun surfaceRedrawNeeded(holder: SurfaceHolder) {
-                // Trigger a frame draw when the system requests a redraw
-                engine.draw()
-            }
-        })
-
-    }
-
-    AndroidView(
-        factory = { surfaceView },
+    VulkanRenderer(
+        engine = engine,
+        projectDirPath = projectDirPath,
+        actionId = actionId,
         modifier = modifier
             .pointerInput(Unit) {
                 detectTapGestures(
                     onDoubleTap = { offset ->
-                        Log.i("UI", "On double tap")
-                        Log.i("DoubleTap", "x: ${offset.x}, y: ${offset.y}")
-                        engine.draw()
+                        engine.onTap(offset.x, offset.y)
+                        engine.draw()           // 1st draw to place new marker
+                        engine.draw()           // 2nd draw to refresh view
                     },
                     onTap = { offset ->
-                        Log.i("UI", "On tap")
-                        Log.i("Tap", "x: ${offset.x}, y: ${offset.y}")
-                        engine.onTap(offset.x, offset.y)
-                        engine.draw()
+                        engine.onDoubleTap(offset.x, offset.y)
+                        engine.draw()           // 1st draw to remove marker
+                        engine.draw()           // 2nd draw to refresh view
                     }
                 )
             }
@@ -102,13 +69,12 @@ fun VulkanSurface(
                             // compute distance between pointers for pinch scale
                             val dx = p1.x - p0.x
                             val dy = p1.y - p0.y
-                            val distance = kotlin.math.hypot(dx, dy)
+                            val distance = hypot(dx, dy)
 
                             previousDistance?.let { prevDist ->
                                 if (prevDist > 0f) {
                                     val scale = distance / prevDist
                                     if (abs(scale - 1f) >= scaleThreshold) {
-                                        Log.i("TwoFingerPinch", "scale: $scale")
                                         engine.onPinch(scale)
                                         engine.draw()
 
@@ -121,8 +87,7 @@ fun VulkanSurface(
                             previousCentroid?.let { prev ->
                                 val delta = centroid - prev
                                 if (delta.getDistance() >= touchSlop) {
-                                    Log.i("TwoFingerDrag", "dx: ${delta.x}, dy: ${delta.y}")
-                                    engine.onStrafe(delta.x, delta.y);
+                                    engine.onStrafe(delta.x, delta.y)
                                     engine.draw()
 
                                     // consume so detectTransformGestures (and others) won't also react to the two-finger motion
@@ -148,13 +113,11 @@ fun VulkanSurface(
                     if (twoFingerActive) return@detectTransformGestures
 
                     if (pan != Offset.Zero) {
-                        Log.i("UI", "On pan")
                         engine.onDrag(pan.x, pan.y)
                         engine.draw()
                     }
                 }
             }
-        ,
-        update = { }
     )
 }
+

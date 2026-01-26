@@ -3,9 +3,11 @@
 #include <jni.h>
 #include <android/asset_manager.h>
 #include <android/asset_manager_jni.h>
+#include <android/native_window_jni.h>
 #include <EngineBackend/defs.hpp>
 
 static AndroidEngine* engineApp = nullptr;
+static ANativeWindow* currentWindow = nullptr;
 
 extern "C"
 JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
@@ -20,11 +22,17 @@ Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeCreate(
         jobject vulkanAppBridge,
         jobject surface,
         jobject pAssetManager,
-        jstring projectDirPath
+        jstring projectDirPath,
+        jstring actionId
 ) {
     if (engineApp) {
         delete engineApp;
         engineApp = nullptr;
+    }
+
+    if (currentWindow) {
+        ANativeWindow_release(currentWindow);
+        currentWindow = nullptr;
     }
 
     auto window = ANativeWindow_fromSurface(env, surface);
@@ -34,26 +42,38 @@ Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeCreate(
         return;
     }
 
-    // Convert jstring to const char*
+    currentWindow = window;
+
     const char* projectPath = nullptr;
     if (projectDirPath != nullptr) {
         projectPath = env->GetStringUTFChars(projectDirPath, nullptr);
     }
 
+    const char* action = nullptr;
+    if (actionId != nullptr) {
+        action = env->GetStringUTFChars(actionId, nullptr);
+    }
+
     try {
         engineApp = new AndroidEngine(
-                assetManager, window, ANativeWindow_getWidth(window), ANativeWindow_getHeight(window), projectPath);
+                assetManager, window, ANativeWindow_getWidth(window), ANativeWindow_getHeight(window), projectPath, action);
     } catch (std::runtime_error& er) {
         VLE_LOGF(er.what());
         if (projectPath) {
             env->ReleaseStringUTFChars(projectDirPath, projectPath);
         }
+        if (action) {
+            env->ReleaseStringUTFChars(actionId, action);
+        }
         return;
     }
 
-    // Release the string
     if (projectPath) {
         env->ReleaseStringUTFChars(projectDirPath, projectPath);
+    }
+
+    if (action) {
+        env->ReleaseStringUTFChars(actionId, action);
     }
 
     VLE_LOGD("AndroidEngine app instance created successfully!");
@@ -67,6 +87,12 @@ Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeDestroy(JNIEnv *e
         engineApp = nullptr;
         VLE_LOGI("Destroyed the AndroidEngine app instance!");
     }
+
+    if (currentWindow) {
+        ANativeWindow_release(currentWindow);
+        currentWindow = nullptr;
+        VLE_LOGI("Released ANativeWindow reference!");
+    }
 }
 
 extern "C"
@@ -75,14 +101,12 @@ Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeResize(JNIEnv *en
     VLE_LOGD("Resized surface to: ", std::to_string(width).c_str(), "x", std::to_string(height).c_str());
     if (engineApp) {
         engineApp->resize(width, height);
-//        mApplicationInstance->isResizeNeeded = true;
     }
 }
 
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeDraw(JNIEnv *env, jobject vulkanAppBridge) {
-//    VLE_LOGD("Redrawing engine frame");
     if (engineApp) {
         engineApp->drawFrame();
     }
@@ -124,32 +148,10 @@ Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeOnTap(JNIEnv *env
 }
 
 extern "C"
-JNIEXPORT jstring JNICALL
-Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeGetProjectDirPath(JNIEnv *env,
-                                                                                 jobject thiz,
-                                                                                 jobject storage_manager,
-                                                                                 jobject onderzoek) {
-    jclass storageClass = env->GetObjectClass(storage_manager);
-    if (!storageClass) {
-        return nullptr;
+JNIEXPORT void JNICALL
+Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeOnDoubleTap(JNIEnv *env, jobject thiz,
+                                                                           jfloat x, jfloat y) {
+    if (engineApp) {
+        engineApp->onDoubleTap(static_cast<uint32_t>(x), static_cast<uint32_t>(y));
     }
-
-    jmethodID getPathMethod = env->GetMethodID(
-            storageClass,
-            "getProjectDirPath",
-            "(Lcom/example/ipmedth_nfi/model/Onderzoek;)Ljava/lang/String;"
-    );
-
-    if (!getPathMethod) {
-        return nullptr;
-    }
-
-    jstring path = (jstring) env->CallObjectMethod(
-            storage_manager,
-            getPathMethod,
-            onderzoek
-    );
-
-    return path;
-
 }

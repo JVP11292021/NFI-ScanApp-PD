@@ -17,16 +17,21 @@ AndroidEngine::AndroidEngine(
         ANativeWindow* nativeWindow,
         std::int32_t width,
         std::int32_t height,
-        const char* projectDirPath
+        const char* projectDirPath,
+        const char* actionId
 )
   :
     IAndroidSurface(),
     _assetManager(assetManager),
     _projectDirPath(projectDirPath ? projectDirPath : ""),
+    _actionId(actionId ? actionId : ""),
     _win(nativeWindow, width, height, "NFI Scan App"),
     _device(_win, _assetManager),
-    _renderer(_win, _device)
+    _renderer(_win, _device),
+    markerManager(_actionId)
 {
+    VLE_LOGD("AndroidEngine initialized with actionId: ", _actionId.empty() ? "<empty>" : _actionId.c_str());
+
     this->globalPool = vle::DescriptorPool::Builder(this->_device)
             .setMaxSets(MAX_FRAMES_IN_FLIGHT)
             .addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, MAX_FRAMES_IN_FLIGHT)
@@ -38,7 +43,17 @@ AndroidEngine::AndroidEngine(
 
 }
 
-AndroidEngine::~AndroidEngine() = default;
+AndroidEngine::~AndroidEngine() {
+    vkDeviceWaitIdle(_device.device());
+
+    uboBuffers.clear();
+    uboBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+    globalSetLayout.reset();
+    globalDescriptorSets.clear();
+    globalDescriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
+
+    VLE_LOGI("AndroidEngine destroyed and static resources cleared");
+}
 
 void AndroidEngine::resize(std::int32_t width, std::int32_t height) {
     this->_win.setSize(width, height);
@@ -102,7 +117,6 @@ void AndroidEngine::makeSystems() {
 }
 
 void AndroidEngine::loadObjects() {
-    // Use the project directory path passed during construction
     std::string markersPath = _projectDirPath.empty()
         ? ""
         : _projectDirPath + "/markers.txt";
@@ -131,6 +145,11 @@ void AndroidEngine::loadObjects() {
 }
 
 void AndroidEngine::drawFrame() {
+    if (uboBuffers.empty() || !uboBuffers[0] || !globalSetLayout) {
+        VLE_LOGW("DrawFrame called before engine initialization complete - skipping");
+        return;
+    }
+
     auto view = _cam.getViewMatrix();
     auto projection = _cam.getProjMatrix();
     auto inverseView = glm::inverse(view);
@@ -153,11 +172,6 @@ void AndroidEngine::drawFrame() {
         if (this->_win.getWidth() > this->_win.getHeight()) {
             fov *= static_cast<float>(this->_win.getHeight()) / static_cast<float>(this->_win.getWidth());
         }
-
-        auto model = glm::mat4(1.0f);
-        // Vulkan clip space has inverted Y and half Z.
-//        auto clip = glm::mat4(1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 0.5f, 1.0f);
-
 
         vle::FrameInfo frameInfo{
                 frameIndex,
@@ -185,8 +199,6 @@ void AndroidEngine::drawFrame() {
 
         pickingRenderSystem->render(frameInfo);
 
-        // Copy pixel data to staging buffer BEFORE ending the frame command buffer
-        // This ensures proper synchronization - the render pass must complete first
         if (shouldPick) {
             pickingRenderSystem->copyPixelToStaging(commandBuffer, pickX, pickY);
             VLE_LOGI("Picking at: ", std::to_string(pickX).c_str(), ", ", std::to_string(pickY).c_str());
@@ -197,28 +209,42 @@ void AndroidEngine::drawFrame() {
 
         objectRenderSystem->render(frameInfo);
         pointCloudRenderSystem->render(frameInfo);
-        // pointLightSystem.render(frameInfo);
 
         _renderer.endSwapChainRenderPass(commandBuffer);
         _renderer.endFrame();
 
-        // Read pick result AFTER the frame has been submitted and completed
         if (shouldPick) {
-            // Wait for GPU to finish so we can read the staging buffer
             vkDeviceWaitIdle(_device.device());
 
             PickResult pick = pickingRenderSystem->readPickResult();
 
             if (pick.id != 0xFFFFFFFF) {
-                this->markerManager.createMarker(pick.worldPos, _device, this->objects);
-                VLE_LOGI(
-                        "Placed marker at: ",
-                        std::to_string(pick.worldPos.x).c_str(), ", ",
-                        std::to_string(pick.worldPos.y).c_str(), ", ",
-                        std::to_string(pick.worldPos.z).c_str()
-                );
+                if (shouldPickForDelete) {
+                    // Double-tap: Check if the picked object is a marker and delete it
+                    if (this->markerManager.isMarker(pick.objectID)) {
+                        this->markerManager.destroyMarker(pick.objectID, this->objects);
+                        VLE_LOGI(
+                                "Deleted marker at: ",
+                                std::to_string(pick.worldPos.x).c_str(), ", ",
+                                std::to_string(pick.worldPos.y).c_str(), ", ",
+                                std::to_string(pick.worldPos.z).c_str()
+                        );
+                    } else {
+                        VLE_LOGI("Double-tap on non-marker object - no action");
+                    }
+                } else {
+                    // Single-tap: Always create a new marker at the picked position
+                    this->markerManager.createMarker(pick.worldPos, _device, this->objects);
+                    VLE_LOGI(
+                            "Placed marker at: ",
+                            std::to_string(pick.worldPos.x).c_str(), ", ",
+                            std::to_string(pick.worldPos.y).c_str(), ", ",
+                            std::to_string(pick.worldPos.z).c_str()
+                    );
+                }
             }
             shouldPick = false;
+            shouldPickForDelete = false;
         }
     }
 }
@@ -252,5 +278,13 @@ void AndroidEngine::onTap(uint32_t x, uint32_t y) {
     this->pickX = x;
     this->pickY = y;
     this->shouldPick = true;
+    this->shouldPickForDelete = false;
+}
+
+void AndroidEngine::onDoubleTap(uint32_t x, uint32_t y) {
+    this->pickX = x;
+    this->pickY = y;
+    this->shouldPick = true;
+    this->shouldPickForDelete = true;
 }
 

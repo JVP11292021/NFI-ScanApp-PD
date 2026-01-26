@@ -1,44 +1,109 @@
 package com.example.ipmedth_nfi.pages.model
 
-import android.content.Intent
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import com.example.ipmedth_nfi.RendererActivity // Ensure this import matches your package
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.pointerInput
+import com.example.ipmedth_nfi.bridge.NativeAndroidEngine
+import com.example.ipmedth_nfi.ui.vk.VulkanRenderer
 import com.example.ipmedth_nfi.viewmodel.SessionViewModel
+import kotlin.math.abs
+import kotlin.math.hypot
 
 @Composable
 fun ModelPage(
     viewModel: SessionViewModel,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    engine: NativeAndroidEngine,
+    projectDirPath: String? = null,
+    actionId: String? = "01"
 ) {
-    val context = LocalContext.current
-    val activeOnderzoek = viewModel.activeOnderzoek.collectAsState().value
+    // Track whether two fingers are active so single-finger pan can be suppressed
+    var twoFingerActive by remember { mutableStateOf(false) }
 
-    Box(
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Button(
-            onClick = {
-                activeOnderzoek?.let { onderzoek ->
-                    // Create an Intent to launch the RendererActivity
-                    val intent = Intent(context, RendererActivity::class.java).apply {
-                        putExtra("zaaknummer", onderzoek.zaaknummer)
-                        putExtra("onderzoeksnaam", onderzoek.onderzoeksnaam)
+    VulkanRenderer(
+        engine = engine,
+        projectDirPath = projectDirPath,
+        actionId = actionId,
+        modifier = modifier
+            .pointerInput(Unit) {
+                val touchSlop = 8f
+                val scaleThreshold = 0.02f
+
+                awaitPointerEventScope {
+                    var previousCentroid: Offset? = null
+                    var previousDistance: Float? = null
+
+                    while (true) {
+                        val event = awaitPointerEvent()
+                        val pressed = event.changes.filter { it.pressed }
+
+                        if (pressed.size == 2) {
+                            twoFingerActive = true
+
+                            // compute positions and centroid
+                            val p0 = pressed[0].position
+                            val p1 = pressed[1].position
+                            val centroid = Offset((p0.x + p1.x) / 2f, (p0.y + p1.y) / 2f)
+
+                            // compute distance between pointers for pinch scale
+                            val dx = p1.x - p0.x
+                            val dy = p1.y - p0.y
+                            val distance = hypot(dx, dy)
+
+                            previousDistance?.let { prevDist ->
+                                if (prevDist > 0f) {
+                                    val scale = distance / prevDist
+                                    if (abs(scale - 1f) >= scaleThreshold) {
+                                        engine.onPinch(scale)
+                                        engine.draw()
+
+                                        // consume so other handlers don't duplicate pinch handling
+                                        pressed.forEach { it.consume() }
+                                    }
+                                }
+                            }
+
+                            previousCentroid?.let { prev ->
+                                val delta = centroid - prev
+                                if (delta.getDistance() >= touchSlop) {
+                                    engine.onStrafe(delta.x, delta.y)
+                                    engine.draw()
+
+                                    // consume so detectTransformGestures (and others) won't also react to the two-finger motion
+                                    pressed.forEach { it.consume() }
+                                }
+                            }
+
+                            previousCentroid = centroid
+                            previousDistance = distance
+                        } else {
+                            // reset trackers when not exactly two pointers
+                            previousCentroid = null
+                            previousDistance = null
+
+                            twoFingerActive = false
+                        }
                     }
-                    context.startActivity(intent)
                 }
-            },
-            enabled = activeOnderzoek != null
-        ) {
-            Text(text = "Open Vulkan Renderer")
-        }
-    }
+            }
+            .pointerInput(Unit) {
+                detectTransformGestures { _, pan, _, _ ->
+                    // suppress single-finger pan when two fingers are active
+                    if (twoFingerActive) return@detectTransformGestures
+
+                    if (pan != Offset.Zero) {
+                        engine.onDrag(pan.x, pan.y)
+                        engine.draw()
+                    }
+                }
+            }
+    )
 }
