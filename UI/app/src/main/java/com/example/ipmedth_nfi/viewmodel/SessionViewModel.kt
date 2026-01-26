@@ -258,6 +258,12 @@ class SessionViewModel(
         )
     }
 
+    // Public accessor for the current snapshot to allow exporting
+    fun getCurrentSnapshot(): ProjectSnapshot? {
+        val onderzoek = _activeOnderzoek.value ?: return null
+        return buildSnapshot(onderzoek)
+    }
+
     fun buildExport(): ExportData {
         return ExportData(
             roomModel = roomModel,
