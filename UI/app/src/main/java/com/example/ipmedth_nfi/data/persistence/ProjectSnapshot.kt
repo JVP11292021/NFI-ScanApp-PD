@@ -1,5 +1,6 @@
 package com.example.ipmedth_nfi.data.persistence
 
+import com.example.ipmedth_nfi.model.Aandachtspunt
 import com.example.ipmedth_nfi.model.Hoofdthema
 import com.example.ipmedth_nfi.model.Marker
 import com.example.ipmedth_nfi.model.Observation
@@ -14,6 +15,7 @@ data class ProjectSnapshot(
     val infoTerPlaatse: List<String> = emptyList(),
     val observations: List<Observation> = emptyList(),
     val hoofdthemas: List<Hoofdthema> = emptyList(),
+    val aandachtspunten: List<Aandachtspunt> = emptyList(),
     val markers: List<Marker> = emptyList(),
     val appData: Map<String, String> = emptyMap(),
     val roomModel: RoomModel? = null
