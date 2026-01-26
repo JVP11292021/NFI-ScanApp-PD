@@ -40,14 +40,11 @@ fun AttentionTab(viewModel: SessionViewModel) {
 
     var selectedDetailsItemId by remember { mutableStateOf<String?>(null) }
 
-    // Determine selected item reference
     val selected = remember(aandachtspunten, selectedDetailsItemId) {
         aandachtspunten.find { it.id == selectedDetailsItemId }
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-
-        // Header + themes remain visible always (acts like the main header)
         InfoSubheader(
             subject = "Aandachtspunten",
             details = "${aandachtspunten.size} totaal",
@@ -57,7 +54,7 @@ fun AttentionTab(viewModel: SessionViewModel) {
 
         Row(
             modifier = Modifier
-                .padding(horizontal = 16.dp)
+                .padding(vertical = 4.dp)
                 .horizontalScroll(rememberScrollState()),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -71,13 +68,11 @@ fun AttentionTab(viewModel: SessionViewModel) {
 
         Spacer(Modifier.height(16.dp))
 
-        // Main area: animate between list and detail sheet so header stays visible
         AnimatedVisibility(
             visible = selected == null,
             enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 }),
             exit = fadeOut() + slideOutVertically(targetOffsetY = { -it / 2 })
         ) {
-            // List of attention cards
             Column {
                 aandachtspunten.forEach { punt ->
                     AttentionCard(
@@ -110,9 +105,13 @@ fun AttentionTab(viewModel: SessionViewModel) {
             enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
             exit = fadeOut() + slideOutVertically(targetOffsetY = { it })
         ) {
-            selected?.let { AandachtspuntDetailsSheet(viewModel = viewModel, item = it, onDismiss = { selectedDetailsItemId = null }) }
+            selected?.let {
+                AandachtspuntDetailsSheet(
+                    viewModel = viewModel,
+                    item = it,
+                    onDismiss = { selectedDetailsItemId = null })
+            }
         }
-
     }
 
     if (showAddSheet) {
