@@ -209,32 +209,41 @@ set_target_properties(ceres PROPERTIES
 
 target_link_libraries(ceres PRIVATE Eigen3)
 
-#set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
-#set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-#set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
-#
-#set(CERES_USE_CUDA OFF CACHE BOOL "" FORCE)
-#set(CERES_USE_OPENMP OFF CACHE BOOL "" FORCE)
-#set(CERES_THREADING_MODEL NO_THREADS CACHE STRING "" FORCE)
-#set(CERES_USE_EIGEN_SPARSE ON CACHE BOOL "" FORCE)
-#set(CERES_USE_LAPACK OFF CACHE BOOL "" FORCE)
-#set(CERES_USE_SUITESPARSE OFF CACHE BOOL "" FORCE)
-#set(CERES_USE_CXSparse OFF CACHE BOOL "" FORCE)
-#
-#add_subdirectory(thirdparty/ceres)
-
 # -------------------- FREEIMAGE (STATIC, MINIMAL) --------------------
 
-set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
-set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
+# Set options BEFORE adding subdirectory
+set(BUILD_TESTS OFF CACHE BOOL "Disable FreeImage tests" FORCE)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build static FreeImage" FORCE)
+set(BUILD_DISABLE_PLUGINS ON CACHE BOOL "Disable plugins" FORCE)
+set(BUILD_LIBRAWLITE OFF CACHE BOOL "Disable librawlite" FORCE)
+set(BUILD_OPENEXR OFF CACHE BOOL "Disable OpenEXR" FORCE)
+set(BUILD_JXR OFF CACHE BOOL "Disable JPEG-XR" FORCE)
+set(BUILD_WEBP OFF CACHE BOOL "Disable WebP" FORCE)
+set(BUILD_LIBPNG ON CACHE BOOL "Enable libpng" FORCE)
+set(BUILD_LIBTIFF ON CACHE BOOL "Enable libtiff" FORCE)
+set(BUILD_ZLIB ON CACHE BOOL "Enable zlib" FORCE)
 
-# Add FreeImage
-add_subdirectory(thirdparty/FreeImage)
+add_subdirectory(thirdparty/FreeImage EXCLUDE_FROM_ALL)
 
-# -------------------- Android-FAISS (STATIC, EMBEDDED) --------------------
+if(TARGET FreeImage)
+    set_target_properties(FreeImage PROPERTIES
+            POSITION_INDEPENDENT_CODE ON
+            C_STANDARD 11
+            CXX_STANDARD 17
+    )
 
-#set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -s -O3 -DSkip_f2c_Undefs -DNO_LONG_LONG -DNO_BLAS_WRAP")
-#set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -s -O3 -DSkip_f2c_Undefs -DNO_LONG_LONG -DNO_BLAS_WRAP")
+    target_compile_options(FreeImage PRIVATE
+            -O2
+            -fdata-sections
+            -Wno-implicit-function-declaration
+    )
+
+    message(STATUS "FreeImage library configured for Android")
+else()
+    message(FATAL_ERROR "FreeImage target not found after add_subdirectory!")
+endif()
+
+# -------------------- FAISS (STATIC, EMBEDDED) --------------------
 
 if(ANDROID)
     if((${ANDROID_ABI} STREQUAL "arm64-v8a") OR (${ANDROID_ABI} STREQUAL "x86_64"))

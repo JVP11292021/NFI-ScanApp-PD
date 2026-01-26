@@ -117,8 +117,6 @@ typedef unsigned char boolean;
 #endif /* JPEG_INTERNALS */
 
 
-//#define USE_MAC_MEMMGR
-
 /*
  * The remaining options do not affect the JPEG library proper,
  * but only the sample applications cjpeg/djpeg (see cjpeg.c, djpeg.c).
