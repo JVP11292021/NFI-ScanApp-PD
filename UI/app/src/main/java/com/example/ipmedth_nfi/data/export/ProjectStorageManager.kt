@@ -31,6 +31,7 @@ class ProjectStorageManager(
         File(projectDir, "markers.txt").createNewFile()
 
         File(projectDir, "/Reconstruction/database.db").createNewFile()
+        File(projectDir, "/Reconstruction/sparse").mkdir();
 
         File(projectDir, "project.json").writeText(
             Json.encodeToString(onderzoek)
