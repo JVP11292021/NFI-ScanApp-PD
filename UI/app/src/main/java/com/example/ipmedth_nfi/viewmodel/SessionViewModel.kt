@@ -271,4 +271,160 @@ class SessionViewModel(
             autoSave()
         }
     }
+
+    // --- 9. Helpers: Detailed Aandachtspunt management ---
+    // These helpers manage nested parts of Aandachtspunt (relevanteScenes, sceneProbabilities,
+    // verwachteSporen, primaryActions, otherActions) and are defensive to avoid index errors.
+    fun addRelevanteScene(aandachtId: String, scene: String) {
+        val idx = aandachtspunten.indexOfFirst { it.id == aandachtId }
+        if (idx != -1) {
+            val item = aandachtspunten[idx]
+            aandachtspunten[idx] = item.copy(relevanteScenes = item.relevanteScenes + scene)
+            autoSave()
+        }
+    }
+
+    fun removeRelevanteScene(aandachtId: String, sceneIndex: Int) {
+        val idx = aandachtspunten.indexOfFirst { it.id == aandachtId }
+        if (idx != -1) {
+            val item = aandachtspunten[idx]
+            if (sceneIndex in item.relevanteScenes.indices) {
+                val newList = item.relevanteScenes.toMutableList().also { it.removeAt(sceneIndex) }
+                aandachtspunten[idx] = item.copy(relevanteScenes = newList)
+                autoSave()
+            }
+        }
+    }
+
+    fun updateRelevanteScenes(aandachtId: String, scenes: List<String>) {
+        val idx = aandachtspunten.indexOfFirst { it.id == aandachtId }
+        if (idx != -1) {
+            val item = aandachtspunten[idx]
+            aandachtspunten[idx] = item.copy(relevanteScenes = scenes)
+            autoSave()
+        }
+    }
+
+    fun setSceneProbabilities(aandachtId: String, probs: List<com.example.ipmedth_nfi.model.SceneProbability>) {
+        val idx = aandachtspunten.indexOfFirst { it.id == aandachtId }
+        if (idx != -1) {
+            val item = aandachtspunten[idx]
+            aandachtspunten[idx] = item.copy(sceneProbabilities = probs)
+            autoSave()
+        }
+    }
+
+    fun updateSceneProbability(aandachtId: String, scene: String, percent: Int) {
+        val idx = aandachtspunten.indexOfFirst { it.id == aandachtId }
+        if (idx == -1) return
+        val item = aandachtspunten[idx]
+        val updated = item.sceneProbabilities.map {
+            if (it.scene == scene) it.copy(percent = percent) else it
+        }
+        aandachtspunten[idx] = item.copy(sceneProbabilities = updated)
+        autoSave()
+    }
+
+    fun spreadProbabilitiesEqually(aandachtId: String) {
+        val idx = aandachtspunten.indexOfFirst { it.id == aandachtId }
+        if (idx == -1) return
+        val item = aandachtspunten[idx]
+        val size = item.relevanteScenes.size
+        if (size == 0) return
+        val base = 100 / size
+        val remainder = 100 - (base * size)
+        val probs = item.relevanteScenes.mapIndexed { i, s ->
+            val extra = if (i == 0) remainder else 0 // add remainder to first to sum to 100
+            com.example.ipmedth_nfi.model.SceneProbability(scene = s, percent = base + extra)
+        }
+        aandachtspunten[idx] = item.copy(sceneProbabilities = probs)
+        autoSave()
+    }
+
+    fun setVerwachteSporen(aandachtId: String, verwachte: Map<String, List<String>>) {
+        val idx = aandachtspunten.indexOfFirst { it.id == aandachtId }
+        if (idx != -1) {
+            val item = aandachtspunten[idx]
+            aandachtspunten[idx] = item.copy(verwachteSporen = verwachte)
+            autoSave()
+        }
+    }
+
+    // Primary actions (Veiligstellen / Bemonsteren with optional subType and andersBeschrijving)
+    fun addPrimaryAction(
+        aandachtId: String,
+        beschrijvingEnLocatie: String,
+        type: com.example.ipmedth_nfi.model.ActionType,
+        subType: com.example.ipmedth_nfi.model.SubActionType? = null,
+        andersBeschrijving: String? = null
+    ) {
+        val idx = aandachtspunten.indexOfFirst { it.id == aandachtId }
+        if (idx == -1) return
+        val item = aandachtspunten[idx]
+        val action = com.example.ipmedth_nfi.model.ActionItem(
+            id = UUID.randomUUID().toString(),
+            beschrijvingEnLocatie = beschrijvingEnLocatie,
+            type = type,
+            subType = subType,
+            andersBeschrijving = andersBeschrijving
+        )
+        aandachtspunten[idx] = item.copy(primaryActions = item.primaryActions + action)
+        autoSave()
+    }
+
+    fun updatePrimaryAction(aandachtId: String, updatedAction: com.example.ipmedth_nfi.model.ActionItem) {
+        val idx = aandachtspunten.indexOfFirst { it.id == aandachtId }
+        if (idx == -1) return
+        val item = aandachtspunten[idx]
+        val newList = item.primaryActions.map { if (it.id == updatedAction.id) updatedAction else it }
+        aandachtspunten[idx] = item.copy(primaryActions = newList)
+        autoSave()
+    }
+
+    fun deletePrimaryAction(aandachtId: String, actionId: String) {
+        val idx = aandachtspunten.indexOfFirst { it.id == aandachtId }
+        if (idx == -1) return
+        val item = aandachtspunten[idx]
+        val newList = item.primaryActions.filterNot { it.id == actionId }
+        if (newList.size != item.primaryActions.size) {
+            aandachtspunten[idx] = item.copy(primaryActions = newList)
+            autoSave()
+        }
+    }
+
+    // Other actions (top-level Anders entries)
+    fun addOtherAction(aandachtId: String, beschrijvingEnLocatie: String) {
+        val idx = aandachtspunten.indexOfFirst { it.id == aandachtId }
+        if (idx == -1) return
+        val item = aandachtspunten[idx]
+        val action = com.example.ipmedth_nfi.model.ActionItem(
+            id = UUID.randomUUID().toString(),
+            beschrijvingEnLocatie = beschrijvingEnLocatie,
+            type = com.example.ipmedth_nfi.model.ActionType.Anders,
+            subType = null,
+            andersBeschrijving = beschrijvingEnLocatie
+        )
+        aandachtspunten[idx] = item.copy(otherActions = item.otherActions + action)
+        autoSave()
+    }
+
+    fun updateOtherAction(aandachtId: String, updatedAction: com.example.ipmedth_nfi.model.ActionItem) {
+        val idx = aandachtspunten.indexOfFirst { it.id == aandachtId }
+        if (idx == -1) return
+        val item = aandachtspunten[idx]
+        val newList = item.otherActions.map { if (it.id == updatedAction.id) updatedAction else it }
+        aandachtspunten[idx] = item.copy(otherActions = newList)
+        autoSave()
+    }
+
+    fun deleteOtherAction(aandachtId: String, actionId: String) {
+        val idx = aandachtspunten.indexOfFirst { it.id == aandachtId }
+        if (idx == -1) return
+        val item = aandachtspunten[idx]
+        val newList = item.otherActions.filterNot { it.id == actionId }
+        if (newList.size != item.otherActions.size) {
+            aandachtspunten[idx] = item.copy(otherActions = newList)
+            autoSave()
+        }
+    }
 }
