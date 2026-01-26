@@ -132,7 +132,7 @@ void AndroidEngine::loadObjects() {
     }
 
     std::shared_ptr<vle::ShaderModel> roomModel =
-            vle::ShaderModel::createModelFromFile(_device, "simple_scene.ply");
+            vle::ShaderModel::createModelFromFile(_device, _projectDirPath + "/Reconstruction/sparse/spare.ply");
     auto room = vle::Object::create();
     room.model = roomModel;
     room.transform.translation = { 0.f, .5f, 8.f };
