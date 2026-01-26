@@ -11,14 +11,19 @@ import com.example.ipmedth_nfi.ui.components.plan.PlanCard
 import com.example.ipmedth_nfi.viewmodel.SessionViewModel
 
 @Composable
-fun PlanTab(viewModel: SessionViewModel) {
+fun PlanTab(viewModel: SessionViewModel, onNavigateToAnnotation: (String) -> Unit = {}) {
     val count = viewModel.aandachtspunten.size
 
     Column(Modifier.fillMaxSize().padding(8.dp)) {
         Text(text = "Werkplan — $count totaal", modifier = Modifier.padding(bottom = 8.dp))
 
         viewModel.aandachtspunten.forEach { item ->
-            PlanCard(item = item, onEditAction = { /* TODO: open edit */ }, onScanSinForAction = { /* TODO: scan SIN */ })
+            PlanCard(
+                item = item,
+                onEditAction = { /* TODO: open edit */ },
+                onScanSinForAction = { /* TODO: scan SIN */ },
+                onNavigateToAnnotation = onNavigateToAnnotation
+            )
         }
     }
 }

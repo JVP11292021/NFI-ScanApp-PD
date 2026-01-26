@@ -33,21 +33,6 @@ fun ModelPage(
         projectDirPath = projectDirPath,
         actionId = actionId,
         modifier = modifier
-            //TODO: Remove tap and double tap gestures from model page as it is view only
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onDoubleTap = { offset ->
-                        engine.onTap(offset.x, offset.y)
-                        engine.draw()           // 1st draw to place new marker
-                        engine.draw()           // 2nd draw to refresh view
-                    },
-                    onTap = { offset ->
-                        engine.onDoubleTap(offset.x, offset.y)
-                        engine.draw()           // 1st draw to remove marker
-                        engine.draw()           // 2nd draw to refresh view
-                    }
-                )
-            }
             .pointerInput(Unit) {
                 val touchSlop = 8f
                 val scaleThreshold = 0.02f

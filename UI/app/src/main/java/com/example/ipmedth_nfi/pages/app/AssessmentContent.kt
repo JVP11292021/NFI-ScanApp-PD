@@ -11,14 +11,15 @@ import com.example.ipmedth_nfi.viewmodel.SessionViewModel
 @Composable
 fun AssessmentContent(
     page: AssessmentPage,
-    viewModel: SessionViewModel
+    viewModel: SessionViewModel,
+    onNavigateToAnnotation: (String) -> Unit = {}
 ) {
     when (page) {
         AssessmentPage.Info -> InfoTab(viewModel)
         AssessmentPage.Observations -> ObservationsTab(viewModel)
         AssessmentPage.Themes -> ThemesTab(viewModel)
         AssessmentPage.Attention -> AttentionTab(viewModel)
-        AssessmentPage.Plan -> PlanTab(viewModel)
+        AssessmentPage.Plan -> PlanTab(viewModel, onNavigateToAnnotation)
         AssessmentPage.Finish -> FinishTab(viewModel)
     }
 }

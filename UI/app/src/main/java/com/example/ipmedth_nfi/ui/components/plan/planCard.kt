@@ -32,7 +32,8 @@ fun PlanCard(
     modifier: Modifier = Modifier,
     item: Aandachtspunt,
     onEditAction: (ActionItem) -> Unit = {},
-    onScanSinForAction: (ActionItem) -> Unit = {}
+    onScanSinForAction: (ActionItem) -> Unit = {},
+    onNavigateToAnnotation: (String) -> Unit = {}
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         // For each primary action, render a small card-like row
@@ -97,7 +98,7 @@ fun PlanCard(
 
                             Spacer(modifier = Modifier.height(8.dp))
 
-                            IconButton(onClick = { /* marker action - could open map/marker */ }) {
+                            IconButton(onClick = { onNavigateToAnnotation(action.id) }) {
                                 Icon(TablerCube3dSphere, contentDescription = "Marker")
                             }
 

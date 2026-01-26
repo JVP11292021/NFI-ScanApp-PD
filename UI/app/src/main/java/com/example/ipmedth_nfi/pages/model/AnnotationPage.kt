@@ -17,12 +17,12 @@ import kotlin.math.abs
 import kotlin.math.hypot
 
 @Composable
-fun Annotation(
+fun AnnotationPage(
     viewModel: SessionViewModel,
     modifier: Modifier = Modifier,
     engine: NativeAndroidEngine,
     projectDirPath: String? = null,
-    actionId: String? = "000000"
+    actionId: String? = "01"
 ) {
     // Track whether two fingers are active so single-finger pan can be suppressed
     var twoFingerActive by remember { mutableStateOf(false) }

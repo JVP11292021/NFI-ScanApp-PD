@@ -7,7 +7,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -15,6 +14,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.ipmedth_nfi.bridge.NativeAndroidEngine
 import com.example.ipmedth_nfi.data.export.ProjectStorageManager
 import com.example.ipmedth_nfi.pages.app.AppPage
+import com.example.ipmedth_nfi.pages.model.AnnotationPage
 import com.example.ipmedth_nfi.pages.model.ModelPage
 import com.example.ipmedth_nfi.pages.scan.ScanPage
 import com.example.ipmedth_nfi.ui.components.navbar.AppTopbar
@@ -86,12 +86,32 @@ fun AppNavGraph(
                 )
             }
 
+            composable(MainRoute.ANNOTATION.route) {
+                val context = LocalContext.current
+                val activeOnderzoek = viewModel.activeOnderzoek.collectAsState().value
+                val projectPath = activeOnderzoek?.let { onderzoek ->
+                    ProjectStorageManager(context).getProjectDir(onderzoek)
+                }
+
+                AnnotationPage(
+                    viewModel = viewModel,
+                    modifier = Modifier.fillMaxSize(),
+                    engine = NativeAndroidEngine(),
+                    projectDirPath = projectPath?.absolutePath,
+                    actionId = viewModel.selectedActionId ?: "01"
+                )
+            }
+
             composable(MainRoute.APP.route) {
                 AppPage(
                     viewModel = viewModel,
                     onMenuClick = { scope.launch { drawerState.open() } },
                     onPageChanged = { page ->
                         viewModel.setAssessmentPage(page)
+                    },
+                    onNavigateToAnnotation = { actionId ->
+                        viewModel.selectedActionId = actionId
+                        navController.navigate(MainRoute.ANNOTATION.route)
                     }
                 )
             }
