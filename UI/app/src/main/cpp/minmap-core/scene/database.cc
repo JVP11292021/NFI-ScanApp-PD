@@ -1511,7 +1511,9 @@ void Database::PrepareSQLStatements() {
 
   auto prepare_sql_stmt = [this](const std::string_view sql,
                                  sqlite3_stmt** sql_stmt) {
+#if defined(MINMAP_LOG_PREPARE_SQL_STATEMENTS)
     LOG(MM_DEBUG) << "Preparing SQL statement: " << sql;
+#endif
     SQLITE3_CALL(sqlite3_prepare_v2(database_, sql.data(), -1, sql_stmt, 0));
     sql_stmts_.push_back(*sql_stmt);
   };

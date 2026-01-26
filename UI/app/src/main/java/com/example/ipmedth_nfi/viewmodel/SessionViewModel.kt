@@ -154,7 +154,7 @@ class SessionViewModel(
         val imageDir = storage.getImageDir(onderzoek)
         if (!imageDir.exists()) imageDir.mkdirs()
 
-        return File(imageDir, "IMG_${UUID.randomUUID()}.png")
+        return File(imageDir, "IMG_${UUID.randomUUID()}.jpg")
     }
 
     fun onPhotoCaptured(uri: Uri) {

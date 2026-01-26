@@ -561,43 +561,54 @@ bool Bitmap::ExifAltitude(double* altitude) const {
 }
 
 bool Bitmap::Read(const std::string& path, const bool as_rgb) {
-  if (!ExistsFile(path)) {
-    return false;
-  }
-
-  const FREE_IMAGE_FORMAT format = FreeImage_GetFileType(path.c_str(), 0);
-
-  if (format == FIF_UNKNOWN) {
-    return false;
-  }
-
-  handle_ = FreeImageHandle(FreeImage_Load(format, path.c_str()));
-  if (handle_.ptr == nullptr) {
-    return false;
-  }
-
-  if (!IsPtrRGB(handle_.ptr) && as_rgb) {
-    FIBITMAP* converted_bitmap = FreeImage_ConvertTo24Bits(handle_.ptr);
-    handle_ = FreeImageHandle(converted_bitmap);
-  } else if (!IsPtrGrey(handle_.ptr) && !as_rgb) {
-    if (FreeImage_GetBPP(handle_.ptr) != 24) {
-      FIBITMAP* converted_bitmap_24 = FreeImage_ConvertTo24Bits(handle_.ptr);
-      handle_ = FreeImageHandle(converted_bitmap_24);
+    // Ensure FreeImage is initialized (safe to call multiple times)
+    static bool freeimage_initialized = false;
+    if (!freeimage_initialized) {
+        FreeImage_Initialise(FALSE);
+        freeimage_initialized = true;
     }
-    FIBITMAP* converted_bitmap = FreeImage_ConvertToGreyscale(handle_.ptr);
-    handle_ = FreeImageHandle(converted_bitmap);
-  }
 
-  if (!IsPtrSupported(handle_.ptr)) {
-    handle_ = FreeImageHandle();
-    return false;
-  }
+    if (!ExistsFile(path)) {
+          LOG(MM_ERROR) << "File not found: " << path;
+          return false;
+    }
 
-  width_ = FreeImage_GetWidth(handle_.ptr);
-  height_ = FreeImage_GetHeight(handle_.ptr);
-  channels_ = as_rgb ? 3 : 1;
+    const FREE_IMAGE_FORMAT format = FreeImage_GetFileType(path.c_str(), 0);
 
-  return true;
+    if (format == FIF_UNKNOWN) {
+        LOG(MM_ERROR) << "Unknown file format: " << path;
+        return false;
+    }
+
+    handle_ = FreeImageHandle(FreeImage_Load(format, path.c_str()));
+    if (handle_.ptr == nullptr) {
+        LOG(MM_ERROR) << "Failed to load file: " << path;
+        return false;
+    }
+
+    if (!IsPtrRGB(handle_.ptr) && as_rgb) {
+        FIBITMAP* converted_bitmap = FreeImage_ConvertTo24Bits(handle_.ptr);
+        handle_ = FreeImageHandle(converted_bitmap);
+    } else if (!IsPtrGrey(handle_.ptr) && !as_rgb) {
+        if (FreeImage_GetBPP(handle_.ptr) != 24) {
+            FIBITMAP* converted_bitmap_24 = FreeImage_ConvertTo24Bits(handle_.ptr);
+            handle_ = FreeImageHandle(converted_bitmap_24);
+        }
+        FIBITMAP* converted_bitmap = FreeImage_ConvertToGreyscale(handle_.ptr);
+        handle_ = FreeImageHandle(converted_bitmap);
+    }
+
+    if (!IsPtrSupported(handle_.ptr)) {
+        LOG(MM_ERROR) << "Unsupported file format: " << path;
+        handle_ = FreeImageHandle();
+        return false;
+    }
+
+    width_ = FreeImage_GetWidth(handle_.ptr);
+    height_ = FreeImage_GetHeight(handle_.ptr);
+    channels_ = as_rgb ? 3 : 1;
+
+    return true;
 }
 
 bool Bitmap::Write(const std::string& path, const int flags) const {

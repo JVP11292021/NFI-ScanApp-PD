@@ -7,7 +7,7 @@
 // - Jan L. Nauta (jln@magentammt.com)
 // - Markus Loibl (markus.loibl@epost.de)
 // - Karl-Heinz Bussian (khbussian@moss.de)
-// - Hervé Drolon (drolon@infonie.fr)
+// - Hervï¿½ Drolon (drolon@infonie.fr)
 // - Jascha Wetzel (jascha@mainia.de)
 // - Mihail Naydenov (mnaydenov@users.sourceforge.net)
 //
@@ -1119,9 +1119,9 @@ Validate(FreeImageIO *io, fi_handle handle) {
 	BYTE jpeg_signature[] = { 0xFF, 0xD8 };
 	BYTE signature[2] = { 0, 0 };
 
-	io->read_proc(signature, 1, sizeof(jpeg_signature), handle);
-
-	return (memcmp(jpeg_signature, signature, sizeof(jpeg_signature)) == 0);
+	size_t bytes_read = io->read_proc(signature, 1, sizeof(jpeg_signature), handle);
+	BOOL result = (memcmp(jpeg_signature, signature, sizeof(jpeg_signature)) == 0);
+	return result;
 }
 
 static BOOL DLL_CALLCONV
