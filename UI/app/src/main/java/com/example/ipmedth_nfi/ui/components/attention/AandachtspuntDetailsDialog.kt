@@ -71,6 +71,7 @@ fun AandachtspuntDetailsSheet(
             .fillMaxWidth()
             .fillMaxHeight(0.92f)
             .verticalScroll(scroll)
+            .padding(12.dp)
     ) {
 
         /* ---------- HEADER ---------- */
@@ -252,9 +253,94 @@ fun AandachtspuntDetailsSheet(
 
         SectionTitle("Te ondernemen acties")
 
+        // Provide a small inline form to add primary actions with proper type/subtype handling
+        var newPrimaryBesch by remember { mutableStateOf("") }
+        var newPrimaryType by remember { mutableStateOf(ActionType.Veiligstellen) }
+        var newPrimarySub by remember { mutableStateOf(SubActionType.Epitheel) }
+        var newPrimaryAnders by remember { mutableStateOf("") }
+
+        Column(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+            OutlinedTextField(value = newPrimaryBesch, onValueChange = { newPrimaryBesch = it }, label = { Text("Beschrijving en locatie") }, modifier = Modifier.fillMaxWidth())
+
+            Spacer(Modifier.height(8.dp))
+
+            // ActionType dropdown
+            var expandedNewType by remember { mutableStateOf(false) }
+            ExposedDropdownMenuBox(expanded = expandedNewType, onExpandedChange = { expandedNewType = !expandedNewType }) {
+                OutlinedTextField(
+                    readOnly = true,
+                    value = newPrimaryType.name,
+                    onValueChange = {},
+                    label = { Text("Actie") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expandedNewType) },
+                    modifier = Modifier.menuAnchor()
+                )
+                ExposedDropdownMenu(expanded = expandedNewType, onDismissRequest = { expandedNewType = false }) {
+                    ActionType.entries.forEach { t ->
+                        DropdownMenuItem(text = { Text(t.name) }, onClick = { newPrimaryType = t; expandedNewType = false })
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(8.dp))
+
+            // Show subaction selector when Bemonsteren, or Anders text input when top-level Anders
+            if (newPrimaryType == ActionType.Bemonsteren) {
+                 var expandedNewSub by remember { mutableStateOf(false) }
+                 ExposedDropdownMenuBox(expanded = expandedNewSub, onExpandedChange = { expandedNewSub = !expandedNewSub }) {
+                     OutlinedTextField(readOnly = true, value = newPrimarySub.name, onValueChange = {}, label = { Text("Subactie (monster) ") }, trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expandedNewSub) }, modifier = Modifier.menuAnchor())
+                     ExposedDropdownMenu(expanded = expandedNewSub, onDismissRequest = { expandedNewSub = false }) {
+                         SubActionType.entries.forEach { s -> DropdownMenuItem(text = { Text(s.name) }, onClick = { newPrimarySub = s; expandedNewSub = false }) }
+                     }
+                 }
+
+                 if (newPrimarySub == SubActionType.Anders) {
+                     Spacer(Modifier.height(8.dp))
+                     OutlinedTextField(value = newPrimaryAnders, onValueChange = { newPrimaryAnders = it }, label = { Text("Anders (beschrijving)") }, modifier = Modifier.fillMaxWidth())
+                 }
+            } else if (newPrimaryType == ActionType.Anders) {
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(value = newPrimaryAnders, onValueChange = { newPrimaryAnders = it }, label = { Text("Anders (beschrijving)") }, modifier = Modifier.fillMaxWidth())
+            }
+
+            Spacer(Modifier.height(8.dp))
+            Row {
+                Button(onClick = {
+                    if (newPrimaryBesch.isNotBlank()) {
+                        val itemToAdd = ActionItem(
+                            id = UUID.randomUUID().toString(),
+                            beschrijvingEnLocatie = newPrimaryBesch.trim(),
+                            type = newPrimaryType,
+                            subType = if (newPrimaryType == ActionType.Bemonsteren) newPrimarySub else null,
+                            andersBeschrijving = when {
+                                newPrimaryType == ActionType.Anders -> newPrimaryAnders.ifBlank { null }
+                                newPrimaryType == ActionType.Bemonsteren && newPrimarySub == SubActionType.Anders -> newPrimaryAnders.ifBlank { null }
+                                else -> null
+                            }
+                        )
+                        primaryActions.add(itemToAdd)
+                        // reset
+                        newPrimaryBesch = ""
+                        newPrimaryType = ActionType.Veiligstellen
+                        newPrimarySub = SubActionType.Epitheel
+                        newPrimaryAnders = ""
+                    }
+                }) { Text("Voeg toe") }
+
+                Spacer(Modifier.width(8.dp))
+                TextButton(onClick = {
+                    // quick add a Veiligstellen if user prefers
+                    val quick = ActionItem(UUID.randomUUID().toString(), "Veiligstellen", ActionType.Veiligstellen)
+                    primaryActions.add(quick)
+                }) { Text("Snel: Veiligstellen") }
+            }
+        }
+
+        Spacer(Modifier.height(10.dp))
+
         primaryActions.toList().forEachIndexed { idx, act ->
             EditableRow(
-                text = act.beschrijvingEnLocatie,
+                text = act.beschrijvingEnLocatie + " (" + act.type.name + (act.subType?.let { ", ${it.name}" } ?: "") + ")",
                 onEdit = {
                     editingActionIsPrimary = true
                     editingActionIndex = idx
@@ -265,6 +351,7 @@ fun AandachtspuntDetailsSheet(
         }
 
         Button(onClick = {
+            // keep compatibility: previous behavior added a default Veiligstellen
             primaryActions.add(ActionItem(UUID.randomUUID().toString(), "Beschrijving/locatie", ActionType.Veiligstellen))
         }) { Text("Actie toevoegen") }
 
@@ -272,9 +359,26 @@ fun AandachtspuntDetailsSheet(
 
         SectionTitle("Overige acties")
 
+        // Inline add for otherActions (top-level Anders)
+        var newOtherText by remember { mutableStateOf("") }
+        OutlinedTextField(value = newOtherText, onValueChange = { newOtherText = it }, label = { Text("Beschrijving en locatie (Anders)") }, modifier = Modifier.fillMaxWidth())
+        Spacer(Modifier.height(8.dp))
+        Row {
+            Button(onClick = {
+                if (newOtherText.isNotBlank()) {
+                    otherActions.add(ActionItem(UUID.randomUUID().toString(), newOtherText.trim(), ActionType.Anders, subType = null, andersBeschrijving = newOtherText.trim()))
+                    newOtherText = ""
+                }
+            }) { Text("Voeg toe") }
+            Spacer(Modifier.width(8.dp))
+            TextButton(onClick = { otherActions.add(ActionItem(UUID.randomUUID().toString(), "Anders", ActionType.Anders, subType = null, andersBeschrijving = "Anders")) }) { Text("Snel: Anders") }
+        }
+
+        Spacer(Modifier.height(10.dp))
+
         otherActions.toList().forEachIndexed { idx, act ->
             EditableRow(
-                text = act.beschrijvingEnLocatie,
+                text = act.beschrijvingEnLocatie + " (" + act.type.name + ")",
                 onEdit = {
                     editingActionIsPrimary = false
                     editingActionIndex = idx
@@ -283,10 +387,6 @@ fun AandachtspuntDetailsSheet(
                 onDelete = { otherActions.remove(act) }
             )
         }
-
-        Button(onClick = {
-            otherActions.add(ActionItem(UUID.randomUUID().toString(), "Beschrijving/locatie", ActionType.Anders, SubActionType.Anders))
-        }) { Text("Actie toevoegen") }
 
         Spacer(Modifier.height(16.dp))
 
@@ -390,39 +490,50 @@ fun AandachtspuntDetailsSheet(
 
                     Spacer(Modifier.height(8.dp))
 
-                    if (tmpType == ActionType.Anders) {
-                        var expandedSub by remember { mutableStateOf(false) }
-                        ExposedDropdownMenuBox(expanded = expandedSub, onExpandedChange = { expandedSub = !expandedSub }) {
-                            OutlinedTextField(readOnly = true, value = tmpSub.name, onValueChange = {}, label = { Text("Subactie") }, trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expandedSub) }, modifier = Modifier.menuAnchor())
-                            ExposedDropdownMenu(expanded = expandedSub, onDismissRequest = { expandedSub = false }) {
-                                SubActionType.entries.forEach { s -> DropdownMenuItem(text = { Text(s.name) }, onClick = { tmpSub = s; expandedSub = false }) }
-                            }
-                        }
+                    // show subaction selector only when Bemonsteren is selected
+                    if (tmpType == ActionType.Bemonsteren) {
+                         var expandedSub by remember { mutableStateOf(false) }
+                         ExposedDropdownMenuBox(expanded = expandedSub, onExpandedChange = { expandedSub = !expandedSub }) {
+                             OutlinedTextField(readOnly = true, value = tmpSub.name, onValueChange = {}, label = { Text("Subactie") }, trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expandedSub) }, modifier = Modifier.menuAnchor())
+                             ExposedDropdownMenu(expanded = expandedSub, onDismissRequest = { expandedSub = false }) {
+                                 SubActionType.entries.forEach { s -> DropdownMenuItem(text = { Text(s.name) }, onClick = { tmpSub = s; expandedSub = false }) }
+                             }
+                         }
 
-                        if (tmpSub == SubActionType.Anders) {
-                            Spacer(Modifier.height(8.dp))
-                            OutlinedTextField(value = tmpAnders, onValueChange = { tmpAnders = it }, label = { Text("Anders (beschrijving)") })
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    val idx = editingActionIndex ?: return@TextButton
-                    val newItem = editingActionItem!!.copy(beschrijvingEnLocatie = tmpBeschrijving, type = tmpType, subType = if (tmpType == ActionType.Anders) tmpSub else null, andersBeschrijving = if (tmpSub == SubActionType.Anders) tmpAnders else null)
-                    if (editingActionIsPrimary) {
-                        primaryActions[idx] = newItem
-                    } else {
-                        otherActions[idx] = newItem
-                    }
-                    editingActionIndex = null
-                    editingActionItem = null
-                }) { Text("Opslaan") }
-            },
-            dismissButton = { TextButton(onClick = { editingActionIndex = null; editingActionItem = null }) { Text("Annuleren") } }
-        )
-    }
-}
+                         if (tmpSub == SubActionType.Anders) {
+                             Spacer(Modifier.height(8.dp))
+                             OutlinedTextField(value = tmpAnders, onValueChange = { tmpAnders = it }, label = { Text("Anders (beschrijving)") })
+                         }
+                     } else if (tmpType == ActionType.Anders) {
+                        // When editing a top-level Anders action, allow a separate Anders description input
+                        Spacer(Modifier.height(8.dp))
+                        OutlinedTextField(value = tmpAnders, onValueChange = { tmpAnders = it }, label = { Text("Anders (beschrijving)") })
+                     }
+                 }
+             },
+             confirmButton = {
+                 TextButton(onClick = {
+                     val idx = editingActionIndex ?: return@TextButton
+                     val newSub = if (tmpType == ActionType.Bemonsteren) tmpSub else null
+                     val newAnders = when {
+                         tmpType == ActionType.Anders -> tmpAnders.ifBlank { null }
+                         tmpType == ActionType.Bemonsteren && tmpSub == SubActionType.Anders -> tmpAnders.ifBlank { null }
+                         else -> null
+                     }
+                     val newItem = editingActionItem!!.copy(beschrijvingEnLocatie = tmpBeschrijving, type = tmpType, subType = newSub, andersBeschrijving = newAnders)
+                     if (editingActionIsPrimary) {
+                         primaryActions[idx] = newItem
+                     } else {
+                         otherActions[idx] = newItem
+                     }
+                     editingActionIndex = null
+                     editingActionItem = null
+                 }) { Text("Opslaan") }
+             },
+             dismissButton = { TextButton(onClick = { editingActionIndex = null; editingActionItem = null }) { Text("Annuleren") } }
+         )
+     }
+ }
 
 /* ---------- SMALL REUSABLE UI ---------- */
 
