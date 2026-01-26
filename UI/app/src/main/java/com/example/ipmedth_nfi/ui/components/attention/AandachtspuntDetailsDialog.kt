@@ -276,7 +276,7 @@ fun AandachtspuntDetailsSheet(
                     modifier = Modifier.menuAnchor()
                 )
                 ExposedDropdownMenu(expanded = expandedNewType, onDismissRequest = { expandedNewType = false }) {
-                    ActionType.values().forEach { t ->
+                    ActionType.entries.forEach { t ->
                         DropdownMenuItem(text = { Text(t.name) }, onClick = { newPrimaryType = t; expandedNewType = false })
                     }
                 }
@@ -290,7 +290,7 @@ fun AandachtspuntDetailsSheet(
                  ExposedDropdownMenuBox(expanded = expandedNewSub, onExpandedChange = { expandedNewSub = !expandedNewSub }) {
                      OutlinedTextField(readOnly = true, value = newPrimarySub.name, onValueChange = {}, label = { Text("Subactie (monster) ") }, trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expandedNewSub) }, modifier = Modifier.menuAnchor())
                      ExposedDropdownMenu(expanded = expandedNewSub, onDismissRequest = { expandedNewSub = false }) {
-                         SubActionType.values().forEach { s -> DropdownMenuItem(text = { Text(s.name) }, onClick = { newPrimarySub = s; expandedNewSub = false }) }
+                         SubActionType.entries.forEach { s -> DropdownMenuItem(text = { Text(s.name) }, onClick = { newPrimarySub = s; expandedNewSub = false }) }
                      }
                  }
 
@@ -482,7 +482,7 @@ fun AandachtspuntDetailsSheet(
                             modifier = Modifier.menuAnchor()
                         )
                         ExposedDropdownMenu(expanded = expandedType, onDismissRequest = { expandedType = false }) {
-                            ActionType.values().forEach { t ->
+                            ActionType.entries.forEach { t ->
                                 DropdownMenuItem(text = { Text(t.name) }, onClick = { tmpType = t; expandedType = false })
                             }
                         }
@@ -496,7 +496,7 @@ fun AandachtspuntDetailsSheet(
                          ExposedDropdownMenuBox(expanded = expandedSub, onExpandedChange = { expandedSub = !expandedSub }) {
                              OutlinedTextField(readOnly = true, value = tmpSub.name, onValueChange = {}, label = { Text("Subactie") }, trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expandedSub) }, modifier = Modifier.menuAnchor())
                              ExposedDropdownMenu(expanded = expandedSub, onDismissRequest = { expandedSub = false }) {
-                                 SubActionType.values().forEach { s -> DropdownMenuItem(text = { Text(s.name) }, onClick = { tmpSub = s; expandedSub = false }) }
+                                 SubActionType.entries.forEach { s -> DropdownMenuItem(text = { Text(s.name) }, onClick = { tmpSub = s; expandedSub = false }) }
                              }
                          }
 
