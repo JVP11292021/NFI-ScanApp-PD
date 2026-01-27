@@ -54,6 +54,7 @@ public:
     void waitForDevice();
     void onTap(uint32_t x, uint32_t y);
     void onDoubleTap(uint32_t x, uint32_t y);
+    std::string getLastTappedMarkerActionId() const;
 
 //    inline bool killLoop() { return this->_win.shouldClose(); }
 //    inline float getAspectRatio() { return this->_renderer.getAspectRatio(); }
@@ -87,6 +88,7 @@ private:
     bool shouldPickForDelete = false;
     uint32_t pickX = 0, pickY = 0;
     vle::id_t roomModelId = 0;
+    std::string lastTappedMarkerActionId = "";
 };
 
 

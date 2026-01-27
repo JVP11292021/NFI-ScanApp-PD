@@ -241,8 +241,19 @@ void AndroidEngine::drawFrame() {
 
             if (pick.id != 0xFFFFFFFF) {
                 if (shouldPickForDelete) {
-                    // Double-tap: Check if the picked object is a marker and delete it
+                    // Single-tap: Check if it's a marker to show info
                     if (this->markerManager.isMarker(pick.objectID)) {
+                        // Get the action ID for this marker
+                        lastTappedMarkerActionId = this->markerManager.getMarkerEvidenceId(pick.objectID);
+                        VLE_LOGI("Tapped marker with action ID: ", lastTappedMarkerActionId.c_str());
+                    } else {
+                        // Clear the action ID if tapping on non-marker
+                        lastTappedMarkerActionId = "";
+                    }
+                } else {
+                    // Double-tap: Check if the picked object is a marker
+                    if (this->markerManager.isMarker(pick.objectID)) {
+                        // Delete the marker if double-tapping on an existing marker
                         this->markerManager.destroyMarker(pick.objectID, this->objects);
                         VLE_LOGI(
                                 "Deleted marker at: ",
@@ -251,17 +262,15 @@ void AndroidEngine::drawFrame() {
                                 std::to_string(pick.worldPos.z).c_str()
                         );
                     } else {
-                        VLE_LOGI("Double-tap on non-marker object - no action");
+                        // Create a new marker if double-tapping on the point cloud
+                        this->markerManager.createMarker(pick.worldPos, _device, this->objects);
+                        VLE_LOGI(
+                                "Placed marker at: ",
+                                std::to_string(pick.worldPos.x).c_str(), ", ",
+                                std::to_string(pick.worldPos.y).c_str(), ", ",
+                                std::to_string(pick.worldPos.z).c_str()
+                        );
                     }
-                } else {
-                    // Single-tap: Always create a new marker at the picked position
-                    this->markerManager.createMarker(pick.worldPos, _device, this->objects);
-                    VLE_LOGI(
-                            "Placed marker at: ",
-                            std::to_string(pick.worldPos.x).c_str(), ", ",
-                            std::to_string(pick.worldPos.y).c_str(), ", ",
-                            std::to_string(pick.worldPos.z).c_str()
-                    );
                 }
             }
             shouldPick = false;
@@ -330,13 +339,17 @@ void AndroidEngine::onTap(uint32_t x, uint32_t y) {
     this->pickX = x;
     this->pickY = y;
     this->shouldPick = true;
-    this->shouldPickForDelete = false;
+    this->shouldPickForDelete = true;  // Single tap for showing info
 }
 
 void AndroidEngine::onDoubleTap(uint32_t x, uint32_t y) {
     this->pickX = x;
     this->pickY = y;
     this->shouldPick = true;
-    this->shouldPickForDelete = true;
+    this->shouldPickForDelete = false;  // Double tap for create/delete
+}
+
+std::string AndroidEngine::getLastTappedMarkerActionId() const {
+    return lastTappedMarkerActionId;
 }
 

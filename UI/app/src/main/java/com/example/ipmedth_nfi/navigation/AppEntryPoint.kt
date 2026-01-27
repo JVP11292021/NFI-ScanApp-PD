@@ -41,7 +41,8 @@ fun AppEntryPoint(
     val currentRoute =
         navController.currentBackStackEntryAsState().value?.destination?.route
 
-    val gesturesEnabled = currentRoute == MainRoute.APP.route
+//    val gesturesEnabled = currentRoute == MainRoute.APP.route
+    val gesturesEnabled = true
 
     ModalNavigationDrawer(
         drawerState = drawerState,

@@ -195,3 +195,14 @@ Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeOnDoubleTap(JNIEn
         engineApp->onDoubleTap(static_cast<uint32_t>(x), static_cast<uint32_t>(y));
     }
 }
+
+extern "C"
+JNIEXPORT jstring JNICALL
+Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeGetLastTappedMarkerActionId(JNIEnv *env, jobject thiz) {
+    if (engineApp) {
+        std::string actionId = engineApp->getLastTappedMarkerActionId();
+        return env->NewStringUTF(actionId.c_str());
+    }
+    return env->NewStringUTF("");
+}
+

@@ -185,3 +185,11 @@ bool MarkerManager::hasMarkers() const {
     return !markerIds.empty();
 }
 
+std::string MarkerManager::getMarkerEvidenceId(vle::id_t objectId) const {
+    auto it = markerEvidenceIds.find(objectId);
+    if (it != markerEvidenceIds.end()) {
+        return it->second;
+    }
+    return "";
+}
+
