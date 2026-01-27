@@ -161,12 +161,8 @@ void AndroidEngine::loadObjects() {
     auto room = vle::Object::create();
     room.model = roomModel;
     room.transform.translation = { 0.f, .5f, 8.f };
-    room.transform.rotation = {
-            glm::radians(9.0f),
-            glm::radians(180.f),
-            glm::radians(93.0f)
-    };
-    this->points.emplace(room.getId(), std::move(room));
+    roomModelId = room.getId();
+    this->points.emplace(roomModelId, std::move(room));
 }
 
 void AndroidEngine::drawFrame() {
@@ -297,6 +293,37 @@ void AndroidEngine::onZoom(float scaleFactor) {
     constexpr float ZOOM_SENSITIVITY = 0.5f;
     float zoomDelta = std::log(scaleFactor) * ZOOM_SENSITIVITY;
     _cam.processKeyboard(vle::sys::FORWARD, zoomDelta);
+}
+
+void AndroidEngine::onRotate(float xAngle, float yAngle, float zAngle) {
+    auto it = points.find(roomModelId);
+    if (it != points.end()) {
+        it->second.transform.rotation = glm::vec3(xAngle, yAngle, zAngle);
+    }
+}
+
+void AndroidEngine::setInitialRotation(float xOffset, float yOffset, float zOffset) {
+    // Apply the full rotation: base rotation + saved offsets
+    const float baseX = glm::radians(9.0f);
+    const float baseY = glm::radians(180.0f);
+    const float baseZ = glm::radians(93.0f);
+
+    auto it = points.find(roomModelId);
+    if (it != points.end()) {
+        it->second.transform.rotation = glm::vec3(
+            baseX + xOffset,
+            baseY + yOffset,
+            baseZ + zOffset
+        );
+    }
+}
+
+void AndroidEngine::clearMarkers() {
+    markerManager.clearMarkers(objects);
+}
+
+bool AndroidEngine::hasMarkers() {
+    return markerManager.hasMarkers();
 }
 
 void AndroidEngine::onTap(uint32_t x, uint32_t y) {

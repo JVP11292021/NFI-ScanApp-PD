@@ -27,10 +27,21 @@ fun AnnotationPage(
     // Track whether two fingers are active so single-finger pan can be suppressed
     var twoFingerActive by remember { mutableStateOf(false) }
 
+    // Get saved rotation from viewModel
+    val savedRotation = viewModel.roomModel
+    val rotationOffsetX = savedRotation?.rotationOffsetX ?: 0f
+    val rotationOffsetY = savedRotation?.rotationOffsetY ?: 0f
+    val rotationOffsetZ = savedRotation?.rotationOffsetZ ?: 0f
+
     VulkanRenderer(
         engine = engine,
         projectDirPath = projectDirPath,
         actionId = actionId,
+        onEngineReady = {
+            // Apply saved rotation immediately after engine is initialized
+            engine.setInitialRotation(rotationOffsetX, rotationOffsetY, rotationOffsetZ)
+            engine.draw()
+        },
         modifier = modifier
             .pointerInput(Unit) {
                 detectTapGestures(

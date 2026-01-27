@@ -15,7 +15,8 @@ fun VulkanRenderer(
     engine: NativeAndroidEngine,
     projectDirPath: String? = null,
     actionId: String? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onEngineReady: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
     val assetManager = context.assets
@@ -26,6 +27,8 @@ fun VulkanRenderer(
                 override fun surfaceCreated(holder: SurfaceHolder) {
                     // Initialize the native Vulkan engine with the provided surface
                     engine.create(holder.surface, assetManager, projectDirPath, actionId)
+                    // Notify that engine is ready
+                    onEngineReady?.invoke()
                 }
 
                 override fun surfaceChanged(

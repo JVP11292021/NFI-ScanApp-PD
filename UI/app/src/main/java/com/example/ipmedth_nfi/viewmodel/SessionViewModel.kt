@@ -277,6 +277,15 @@ class SessionViewModel(
         }
     }
 
+    fun updateRoomModelRotation(rotationOffsetX: Float, rotationOffsetY: Float, rotationOffsetZ: Float) {
+        roomModel = (roomModel ?: RoomModel()).copy(
+            rotationOffsetX = rotationOffsetX,
+            rotationOffsetY = rotationOffsetY,
+            rotationOffsetZ = rotationOffsetZ
+        )
+        autoSave()
+    }
+
     // --- 9. Helpers: Detailed Aandachtspunt management ---
     // These helpers manage nested parts of Aandachtspunt (relevanteScenes, sceneProbabilities,
     // verwachteSporen, primaryActions, otherActions) and are defensive to avoid index errors.

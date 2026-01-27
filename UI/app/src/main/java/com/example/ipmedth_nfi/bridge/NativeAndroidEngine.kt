@@ -2,8 +2,6 @@ package com.example.ipmedth_nfi.bridge
 
 import android.content.res.AssetManager
 import android.view.Surface
-import com.example.ipmedth_nfi.data.export.ProjectStorageManager
-import com.example.ipmedth_nfi.model.Onderzoek
 
 class NativeAndroidEngine() {
     companion object {
@@ -19,6 +17,10 @@ class NativeAndroidEngine() {
     private external fun nativeOnDrag(deltaX: Float, deltaY: Float)
     private external fun nativeOnStrafe(deltaX: Float, deltaY: Float)
     private external fun nativeOnPinch(scaleFactor: Float)
+    private external fun nativeOnRotate(xAngle: Float, yAngle: Float, zAngle: Float)
+    private external fun nativeSetInitialRotation(xOffset: Float, yOffset: Float, zOffset: Float)
+    private external fun nativeClearMarkers()
+    private external fun nativeHasMarkers(): Boolean
     private external fun nativeOnTap(x: Float, y: Float)
     private external fun nativeOnDoubleTap(x: Float, y: Float)
 
@@ -48,6 +50,22 @@ class NativeAndroidEngine() {
 
     fun onStrafe(deltaX: Float, deltaY: Float) {
         nativeOnStrafe(deltaX, deltaY)
+    }
+
+    fun onRotate(xAngle: Float, yAngle: Float, zAngle: Float) {
+        nativeOnRotate(xAngle, yAngle, zAngle)
+    }
+
+    fun setInitialRotation(xOffset: Float, yOffset: Float, zOffset: Float) {
+        nativeSetInitialRotation(xOffset, yOffset, zOffset)
+    }
+
+    fun clearMarkers() {
+        nativeClearMarkers()
+    }
+
+    fun hasMarkers(): Boolean {
+        return nativeHasMarkers()
     }
 
     fun onTap(x: Float, y: Float) {
