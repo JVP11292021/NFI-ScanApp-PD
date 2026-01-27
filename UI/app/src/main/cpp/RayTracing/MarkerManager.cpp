@@ -169,4 +169,19 @@ void MarkerManager::saveMarkersToTxt(const std::string& filePath, const vle::Obj
     file.close();
 }
 
+void MarkerManager::clearMarkers(vle::ObjectMap &objects) {
+    for (auto markerObjectId : markerIds) {
+        objects.erase(markerObjectId);
+    }
+    markerIds.clear();
+    markerEvidenceIds.clear();
+
+    if (!currentFilePath.empty()) {
+        saveMarkersToTxt(currentFilePath, objects);
+    }
+}
+
+bool MarkerManager::hasMarkers() const {
+    return !markerIds.empty();
+}
 

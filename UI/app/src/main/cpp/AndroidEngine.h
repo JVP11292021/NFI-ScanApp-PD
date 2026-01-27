@@ -49,6 +49,8 @@ public:
     void onStrafe(float dx, float dy);
     void onRotate(float xAngle, float yAngle, float zAngle);
     void setInitialRotation(float xOffset, float yOffset, float zOffset);
+    void clearMarkers();
+    bool hasMarkers();
     void waitForDevice();
     void onTap(uint32_t x, uint32_t y);
     void onDoubleTap(uint32_t x, uint32_t y);

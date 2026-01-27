@@ -1,27 +1,14 @@
 package com.example.ipmedth_nfi.pages.model
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,9 +19,10 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import com.example.ipmedth_nfi.bridge.NativeAndroidEngine
+import com.example.ipmedth_nfi.ui.components.RotationControlMenu
+import com.example.ipmedth_nfi.ui.components.RotationWarningDialog
 import com.example.ipmedth_nfi.ui.vk.VulkanRenderer
 import com.example.ipmedth_nfi.viewmodel.SessionViewModel
-import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.hypot
 
@@ -54,16 +42,24 @@ fun ModelPage(
     val initialRotationY = Math.toRadians(180.0).toFloat()
     val initialRotationZ = Math.toRadians(93.0).toFloat()
 
-    // Rotation offset from initial values (starts at saved values from roomModel, or 0 if none)
+    // Rotation offset from initial values
     val savedRotation = viewModel.roomModel
     var rotationOffsetX by remember { mutableStateOf(savedRotation?.rotationOffsetX ?: 0f) }
     var rotationOffsetY by remember { mutableStateOf(savedRotation?.rotationOffsetY ?: 0f) }
     var rotationOffsetZ by remember { mutableStateOf(savedRotation?.rotationOffsetZ ?: 0f) }
 
-    // Menu visibility state
     var showRotationMenu by remember { mutableStateOf(false) }
+    var showConfirmationDialog by remember { mutableStateOf(false) }
+    var markersCleared by remember { mutableStateOf(false) }
 
-    // Reset function
+    val handleMenuOpen = {
+        if (!markersCleared && engine.hasMarkers()) {
+            showConfirmationDialog = true
+        } else {
+            showRotationMenu = true
+        }
+    }
+
     val resetRotation = {
         rotationOffsetX = 0f
         rotationOffsetY = 0f
@@ -73,21 +69,16 @@ fun ModelPage(
         viewModel.updateRoomModelRotation(0f, 0f, 0f)
     }
 
-    // Apply saved rotation to engine when page loads
-    LaunchedEffect(Unit) {
-        engine.onRotate(
-            initialRotationX + rotationOffsetX,
-            initialRotationY + rotationOffsetY,
-            initialRotationZ + rotationOffsetZ
-        )
-        engine.draw()
-    }
-
     Box(modifier = modifier) {
         VulkanRenderer(
             engine = engine,
             projectDirPath = projectDirPath,
             actionId = actionId,
+            onEngineReady = {
+                // Apply saved rotation immediately after engine is initialized
+                engine.setInitialRotation(rotationOffsetX, rotationOffsetY, rotationOffsetZ)
+                engine.draw()
+            },
             modifier = Modifier
                 .pointerInput(Unit) {
                     val touchSlop = 8f
@@ -163,117 +154,81 @@ fun ModelPage(
                 }
         )
 
-        // Floating action button to toggle rotation menu
+        // Floating action button to open/close rotation menu
         FloatingActionButton(
-            onClick = { showRotationMenu = !showRotationMenu },
+            onClick = {
+                if (showRotationMenu) {
+                    showRotationMenu = false
+                } else {
+                    handleMenuOpen()
+                }
+            },
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(16.dp)
         ) {
             Icon(
                 imageVector = if (showRotationMenu) Icons.Default.Close else Icons.Default.Settings,
-                contentDescription = if (showRotationMenu) "Close rotation controls" else "Open rotation controls"
+                contentDescription = if (showRotationMenu) "Sluit rotatie instellingen" else "Open rotatie instellingen"
             )
         }
 
-        // Collapsible rotation control menu
-        AnimatedVisibility(
+        // Rotation control menu
+        RotationControlMenu(
             visible = showRotationMenu,
+            rotationOffsetX = rotationOffsetX,
+            rotationOffsetY = rotationOffsetY,
+            rotationOffsetZ = rotationOffsetZ,
+            onRotationXChange = { value ->
+                rotationOffsetX = value
+                engine.onRotate(
+                    initialRotationX + rotationOffsetX,
+                    initialRotationY + rotationOffsetY,
+                    initialRotationZ + rotationOffsetZ
+                )
+                engine.draw()
+                viewModel.updateRoomModelRotation(rotationOffsetX, rotationOffsetY, rotationOffsetZ)
+            },
+            onRotationYChange = { value ->
+                rotationOffsetY = value
+                engine.onRotate(
+                    initialRotationX + rotationOffsetX,
+                    initialRotationY + rotationOffsetY,
+                    initialRotationZ + rotationOffsetZ
+                )
+                engine.draw()
+                viewModel.updateRoomModelRotation(rotationOffsetX, rotationOffsetY, rotationOffsetZ)
+            },
+            onRotationZChange = { value ->
+                rotationOffsetZ = value
+                engine.onRotate(
+                    initialRotationX + rotationOffsetX,
+                    initialRotationY + rotationOffsetY,
+                    initialRotationZ + rotationOffsetZ
+                )
+                engine.draw()
+                viewModel.updateRoomModelRotation(rotationOffsetX, rotationOffsetY, rotationOffsetZ)
+            },
+            onReset = resetRotation,
+            onClose = { showRotationMenu = false },
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(16.dp)
-        ) {
-            Card(
-                modifier = Modifier.fillMaxWidth(0.85f)
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp)
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(
-                            text = "Rotation Controls",
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.weight(1f)
-                        )
-                        IconButton(onClick = { showRotationMenu = false }) {
-                            Icon(Icons.Default.Close, contentDescription = "Close")
-                        }
-                    }
+        )
 
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // X-axis rotation slider
-                    Text("X Rotation: ${String.format("%.1f", rotationOffsetX * 180f / PI.toFloat())}°")
-                    Slider(
-                        value = rotationOffsetX,
-                        onValueChange = { value ->
-                            rotationOffsetX = value
-                            engine.onRotate(
-                                initialRotationX + rotationOffsetX,
-                                initialRotationY + rotationOffsetY,
-                                initialRotationZ + rotationOffsetZ
-                            )
-                            engine.draw()
-                            viewModel.updateRoomModelRotation(rotationOffsetX, rotationOffsetY, rotationOffsetZ)
-                        },
-                        valueRange = -PI.toFloat()..PI.toFloat(),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    // Y-axis rotation slider
-                    Text("Y Rotation: ${String.format("%.1f", rotationOffsetY * 180f / PI.toFloat())}°")
-                    Slider(
-                        value = rotationOffsetY,
-                        onValueChange = { value ->
-                            rotationOffsetY = value
-                            engine.onRotate(
-                                initialRotationX + rotationOffsetX,
-                                initialRotationY + rotationOffsetY,
-                                initialRotationZ + rotationOffsetZ
-                            )
-                            engine.draw()
-                            viewModel.updateRoomModelRotation(rotationOffsetX, rotationOffsetY, rotationOffsetZ)
-                        },
-                        valueRange = -PI.toFloat()..PI.toFloat(),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    // Z-axis rotation slider
-                    Text("Z Rotation: ${String.format("%.1f", rotationOffsetZ * 180f / PI.toFloat())}°")
-                    Slider(
-                        value = rotationOffsetZ,
-                        onValueChange = { value ->
-                            rotationOffsetZ = value
-                            engine.onRotate(
-                                initialRotationX + rotationOffsetX,
-                                initialRotationY + rotationOffsetY,
-                                initialRotationZ + rotationOffsetZ
-                            )
-                            engine.draw()
-                            viewModel.updateRoomModelRotation(rotationOffsetX, rotationOffsetY, rotationOffsetZ)
-                        },
-                        valueRange = -PI.toFloat()..PI.toFloat(),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Reset button
-                    Button(
-                        onClick = { resetRotation() },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Reset to Default")
-                    }
-                }
+        // Warning dialog
+        RotationWarningDialog(
+            visible = showConfirmationDialog,
+            onConfirm = {
+                engine.clearMarkers()
+                engine.draw()
+                markersCleared = true
+                showConfirmationDialog = false
+                showRotationMenu = true
+            },
+            onDismiss = {
+                showConfirmationDialog = false
             }
-        }
+        )
     }
 }

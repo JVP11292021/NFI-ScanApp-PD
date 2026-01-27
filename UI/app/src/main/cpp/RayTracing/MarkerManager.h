@@ -25,6 +25,8 @@ public:
     
     void createMarker(const glm::vec3& position, vle::EngineDevice& device, vle::ObjectMap& objects);
     void destroyMarker(vle::id_t markerObjectId, vle::ObjectMap& objects);
+    void clearMarkers(vle::ObjectMap& objects);
+    bool hasMarkers() const;
     bool isMarker(vle::id_t objectId) const;
 
     void saveMarkersToTxt(const std::string& filePath, const vle::ObjectMap& objects);

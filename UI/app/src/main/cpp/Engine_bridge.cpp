@@ -152,6 +152,34 @@ Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeOnRotate(JNIEnv *
 
 extern "C"
 JNIEXPORT void JNICALL
+Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeSetInitialRotation(JNIEnv *env, jobject thiz,
+                                                                                   jfloat x_offset,
+                                                                                   jfloat y_offset,
+                                                                                   jfloat z_offset) {
+    if(engineApp) {
+        engineApp->setInitialRotation(x_offset, y_offset, z_offset);
+    }
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeClearMarkers(JNIEnv *env, jobject thiz) {
+    if(engineApp) {
+        engineApp->clearMarkers();
+    }
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeHasMarkers(JNIEnv *env, jobject thiz) {
+    if(engineApp) {
+        return static_cast<jboolean>(engineApp->hasMarkers());
+    }
+    return false;
+}
+
+extern "C"
+JNIEXPORT void JNICALL
 Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeOnTap(JNIEnv *env, jobject thiz,
                                                                      jfloat x, jfloat y) {
     if (engineApp) {

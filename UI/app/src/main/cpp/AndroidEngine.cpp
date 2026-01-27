@@ -318,6 +318,14 @@ void AndroidEngine::setInitialRotation(float xOffset, float yOffset, float zOffs
     }
 }
 
+void AndroidEngine::clearMarkers() {
+    markerManager.clearMarkers(objects);
+}
+
+bool AndroidEngine::hasMarkers() {
+    return markerManager.hasMarkers();
+}
+
 void AndroidEngine::onTap(uint32_t x, uint32_t y) {
     this->pickX = x;
     this->pickY = y;
