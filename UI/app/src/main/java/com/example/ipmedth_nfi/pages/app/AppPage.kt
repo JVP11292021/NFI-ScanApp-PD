@@ -9,39 +9,40 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import com.example.ipmedth_nfi.ui.components.navbar.BottomNavBar
 import com.example.ipmedth_nfi.ui.navigation.AssessmentPage
 import com.example.ipmedth_nfi.viewmodel.SessionViewModel
 
 @Composable
 fun AppPage(
-    viewModel: SessionViewModel,
-    onMenuClick: () -> Unit,
-    onPageChanged: (AssessmentPage) -> Unit,
-    onNavigateToAnnotation: (String) -> Unit = {}
+    navController: NavHostController,
+    viewModel: SessionViewModel
 ) {
-    val pagerState = rememberPagerState(pageCount = { AssessmentPage.all.size })
-
-    LaunchedEffect(pagerState.currentPage) {
-        val page = AssessmentPage.all[pagerState.currentPage]
-        onPageChanged(page)
-    }
+    val pagerState = rememberPagerState(
+        pageCount = { AssessmentPage.pages.size }
+    )
 
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        bottomBar = { BottomNavBar(pagerState) }
-    ) { innerPadding ->
+        bottomBar = {
+            BottomNavBar(
+                pagerState = pagerState,
+                pages = AssessmentPage.pages
+            )
+        }
+    ) { padding ->
+
         HorizontalPager(
             state = pagerState,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(horizontal = 16.dp)
+            modifier = Modifier.padding(padding)
         ) { pageIndex ->
             AssessmentContent(
-                page = AssessmentPage.all[pageIndex],
+                page = AssessmentPage.pages[pageIndex],
                 viewModel = viewModel,
-                onNavigateToAnnotation = onNavigateToAnnotation
+                onNavigateToAnnotation = { actionId ->
+                    viewModel.selectedActionId = actionId
+                    navController.navigate("annotation")
+                }
             )
         }
     }

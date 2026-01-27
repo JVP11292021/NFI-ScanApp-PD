@@ -1,5 +1,8 @@
 package com.example.ipmedth_nfi.pages.start
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,10 +25,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.example.ipmedth_nfi.data.export.ProjectImporter
 import com.example.ipmedth_nfi.model.Onderzoek
 import com.example.ipmedth_nfi.ui.DeleteProjectDialog
 import com.example.ipmedth_nfi.viewmodel.AppViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @Composable
 fun StartScreen(
@@ -38,6 +46,28 @@ fun StartScreen(
 
     val canStart = zaaknummer.isNotBlank() && onderzoeksnaam.isNotBlank()
     val projecten by appViewModel.onderzoeken
+    val context = LocalContext.current
+
+    // Document picker launcher for importing ZIP
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
+        if (uri != null) {
+            // import in background
+            CoroutineScope(Dispatchers.IO).launch {
+                val snapshot = ProjectImporter.importProjectFromUri(context, uri)
+                snapshot?.let {
+                    // create project directory and save snapshot using appViewModel.storage
+                    // AppViewModel currently exposes startNewOnderzoek which creates project; use that
+                    appViewModel.startNewOnderzoek(it.onderzoek)
+                    // Save snapshot to storage via AppViewModel's storage indirectly by starting and letting SessionViewModel load
+                    // Notify on main thread
+                    CoroutineScope(Dispatchers.Main).launch {
+                        onProjectStarted(it.onderzoek)
+                    }
+                }
+            }
+        }
+    }
+
     Column(Modifier.padding(8.dp)) {
 
         Column(Modifier.padding(24.dp)) {
@@ -70,6 +100,13 @@ fun StartScreen(
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Start nieuw onderzoek")
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        // Import button
+        Button(onClick = { launcher.launch(arrayOf("application/zip", "*/*")) }, modifier = Modifier.fillMaxWidth()) {
+            Text("Import project (ZIP)")
         }
 
         Spacer(Modifier.height(24.dp))

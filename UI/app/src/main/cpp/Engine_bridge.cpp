@@ -138,6 +138,46 @@ Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeOnStrafe(JNIEnv *
         engineApp->onStrafe(-delta_x, -delta_y);
     }
 }
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeOnRotate(JNIEnv *env, jobject thiz,
+                                                                        jfloat x_angle,
+                                                                        jfloat y_angle,
+                                                                        jfloat z_angle) {
+    if(engineApp) {
+        engineApp->onRotate(x_angle, y_angle, z_angle);
+    }
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeSetInitialRotation(JNIEnv *env, jobject thiz,
+                                                                                   jfloat x_offset,
+                                                                                   jfloat y_offset,
+                                                                                   jfloat z_offset) {
+    if(engineApp) {
+        engineApp->setInitialRotation(x_offset, y_offset, z_offset);
+    }
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeClearMarkers(JNIEnv *env, jobject thiz) {
+    if(engineApp) {
+        engineApp->clearMarkers();
+    }
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeHasMarkers(JNIEnv *env, jobject thiz) {
+    if(engineApp) {
+        return static_cast<jboolean>(engineApp->hasMarkers());
+    }
+    return false;
+}
+
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeOnTap(JNIEnv *env, jobject thiz,
@@ -155,3 +195,29 @@ Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeOnDoubleTap(JNIEn
         engineApp->onDoubleTap(static_cast<uint32_t>(x), static_cast<uint32_t>(y));
     }
 }
+
+extern "C"
+JNIEXPORT jstring JNICALL
+Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeGetLastTappedMarkerActionId(JNIEnv *env, jobject thiz) {
+    if (engineApp) {
+        std::string actionId = engineApp->getLastTappedMarkerActionId();
+        return env->NewStringUTF(actionId.c_str());
+    }
+    return env->NewStringUTF("");
+}
+
+extern "C"
+JNIEXPORT jfloatArray JNICALL
+Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeGetLastTappedMarkerPosition(JNIEnv *env, jobject thiz) {
+    jfloatArray result = env->NewFloatArray(3);
+    if (engineApp) {
+        glm::vec3 position = engineApp->getLastTappedMarkerPosition();
+        jfloat coords[3] = { position.x, position.y, position.z };
+        env->SetFloatArrayRegion(result, 0, 3, coords);
+    } else {
+        jfloat coords[3] = { 0.0f, 0.0f, 0.0f };
+        env->SetFloatArrayRegion(result, 0, 3, coords);
+    }
+    return result;
+}
+

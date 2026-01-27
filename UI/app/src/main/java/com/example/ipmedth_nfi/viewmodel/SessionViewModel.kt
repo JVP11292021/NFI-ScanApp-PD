@@ -50,7 +50,7 @@ class SessionViewModel(
     var selectedActionId by mutableStateOf<String?>(null)
 
     val pageCompletion = mutableStateMapOf<AssessmentPage, Boolean>().apply {
-        AssessmentPage.all.forEach { this[it] = false }
+        AssessmentPage.entries.forEach { this[it] = false }
     }
 
     // --- 2. Data State (Snapshotted) ---
@@ -215,10 +215,7 @@ class SessionViewModel(
     }
 
     fun canCompleteFinish(): Boolean {
-        return pageCompletion
-            .filterKeys { it != AssessmentPage.Finish }
-            .values
-            .all { it }
+        return pageCompletion.values.all { it }
     }
 
     private fun loadExistingSnapshot(onderzoek: Onderzoek) {
@@ -278,6 +275,15 @@ class SessionViewModel(
             aandachtspunten[index] = updated
             autoSave()
         }
+    }
+
+    fun updateRoomModelRotation(rotationOffsetX: Float, rotationOffsetY: Float, rotationOffsetZ: Float) {
+        roomModel = (roomModel ?: RoomModel()).copy(
+            rotationOffsetX = rotationOffsetX,
+            rotationOffsetY = rotationOffsetY,
+            rotationOffsetZ = rotationOffsetZ
+        )
+        autoSave()
     }
 
     // --- 9. Helpers: Detailed Aandachtspunt management ---

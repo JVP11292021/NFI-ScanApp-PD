@@ -161,12 +161,8 @@ void AndroidEngine::loadObjects() {
     auto room = vle::Object::create();
     room.model = roomModel;
     room.transform.translation = { 0.f, .5f, 8.f };
-    room.transform.rotation = {
-            glm::radians(9.0f),
-            glm::radians(180.f),
-            glm::radians(93.0f)
-    };
-    this->points.emplace(room.getId(), std::move(room));
+    roomModelId = room.getId();
+    this->points.emplace(roomModelId, std::move(room));
 }
 
 void AndroidEngine::drawFrame() {
@@ -245,8 +241,21 @@ void AndroidEngine::drawFrame() {
 
             if (pick.id != 0xFFFFFFFF) {
                 if (shouldPickForDelete) {
-                    // Double-tap: Check if the picked object is a marker and delete it
+                    // Single-tap: Check if it's a marker to show info
                     if (this->markerManager.isMarker(pick.objectID)) {
+                        // Get the action ID for this marker
+                        lastTappedMarkerActionId = this->markerManager.getMarkerEvidenceId(pick.objectID);
+                        lastTappedMarkerPosition = this->markerManager.getMarkerPosition(pick.objectID, this->objects);
+                        VLE_LOGI("Tapped marker with action ID: ", lastTappedMarkerActionId.c_str());
+                    } else {
+                        // Clear the action ID and position if tapping on non-marker
+                        lastTappedMarkerActionId = "";
+                        lastTappedMarkerPosition = glm::vec3(0.0f, 0.0f, 0.0f);
+                    }
+                } else {
+                    // Double-tap: Check if the picked object is a marker
+                    if (this->markerManager.isMarker(pick.objectID)) {
+                        // Delete the marker if double-tapping on an existing marker
                         this->markerManager.destroyMarker(pick.objectID, this->objects);
                         VLE_LOGI(
                                 "Deleted marker at: ",
@@ -255,17 +264,15 @@ void AndroidEngine::drawFrame() {
                                 std::to_string(pick.worldPos.z).c_str()
                         );
                     } else {
-                        VLE_LOGI("Double-tap on non-marker object - no action");
+                        // Create a new marker if double-tapping on the point cloud
+                        this->markerManager.createMarker(pick.worldPos, _device, this->objects);
+                        VLE_LOGI(
+                                "Placed marker at: ",
+                                std::to_string(pick.worldPos.x).c_str(), ", ",
+                                std::to_string(pick.worldPos.y).c_str(), ", ",
+                                std::to_string(pick.worldPos.z).c_str()
+                        );
                     }
-                } else {
-                    // Single-tap: Always create a new marker at the picked position
-                    this->markerManager.createMarker(pick.worldPos, _device, this->objects);
-                    VLE_LOGI(
-                            "Placed marker at: ",
-                            std::to_string(pick.worldPos.x).c_str(), ", ",
-                            std::to_string(pick.worldPos.y).c_str(), ", ",
-                            std::to_string(pick.worldPos.z).c_str()
-                    );
                 }
             }
             shouldPick = false;
@@ -299,17 +306,56 @@ void AndroidEngine::onZoom(float scaleFactor) {
     _cam.processKeyboard(vle::sys::FORWARD, zoomDelta);
 }
 
+void AndroidEngine::onRotate(float xAngle, float yAngle, float zAngle) {
+    auto it = points.find(roomModelId);
+    if (it != points.end()) {
+        it->second.transform.rotation = glm::vec3(xAngle, yAngle, zAngle);
+    }
+}
+
+void AndroidEngine::setInitialRotation(float xOffset, float yOffset, float zOffset) {
+    // Apply the full rotation: base rotation + saved offsets
+    const float baseX = glm::radians(9.0f);
+    const float baseY = glm::radians(180.0f);
+    const float baseZ = glm::radians(93.0f);
+
+    auto it = points.find(roomModelId);
+    if (it != points.end()) {
+        it->second.transform.rotation = glm::vec3(
+            baseX + xOffset,
+            baseY + yOffset,
+            baseZ + zOffset
+        );
+    }
+}
+
+void AndroidEngine::clearMarkers() {
+    markerManager.clearMarkers(objects);
+}
+
+bool AndroidEngine::hasMarkers() {
+    return markerManager.hasMarkers();
+}
+
 void AndroidEngine::onTap(uint32_t x, uint32_t y) {
     this->pickX = x;
     this->pickY = y;
     this->shouldPick = true;
-    this->shouldPickForDelete = false;
+    this->shouldPickForDelete = true;  // Single tap for showing info
 }
 
 void AndroidEngine::onDoubleTap(uint32_t x, uint32_t y) {
     this->pickX = x;
     this->pickY = y;
     this->shouldPick = true;
-    this->shouldPickForDelete = true;
+    this->shouldPickForDelete = false;  // Double tap for create/delete
+}
+
+std::string AndroidEngine::getLastTappedMarkerActionId() const {
+    return lastTappedMarkerActionId;
+}
+
+glm::vec3 AndroidEngine::getLastTappedMarkerPosition() const {
+    return lastTappedMarkerPosition;
 }
 

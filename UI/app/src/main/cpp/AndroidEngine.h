@@ -47,9 +47,15 @@ public:
     void onDrag(float dx, float dy);
     void onZoom(float scaleFactor);
     void onStrafe(float dx, float dy);
+    void onRotate(float xAngle, float yAngle, float zAngle);
+    void setInitialRotation(float xOffset, float yOffset, float zOffset);
+    void clearMarkers();
+    bool hasMarkers();
     void waitForDevice();
     void onTap(uint32_t x, uint32_t y);
     void onDoubleTap(uint32_t x, uint32_t y);
+    std::string getLastTappedMarkerActionId() const;
+    glm::vec3 getLastTappedMarkerPosition() const;
 
 //    inline bool killLoop() { return this->_win.shouldClose(); }
 //    inline float getAspectRatio() { return this->_renderer.getAspectRatio(); }
@@ -82,6 +88,9 @@ private:
     bool shouldPick = false;
     bool shouldPickForDelete = false;
     uint32_t pickX = 0, pickY = 0;
+    vle::id_t roomModelId = 0;
+    std::string lastTappedMarkerActionId = "";
+    glm::vec3 lastTappedMarkerPosition = glm::vec3(0.0f, 0.0f, 0.0f);
 };
 
 

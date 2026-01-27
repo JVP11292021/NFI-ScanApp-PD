@@ -1,6 +1,11 @@
 package com.example.ipmedth_nfi.ui.navigation
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Warning
@@ -9,26 +14,17 @@ import com.composables.ClipboardList
 import com.composables.EyeOpen24
 import com.composables.Stacks
 
-sealed class AssessmentPage(
+enum class AssessmentPage(
     val title: String,
     val icon: ImageVector
 ) {
-    object Info : AssessmentPage("Info", Icons.Outlined.Info)
-    object Observations : AssessmentPage("Observations", EyeOpen24)
-    object Themes : AssessmentPage("Themes", Stacks)
-    object Attention : AssessmentPage("Attention", Icons.Outlined.Warning)
-    object Plan : AssessmentPage("Plan", ClipboardList)
-    object Finish : AssessmentPage("Finish", Icons.Outlined.CheckCircle)
+    Info("Info", Icons.Default.Info),
+    Observations("Observations", Icons.Default.Visibility),
+    Themes("Themes", Icons.Default.List),
+    Attention("Attention", Icons.Default.Warning),
+    Plan("Plan", Icons.Default.Check);
 
     companion object {
-        val all: List<AssessmentPage>
-            get() = listOf(
-                Info,
-                Observations,
-                Themes,
-                Attention,
-                Plan,
-                Finish
-            )
+        val pages = entries
     }
 }

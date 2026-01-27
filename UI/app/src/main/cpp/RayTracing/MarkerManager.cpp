@@ -169,4 +169,35 @@ void MarkerManager::saveMarkersToTxt(const std::string& filePath, const vle::Obj
     file.close();
 }
 
+void MarkerManager::clearMarkers(vle::ObjectMap &objects) {
+    for (auto markerObjectId : markerIds) {
+        objects.erase(markerObjectId);
+    }
+    markerIds.clear();
+    markerEvidenceIds.clear();
+
+    if (!currentFilePath.empty()) {
+        saveMarkersToTxt(currentFilePath, objects);
+    }
+}
+
+bool MarkerManager::hasMarkers() const {
+    return !markerIds.empty();
+}
+
+std::string MarkerManager::getMarkerEvidenceId(vle::id_t objectId) const {
+    auto it = markerEvidenceIds.find(objectId);
+    if (it != markerEvidenceIds.end()) {
+        return it->second;
+    }
+    return "";
+}
+
+glm::vec3 MarkerManager::getMarkerPosition(vle::id_t objectId, const vle::ObjectMap& objects) const {
+    auto it = objects.find(objectId);
+    if (it != objects.end()) {
+        return it->second.transform.translation;
+    }
+    return glm::vec3(0.0f, 0.0f, 0.0f);  // Return zero vector if marker not found
+}
 

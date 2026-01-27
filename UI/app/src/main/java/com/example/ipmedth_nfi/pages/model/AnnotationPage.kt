@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
 import com.example.ipmedth_nfi.bridge.NativeAndroidEngine
+import com.example.ipmedth_nfi.ui.components.MarkerInfoDialog
 import com.example.ipmedth_nfi.ui.vk.VulkanRenderer
 import com.example.ipmedth_nfi.viewmodel.SessionViewModel
 import kotlin.math.abs
@@ -26,22 +27,57 @@ fun AnnotationPage(
 ) {
     // Track whether two fingers are active so single-finger pan can be suppressed
     var twoFingerActive by remember { mutableStateOf(false) }
+    var showMarkerDialog by remember { mutableStateOf(false) }
+    var selectedMarkerActionId by remember { mutableStateOf("") }
+    var selectedMarkerCoordinates by remember { mutableStateOf<FloatArray?>(null) }
+
+    // Get saved rotation from viewModel
+    val savedRotation = viewModel.roomModel
+    val rotationOffsetX = savedRotation?.rotationOffsetX ?: 0f
+    val rotationOffsetY = savedRotation?.rotationOffsetY ?: 0f
+    val rotationOffsetZ = savedRotation?.rotationOffsetZ ?: 0f
+
+    // Find the action item from all aandachtspunten
+    val selectedAction = remember(selectedMarkerActionId, viewModel.aandachtspunten) {
+        viewModel.aandachtspunten
+            .flatMap { it.primaryActions + it.otherActions }
+            .find { it.id == selectedMarkerActionId }
+    }
+
+    if (showMarkerDialog && selectedAction != null) {
+        MarkerInfoDialog(
+            action = selectedAction,
+            onDismiss = { showMarkerDialog = false },
+            coordinates = selectedMarkerCoordinates
+        )
+    }
 
     VulkanRenderer(
         engine = engine,
         projectDirPath = projectDirPath,
         actionId = actionId,
+        onEngineReady = {
+            // Apply saved rotation immediately after engine is initialized
+            engine.setInitialRotation(rotationOffsetX, rotationOffsetY, rotationOffsetZ)
+            engine.draw()
+        },
         modifier = modifier
             .pointerInput(Unit) {
                 detectTapGestures(
-                    onDoubleTap = { offset ->
-                        engine.onTap(offset.x, offset.y)
-                        engine.draw()           // 1st draw to place new marker
-                        engine.draw()           // 2nd draw to refresh view
-                    },
                     onTap = { offset ->
+                        engine.onTap(offset.x, offset.y)
+                        engine.draw()
+                        // Check if a marker was tapped and get its action ID and coordinates
+                        val tappedActionId = engine.getLastTappedMarkerActionId()
+                        if (tappedActionId.isNotEmpty()) {
+                            selectedMarkerActionId = tappedActionId
+                            selectedMarkerCoordinates = engine.getLastTappedMarkerPosition()
+                            showMarkerDialog = true
+                        }
+                    },
+                    onDoubleTap = { offset ->
                         engine.onDoubleTap(offset.x, offset.y)
-                        engine.draw()           // 1st draw to remove marker
+                        engine.draw()           // 1st draw to place/remove marker
                         engine.draw()           // 2nd draw to refresh view
                     }
                 )
