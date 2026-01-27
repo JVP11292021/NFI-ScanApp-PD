@@ -1,6 +1,5 @@
 package com.example.ipmedth_nfi.ui.navigation
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,7 +11,6 @@ import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -31,25 +29,22 @@ fun AssessmentAwareTopBar(
     onMenuClick: () -> Unit
 ) {
     val isChecked = viewModel.pageCompletion[currentPage] == true
-    val enabled = currentPage != AssessmentPage.Finish || viewModel.canCompleteFinish()
 
     TopAppBar(
         title = {
-            Row(verticalAlignment = Alignment.CenterVertically,
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Checkbox(
                     checked = isChecked,
-                    enabled = enabled,
                     onCheckedChange = {
                         viewModel.pageCompletion[currentPage] = it
                     },
                     colors = CheckboxDefaults.colors(
                         checkedColor = Color.White,
                         uncheckedColor = Color.White,
-                        checkmarkColor = Color(0xFF0066CC),
-                        disabledCheckedColor = Color.White.copy(alpha = 0.6f),
-                        disabledUncheckedColor = Color.White.copy(alpha = 0.6f)
+                        checkmarkColor = Color(0xFF0066CC)
                     )
                 )
 

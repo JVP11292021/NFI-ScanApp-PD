@@ -1,6 +1,7 @@
 package com.example.ipmedth_nfi.data.export
 
 import android.content.Context
+import android.os.Environment
 import com.example.ipmedth_nfi.data.persistence.ProjectSnapshot
 import kotlinx.serialization.json.Json
 import java.io.BufferedInputStream
@@ -19,7 +20,15 @@ import kotlinx.coroutines.withContext
 object ProjectExporter {
 
     private fun exportsRoot(context: Context): File {
-        val dir = File(context.getExternalFilesDir(null), "exports")
+        // Try to use the public Downloads folder so the user can access the exported ZIP directly.
+        val publicDownloads = try {
+            @Suppress("DEPRECATION")
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        } catch (e: Exception) {
+            null
+        }
+        val base = publicDownloads ?: context.getExternalFilesDir(null)
+        val dir = File(base, "IPMEDTH_exports")
         if (!dir.exists()) dir.mkdirs()
         return dir
     }

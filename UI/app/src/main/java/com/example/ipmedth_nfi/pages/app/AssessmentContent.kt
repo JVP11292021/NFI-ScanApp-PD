@@ -19,7 +19,7 @@ fun AssessmentContent(
         AssessmentPage.Observations -> ObservationsTab(viewModel)
         AssessmentPage.Themes -> ThemesTab(viewModel)
         AssessmentPage.Attention -> AttentionTab(viewModel)
-        AssessmentPage.Plan -> PlanTab(viewModel, onNavigateToAnnotation)
-        AssessmentPage.Finish -> FinishTab(viewModel)
+        AssessmentPage.Plan -> PlanTab(viewModel)
+//        AssessmentPage.Finish -> FinishTab(viewModel)
     }
 }

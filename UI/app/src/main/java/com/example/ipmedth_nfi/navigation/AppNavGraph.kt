@@ -15,6 +15,7 @@ import com.example.ipmedth_nfi.bridge.NativeAndroidEngine
 import com.example.ipmedth_nfi.data.export.ProjectStorageManager
 import com.example.ipmedth_nfi.pages.app.AppPage
 import com.example.ipmedth_nfi.pages.model.AnnotationPage
+import com.example.ipmedth_nfi.pages.export.ExportProjectScreen
 import com.example.ipmedth_nfi.pages.model.ModelPage
 import com.example.ipmedth_nfi.pages.scan.ScanPage
 import com.example.ipmedth_nfi.ui.components.navbar.AppTopbar
@@ -29,7 +30,6 @@ fun AppNavGraph(
     viewModel: SessionViewModel
 ) {
     val scope = rememberCoroutineScope()
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute =
         navController.currentBackStackEntryAsState().value?.destination?.route
     val assessmentPage = viewModel.currentAssessmentPage
@@ -43,6 +43,13 @@ fun AppNavGraph(
                     AssessmentAwareTopBar(
                         viewModel = viewModel,
                         currentPage = assessmentPage,
+                        onMenuClick = { scope.launch { drawerState.open() } }
+                    )
+                }
+
+                "export" -> {
+                    AppTopbar(
+                        title = "Finish & Export",
                         onMenuClick = { scope.launch { drawerState.open() } }
                     )
                 }
@@ -65,10 +72,7 @@ fun AppNavGraph(
             modifier = Modifier.padding(paddingValues)
         ) {
             composable(MainRoute.SCAN.route) {
-                ScanPage(
-                    viewModel = viewModel,
-                    modifier = Modifier.fillMaxSize()
-                )
+                ScanPage(viewModel, Modifier.fillMaxSize())
             }
 
             composable(MainRoute.MODEL.route) {
@@ -104,14 +108,19 @@ fun AppNavGraph(
 
             composable(MainRoute.APP.route) {
                 AppPage(
+                    navController = navController,
+                    viewModel = viewModel
+                )
+            }
+
+
+            composable("export") {
+                ExportProjectScreen(
                     viewModel = viewModel,
-                    onMenuClick = { scope.launch { drawerState.open() } },
-                    onPageChanged = { page ->
-                        viewModel.setAssessmentPage(page)
-                    },
-                    onNavigateToAnnotation = { actionId ->
-                        viewModel.selectedActionId = actionId
-                        navController.navigate(MainRoute.ANNOTATION.route)
+                    onCloseProject = {
+                        navController.navigate(MainRoute.SCAN.route) {
+                            popUpTo(0)
+                        }
                     }
                 )
             }

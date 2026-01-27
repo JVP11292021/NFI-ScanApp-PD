@@ -1,5 +1,9 @@
 package com.example.ipmedth_nfi.ui.components.navbar
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.NavigationDrawerItem
@@ -10,18 +14,35 @@ import androidx.compose.ui.unit.dp
 import com.example.ipmedth_nfi.navigation.MainRoute
 
 @Composable
-fun AppDrawer(onSelect: (String) -> Unit) {
-    ModalDrawerSheet() {
-        Text("Main Pages", modifier = Modifier.padding(16.dp))
+fun AppDrawer(
+    onMainRouteClick: (String) -> Unit,
+    onExportClick: () -> Unit,
+    onSaveAndClose: () -> Unit
+) {
+    ModalDrawerSheet {
+        Column(Modifier.fillMaxHeight()) {
 
-        MainRoute.entries
-            .filter { it != MainRoute.ANNOTATION }
-            .forEach { route ->
+            MainRoute.entries.forEach { route ->
                 NavigationDrawerItem(
-                    label = { Text(route.title)},
+                    label = { Text(route.title) },
                     selected = false,
-                    onClick = { onSelect(route.route)}
+                    onClick = { onMainRouteClick(route.route) }
                 )
             }
+
+            Spacer(Modifier.weight(1f))
+
+            NavigationDrawerItem(
+                label = { Text("Finish & Export") },
+                selected = false,
+                onClick = onExportClick
+            )
+
+            NavigationDrawerItem(
+                label = { Text("Save & Close Project") },
+                selected = false,
+                onClick = onSaveAndClose
+            )
+        }
     }
 }
