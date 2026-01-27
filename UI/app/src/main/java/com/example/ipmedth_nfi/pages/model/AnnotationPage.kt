@@ -2,15 +2,19 @@ package com.example.ipmedth_nfi.pages.model
 
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
 import com.example.ipmedth_nfi.bridge.NativeAndroidEngine
+import com.example.ipmedth_nfi.ui.components.ControlsOverlay
+import com.example.ipmedth_nfi.ui.components.HelpButton
 import com.example.ipmedth_nfi.ui.components.MarkerInfoDialog
 import com.example.ipmedth_nfi.ui.vk.VulkanRenderer
 import com.example.ipmedth_nfi.viewmodel.SessionViewModel
@@ -30,6 +34,20 @@ fun AnnotationPage(
     var showMarkerDialog by remember { mutableStateOf(false) }
     var selectedMarkerActionId by remember { mutableStateOf("") }
     var selectedMarkerCoordinates by remember { mutableStateOf<FloatArray?>(null) }
+
+    // Check if user has seen the controls overlay before
+    val hasSeenControls = remember {
+        viewModel.appData["has_seen_annotation_controls"] == "true"
+    }
+    var showControlsOverlay by remember { mutableStateOf(!hasSeenControls) }
+
+    fun dismissControlsOverlay() {
+        showControlsOverlay = false
+        if (!hasSeenControls) {
+            viewModel.appData["has_seen_annotation_controls"] = "true"
+            viewModel.autoSavePublic()
+        }
+    }
 
     // Get saved rotation from viewModel
     val savedRotation = viewModel.roomModel
@@ -52,12 +70,12 @@ fun AnnotationPage(
         )
     }
 
-    VulkanRenderer(
+    Box(modifier = modifier) {
+        VulkanRenderer(
         engine = engine,
         projectDirPath = projectDirPath,
         actionId = actionId,
         onEngineReady = {
-            // Apply saved rotation immediately after engine is initialized
             engine.setInitialRotation(rotationOffsetX, rotationOffsetY, rotationOffsetZ)
             engine.draw()
         },
@@ -67,7 +85,6 @@ fun AnnotationPage(
                     onTap = { offset ->
                         engine.onTap(offset.x, offset.y)
                         engine.draw()
-                        // Check if a marker was tapped and get its action ID and coordinates
                         val tappedActionId = engine.getLastTappedMarkerActionId()
                         if (tappedActionId.isNotEmpty()) {
                             selectedMarkerActionId = tappedActionId
@@ -154,6 +171,17 @@ fun AnnotationPage(
                     }
                 }
             }
-    )
+        )
+
+        HelpButton(
+            onClick = { showControlsOverlay = true },
+            modifier = Modifier.align(Alignment.BottomEnd)
+        )
+
+        ControlsOverlay(
+            visible = showControlsOverlay,
+            onDismiss = { dismissControlsOverlay() }
+        )
+    }
 }
 
