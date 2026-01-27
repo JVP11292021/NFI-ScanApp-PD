@@ -3,6 +3,8 @@ package com.example.ipmedth_nfi.pages.model
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
@@ -23,6 +25,7 @@ import com.example.ipmedth_nfi.bridge.NativeAndroidEngine
 import com.example.ipmedth_nfi.ui.components.MarkerInfoDialog
 import com.example.ipmedth_nfi.ui.components.RotationControlMenu
 import com.example.ipmedth_nfi.ui.components.RotationWarningDialog
+import com.example.ipmedth_nfi.ui.components.ViewOnlyBanner
 import com.example.ipmedth_nfi.ui.vk.VulkanRenderer
 import com.example.ipmedth_nfi.viewmodel.SessionViewModel
 import kotlin.math.abs
@@ -88,13 +91,16 @@ fun ModelPage(
         )
     }
 
-    Box(modifier = modifier) {
-        VulkanRenderer(
-            engine = engine,
-            projectDirPath = projectDirPath,
-            actionId = actionId,
-            onEngineReady = {
-                // Apply saved rotation immediately after engine is initialized
+    Column(modifier = modifier.fillMaxSize()) {
+        ViewOnlyBanner()
+
+        Box(modifier = Modifier.fillMaxSize()) {
+            VulkanRenderer(
+                engine = engine,
+                projectDirPath = projectDirPath,
+                actionId = actionId,
+                onEngineReady = {
+                    // Apply saved rotation immediately after engine is initialized
                 engine.setInitialRotation(rotationOffsetX, rotationOffsetY, rotationOffsetZ)
                 engine.draw()
             },
@@ -264,5 +270,6 @@ fun ModelPage(
                 showConfirmationDialog = false
             }
         )
+        }
     }
 }
