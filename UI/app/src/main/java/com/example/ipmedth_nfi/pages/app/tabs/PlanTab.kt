@@ -17,10 +17,14 @@ import com.example.ipmedth_nfi.viewmodel.SessionViewModel
 fun PlanTab(viewModel: SessionViewModel) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         items(viewModel.aandachtspunten, key = { it.id }) { item ->
-            PlanCard(item = item, onEditAction = { /* TODO: open edit */ }, onScanSinForAction = { /* TODO: scan SIN */ })
+            PlanCard(
+                item = item,
+                onEditAction = { /* TODO: open edit */ },
+                onScanSinForAction = { /* TODO: scan SIN */ }
+            )
         }
     }
 }

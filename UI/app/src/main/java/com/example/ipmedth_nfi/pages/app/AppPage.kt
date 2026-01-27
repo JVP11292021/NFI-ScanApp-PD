@@ -1,5 +1,6 @@
 package com.example.ipmedth_nfi.pages.app
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -23,7 +24,6 @@ fun AppPage(
     val pagerState = rememberPagerState(
         pageCount = { AssessmentPage.pages.size }
     )
-
     Scaffold(
         bottomBar = {
             BottomNavBar(
@@ -35,13 +35,19 @@ fun AppPage(
     ) { padding ->
 
         HorizontalPager(
+            modifier = Modifier.padding(padding),
             state = pagerState,
-            modifier = Modifier.padding(padding)
         ) { pageIndex ->
-            AssessmentContent(
-                page = AssessmentPage.pages[pageIndex],
-                viewModel = viewModel
-            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
+            ){
+                AssessmentContent(
+                    page = AssessmentPage.pages[pageIndex],
+                    viewModel = viewModel
+                )
+            }
         }
     }
 }
