@@ -1,5 +1,7 @@
 package com.example.ipmedth_nfi.pages.app
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
@@ -22,28 +24,30 @@ fun AppPage(
     val pagerState = rememberPagerState(
         pageCount = { AssessmentPage.pages.size }
     )
-
     Scaffold(
         bottomBar = {
             BottomNavBar(
                 pagerState = pagerState,
                 pages = AssessmentPage.pages
             )
-        }
+        },
+        contentWindowInsets = WindowInsets(0,0,0,0)
     ) { padding ->
 
         HorizontalPager(
+            modifier = Modifier.padding(padding),
             state = pagerState,
-            modifier = Modifier.padding(padding)
         ) { pageIndex ->
-            AssessmentContent(
-                page = AssessmentPage.pages[pageIndex],
-                viewModel = viewModel,
-                onNavigateToAnnotation = { actionId ->
-                    viewModel.selectedActionId = actionId
-                    navController.navigate("annotation")
-                }
-            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
+            ){
+                AssessmentContent(
+                    page = AssessmentPage.pages[pageIndex],
+                    viewModel = viewModel
+                )
+            }
         }
     }
 }

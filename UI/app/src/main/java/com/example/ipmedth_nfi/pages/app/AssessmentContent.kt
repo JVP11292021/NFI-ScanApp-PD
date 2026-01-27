@@ -7,7 +7,6 @@ import com.example.ipmedth_nfi.pages.app.tabs.*
 import com.example.ipmedth_nfi.ui.navigation.AssessmentPage
 import com.example.ipmedth_nfi.viewmodel.SessionViewModel
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AssessmentContent(
     page: AssessmentPage,
@@ -19,7 +18,6 @@ fun AssessmentContent(
         AssessmentPage.Observations -> ObservationsTab(viewModel)
         AssessmentPage.Themes -> ThemesTab(viewModel)
         AssessmentPage.Attention -> AttentionTab(viewModel)
-        AssessmentPage.Plan -> PlanTab(viewModel, onNavigateToAnnotation)
-//        AssessmentPage.Finish -> FinishTab(viewModel)
+        AssessmentPage.Plan -> PlanTab(viewModel)
     }
 }
