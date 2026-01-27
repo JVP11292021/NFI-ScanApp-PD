@@ -21,8 +21,6 @@ fun AppEntryPoint(
         .hasActiveOnderzoek
         .collectAsState(initial = false)
 
-    // 1️⃣ No active project → start screen
-
     if (!hasActiveOnderzoek) {
         StartScreen(
             appViewModel = appViewModel,
@@ -33,7 +31,6 @@ fun AppEntryPoint(
         return
     }
 
-    // 2️⃣ Project active → normal app
     val navController = rememberNavController()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -41,7 +38,7 @@ fun AppEntryPoint(
     val currentRoute =
         navController.currentBackStackEntryAsState().value?.destination?.route
 
-    val gesturesEnabled = currentRoute == MainRoute.APP.route
+    val gesturesEnabled = true
 
     ModalNavigationDrawer(
         drawerState = drawerState,
