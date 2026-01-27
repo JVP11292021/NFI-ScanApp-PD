@@ -5,11 +5,15 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredWidth
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.dp
 import com.example.ipmedth_nfi.navigation.MainRoute
 
@@ -19,7 +23,11 @@ fun AppDrawer(
     onExportClick: () -> Unit,
     onSaveAndClose: () -> Unit
 ) {
-    ModalDrawerSheet {
+    val screenWidth = LocalWindowInfo.current.containerDpSize.width
+
+    ModalDrawerSheet(
+        modifier = Modifier.width(screenWidth * 0.75f)
+    ) {
         Column(Modifier.fillMaxHeight()) {
 
             MainRoute.entries
