@@ -15,31 +15,23 @@ import com.example.ipmedth_nfi.ui.theme.White
 import kotlinx.coroutines.launch
 
 @Composable
-fun BottomNavBar(pagerState: PagerState) {
+fun BottomNavBar(
+    pagerState: PagerState,
+    pages: List<AssessmentPage>
+) {
     val scope = rememberCoroutineScope()
 
-    NavigationBar() {
-        AssessmentPage.all.forEachIndexed { index, page ->
+    NavigationBar {
+        pages.forEachIndexed { index, page ->
             NavigationBarItem(
+                icon = { Icon(page.icon, contentDescription = page.title) },
+                label = { Text(page.title) },
                 selected = pagerState.currentPage == index,
                 onClick = {
                     scope.launch {
                         pagerState.animateScrollToPage(index)
                     }
-                },
-                icon = {
-                    Icon(page.icon, contentDescription = page.title)
-                },
-                label = {
-                    Text(page.title, maxLines = 2)
-                },
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = White,
-                    unselectedIconColor = Color.Gray,
-                    selectedTextColor = SecondaryOrange,
-                    unselectedTextColor = Color.Gray,
-                    indicatorColor = SecondaryOrange
-                )
+                }
             )
         }
     }

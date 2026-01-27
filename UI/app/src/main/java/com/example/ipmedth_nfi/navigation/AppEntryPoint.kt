@@ -47,14 +47,20 @@ fun AppEntryPoint(
         drawerState = drawerState,
         gesturesEnabled = gesturesEnabled,
         drawerContent = {
-            AppDrawer { route ->
-                scope.launch { drawerState.close() }
-                navController.navigate(route) {
-                    launchSingleTop = true
-                    popUpTo(MainRoute.APP.route) { saveState = true }
-                    restoreState = true
+            AppDrawer(
+                onMainRouteClick = { route ->
+                    scope.launch { drawerState.close() }
+                    navController.navigate(route)
+                },
+                onExportClick = {
+                    scope.launch { drawerState.close() }
+                    navController.navigate("export")
+                },
+                onSaveAndClose = {
+                    scope.launch { drawerState.close() }
+                    sessionViewModel.closeOnderzoek()
                 }
-            }
+            )
         }
     ) {
         AppNavGraph(

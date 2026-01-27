@@ -19,6 +19,6 @@ fun AssessmentContent(
         AssessmentPage.Themes -> ThemesTab(viewModel)
         AssessmentPage.Attention -> AttentionTab(viewModel)
         AssessmentPage.Plan -> PlanTab(viewModel)
-        AssessmentPage.Finish -> FinishTab(viewModel)
+//        AssessmentPage.Finish -> FinishTab(viewModel)
     }
 }
