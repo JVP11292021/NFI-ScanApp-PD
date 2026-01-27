@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
@@ -22,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.ipmedth_nfi.model.Aandachtspunt
 import com.example.ipmedth_nfi.model.ActionItem
 import com.example.ipmedth_nfi.model.ActionType
@@ -35,15 +35,12 @@ fun PlanCard(
     onScanSinForAction: (ActionItem) -> Unit = {}
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
-        // For each primary action, render a small card-like row
         item.primaryActions.forEach { action ->
-            // Find matching results in otherActions: simple heuristic match
             val matchingResults = item.otherActions.filter { other ->
                 val otherText = listOfNotNull(other.andersBeschrijving, other.beschrijvingEnLocatie).joinToString(" ")
                 val actionText = listOfNotNull(action.beschrijvingEnLocatie, action.andersBeschrijving, action.subType?.name).joinToString(" ")
                 otherText.contains(actionText, ignoreCase = true) || actionText.contains(otherText, ignoreCase = true)
             }
-            // Icon area: shown only for Veiligstellen or Bemonsteren
             val showActionButtons = action.type == ActionType.Veiligstellen || action.type == ActionType.Bemonsteren
 
             Card(
@@ -59,20 +56,18 @@ fun PlanCard(
                     horizontalArrangement = Arrangement.Start
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
-                        // Beschrijving en locatie
+                        Text("Beschrijving item en locatie", fontSize = 12.sp)
                         Text(text = action.beschrijvingEnLocatie, fontWeight = FontWeight.SemiBold)
 
                         Spacer(modifier = Modifier.height(6.dp))
 
-                        // Actie(s) line (show subtype if present)
+                        Text("Actie(s)", fontSize = 12.sp)
                         val subText = action.subType?.name ?: action.andersBeschrijving
-                        Text(text = "Actie(s)", fontWeight = FontWeight.Medium)
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(text = "• ${action.type.name}${if (!subText.isNullOrBlank()) ": $subText" else ""}")
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        // Resultaten - only show when there are matching results
                         if (matchingResults.isNotEmpty()) {
                             Text(text = "Resultaten", fontWeight = FontWeight.Medium)
                             Spacer(modifier = Modifier.height(6.dp))
