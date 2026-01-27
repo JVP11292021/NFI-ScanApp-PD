@@ -24,6 +24,7 @@ class NativeAndroidEngine() {
     private external fun nativeOnTap(x: Float, y: Float)
     private external fun nativeOnDoubleTap(x: Float, y: Float)
     private external fun nativeGetLastTappedMarkerActionId(): String
+    private external fun nativeGetLastTappedMarkerPosition(): FloatArray
 
     fun create(surface: Surface, assetManager: AssetManager, projectDirPath: String? = null, actionId: String? = null) {
         nativeCreate(surface, assetManager, projectDirPath, actionId)
@@ -79,6 +80,10 @@ class NativeAndroidEngine() {
 
     fun getLastTappedMarkerActionId(): String {
         return nativeGetLastTappedMarkerActionId()
+    }
+
+    fun getLastTappedMarkerPosition(): FloatArray {
+        return nativeGetLastTappedMarkerPosition()
     }
 
 }

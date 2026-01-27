@@ -245,10 +245,12 @@ void AndroidEngine::drawFrame() {
                     if (this->markerManager.isMarker(pick.objectID)) {
                         // Get the action ID for this marker
                         lastTappedMarkerActionId = this->markerManager.getMarkerEvidenceId(pick.objectID);
+                        lastTappedMarkerPosition = this->markerManager.getMarkerPosition(pick.objectID, this->objects);
                         VLE_LOGI("Tapped marker with action ID: ", lastTappedMarkerActionId.c_str());
                     } else {
-                        // Clear the action ID if tapping on non-marker
+                        // Clear the action ID and position if tapping on non-marker
                         lastTappedMarkerActionId = "";
+                        lastTappedMarkerPosition = glm::vec3(0.0f, 0.0f, 0.0f);
                     }
                 } else {
                     // Double-tap: Check if the picked object is a marker
@@ -351,5 +353,9 @@ void AndroidEngine::onDoubleTap(uint32_t x, uint32_t y) {
 
 std::string AndroidEngine::getLastTappedMarkerActionId() const {
     return lastTappedMarkerActionId;
+}
+
+glm::vec3 AndroidEngine::getLastTappedMarkerPosition() const {
+    return lastTappedMarkerPosition;
 }
 

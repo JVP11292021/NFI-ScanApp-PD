@@ -193,3 +193,11 @@ std::string MarkerManager::getMarkerEvidenceId(vle::id_t objectId) const {
     return "";
 }
 
+glm::vec3 MarkerManager::getMarkerPosition(vle::id_t objectId, const vle::ObjectMap& objects) const {
+    auto it = objects.find(objectId);
+    if (it != objects.end()) {
+        return it->second.transform.translation;
+    }
+    return glm::vec3(0.0f, 0.0f, 0.0f);  // Return zero vector if marker not found
+}
+

@@ -55,6 +55,7 @@ public:
     void onTap(uint32_t x, uint32_t y);
     void onDoubleTap(uint32_t x, uint32_t y);
     std::string getLastTappedMarkerActionId() const;
+    glm::vec3 getLastTappedMarkerPosition() const;
 
 //    inline bool killLoop() { return this->_win.shouldClose(); }
 //    inline float getAspectRatio() { return this->_renderer.getAspectRatio(); }
@@ -89,6 +90,7 @@ private:
     uint32_t pickX = 0, pickY = 0;
     vle::id_t roomModelId = 0;
     std::string lastTappedMarkerActionId = "";
+    glm::vec3 lastTappedMarkerPosition = glm::vec3(0.0f, 0.0f, 0.0f);
 };
 
 

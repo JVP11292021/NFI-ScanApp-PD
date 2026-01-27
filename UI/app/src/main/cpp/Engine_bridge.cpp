@@ -206,3 +206,18 @@ Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeGetLastTappedMark
     return env->NewStringUTF("");
 }
 
+extern "C"
+JNIEXPORT jfloatArray JNICALL
+Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeGetLastTappedMarkerPosition(JNIEnv *env, jobject thiz) {
+    jfloatArray result = env->NewFloatArray(3);
+    if (engineApp) {
+        glm::vec3 position = engineApp->getLastTappedMarkerPosition();
+        jfloat coords[3] = { position.x, position.y, position.z };
+        env->SetFloatArrayRegion(result, 0, 3, coords);
+    } else {
+        jfloat coords[3] = { 0.0f, 0.0f, 0.0f };
+        env->SetFloatArrayRegion(result, 0, 3, coords);
+    }
+    return result;
+}
+

@@ -2,18 +2,6 @@ package com.example.ipmedth_nfi.pages.model
 
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -22,9 +10,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import com.example.ipmedth_nfi.bridge.NativeAndroidEngine
+import com.example.ipmedth_nfi.ui.components.MarkerInfoDialog
 import com.example.ipmedth_nfi.ui.vk.VulkanRenderer
 import com.example.ipmedth_nfi.viewmodel.SessionViewModel
 import kotlin.math.abs
@@ -42,6 +29,7 @@ fun AnnotationPage(
     var twoFingerActive by remember { mutableStateOf(false) }
     var showMarkerDialog by remember { mutableStateOf(false) }
     var selectedMarkerActionId by remember { mutableStateOf("") }
+    var selectedMarkerCoordinates by remember { mutableStateOf<FloatArray?>(null) }
 
     // Get saved rotation from viewModel
     val savedRotation = viewModel.roomModel
@@ -57,53 +45,10 @@ fun AnnotationPage(
     }
 
     if (showMarkerDialog && selectedAction != null) {
-        AlertDialog(
-            onDismissRequest = { showMarkerDialog = false },
-            title = { Text("Marker Informatie") },
-            text = {
-                Column {
-                    Text(
-                        text = "Beschrijving en Locatie:",
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(text = selectedAction.beschrijvingEnLocatie)
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = "Type:",
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(text = selectedAction.type.name)
-
-                    selectedAction.subType?.let { subType ->
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Subtype:",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(text = subType.name)
-                    }
-
-                    selectedAction.andersBeschrijving?.let { anders ->
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Anders:",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(text = anders)
-                    }
-                }
-            },
-            confirmButton = {
-                Button(onClick = { showMarkerDialog = false }) {
-                    Text("Sluiten")
-                }
-            }
+        MarkerInfoDialog(
+            action = selectedAction,
+            onDismiss = { showMarkerDialog = false },
+            coordinates = selectedMarkerCoordinates
         )
     }
 
@@ -122,10 +67,11 @@ fun AnnotationPage(
                     onTap = { offset ->
                         engine.onTap(offset.x, offset.y)
                         engine.draw()
-                        // Check if a marker was tapped and get its action ID
+                        // Check if a marker was tapped and get its action ID and coordinates
                         val tappedActionId = engine.getLastTappedMarkerActionId()
                         if (tappedActionId.isNotEmpty()) {
                             selectedMarkerActionId = tappedActionId
+                            selectedMarkerCoordinates = engine.getLastTappedMarkerPosition()
                             showMarkerDialog = true
                         }
                     },

@@ -29,6 +29,7 @@ public:
     bool hasMarkers() const;
     bool isMarker(vle::id_t objectId) const;
     std::string getMarkerEvidenceId(vle::id_t objectId) const;
+    glm::vec3 getMarkerPosition(vle::id_t objectId, const vle::ObjectMap& objects) const;
 
     void saveMarkersToTxt(const std::string& filePath, const vle::ObjectMap& objects);
 

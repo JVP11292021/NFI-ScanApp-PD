@@ -1,5 +1,6 @@
 package com.example.ipmedth_nfi.pages.model
 
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
@@ -19,6 +20,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import com.example.ipmedth_nfi.bridge.NativeAndroidEngine
+import com.example.ipmedth_nfi.ui.components.MarkerInfoDialog
 import com.example.ipmedth_nfi.ui.components.RotationControlMenu
 import com.example.ipmedth_nfi.ui.components.RotationWarningDialog
 import com.example.ipmedth_nfi.ui.vk.VulkanRenderer
@@ -36,6 +38,9 @@ fun ModelPage(
 ) {
     // Track whether two fingers are active so single-finger pan can be suppressed
     var twoFingerActive by remember { mutableStateOf(false) }
+    var showMarkerDialog by remember { mutableStateOf(false) }
+    var selectedMarkerActionId by remember { mutableStateOf("") }
+    var selectedMarkerCoordinates by remember { mutableStateOf<FloatArray?>(null) }
 
     // Initial rotation values from AndroidEngine (in radians)
     val initialRotationX = Math.toRadians(9.0).toFloat()
@@ -69,6 +74,20 @@ fun ModelPage(
         viewModel.updateRoomModelRotation(0f, 0f, 0f)
     }
 
+    val selectedAction = remember(selectedMarkerActionId, viewModel.aandachtspunten) {
+        viewModel.aandachtspunten
+            .flatMap { it.primaryActions + it.otherActions }
+            .find { it.id == selectedMarkerActionId }
+    }
+
+    if (showMarkerDialog && selectedAction != null) {
+        MarkerInfoDialog(
+            action = selectedAction,
+            onDismiss = { showMarkerDialog = false },
+            coordinates = selectedMarkerCoordinates
+        )
+    }
+
     Box(modifier = modifier) {
         VulkanRenderer(
             engine = engine,
@@ -80,6 +99,21 @@ fun ModelPage(
                 engine.draw()
             },
             modifier = Modifier
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onTap = { offset ->
+                            engine.onTap(offset.x, offset.y)
+                            engine.draw()
+                            // Check if a marker was tapped and get its action ID and coordinates
+                            val tappedActionId = engine.getLastTappedMarkerActionId()
+                            if (tappedActionId.isNotEmpty()) {
+                                selectedMarkerActionId = tappedActionId
+                                selectedMarkerCoordinates = engine.getLastTappedMarkerPosition()
+                                showMarkerDialog = true
+                            }
+                        },
+                    )
+                }
                 .pointerInput(Unit) {
                     val touchSlop = 8f
                     val scaleThreshold = 0.02f
