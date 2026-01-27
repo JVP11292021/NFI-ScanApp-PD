@@ -51,66 +51,90 @@ void OptionManager::ModifyForVideoData() {
 }
 
 void OptionManager::ModifyForLowQuality() {
-  sift_extraction->max_image_size = 1000;
-  sift_extraction->max_num_features = 2048;
-  sift_extraction->use_gpu = false; // Mobile
-  sift_extraction->num_threads = 2;
-  sift_matching->use_gpu = false; // Mobile
-  sift_matching->num_threads = 2;
-  mapper->ba_local_max_num_iterations /= 2;
-  mapper->ba_global_max_num_iterations /= 2;
-  mapper->ba_global_frames_ratio *= 1.2;
-  mapper->ba_global_points_ratio *= 1.2;
-  mapper->ba_global_max_refinements = 3;  // Increased from 2 for more robust refinement
-  mapper->num_threads = 2;
+    sift_extraction->max_image_size = 1000;
+    sift_extraction->max_num_features = 2048;
+    sift_extraction->use_gpu = false; // Mobile
+    sift_extraction->num_threads = 3;
+    sift_matching->use_gpu = false; // Mobile
+    sift_matching->num_threads = 3;
+    mapper->ba_local_max_num_iterations /= 2;
+    mapper->ba_global_max_num_iterations /= 2;
+    mapper->ba_global_frames_ratio *= 1.2;
+    mapper->ba_global_points_ratio *= 1.2;
+    mapper->ba_global_max_refinements = 3;  // Increased from 2 for more robust refinement
+    mapper->num_threads = 3;
 
-  // Relax initialization and filtering constraints for low quality data
-  mapper->mapper.init_min_tri_angle /= 2;  // Further reduce minimum triangulation angle
-  mapper->mapper.init_min_num_inliers = std::max(10, static_cast<int>(mapper->mapper.init_min_num_inliers / 3));
-  mapper->mapper.filter_max_reproj_error *= 1.5;  // More lenient point filtering
-  mapper->mapper.filter_min_tri_angle /= 2;  // Allow points with smaller triangulation angles
+    // Relax initialization and filtering constraints for low quality data
+    // For mobile scanning with close range objects, we need much more lenient angle thresholds
+    mapper->mapper.init_min_tri_angle = 1.0;  // Aggressively reduce to allow small baselines
+    mapper->mapper.init_min_num_inliers = std::max(10, static_cast<int>(mapper->mapper.init_min_num_inliers / 4));
+    mapper->mapper.abs_pose_min_num_inliers = std::max(4, static_cast<int>(mapper->mapper.abs_pose_min_num_inliers / 2));
+    mapper->mapper.filter_max_reproj_error *= 2.0;  // More lenient point filtering for jittery mobile data
+    mapper->mapper.filter_min_tri_angle = 0.1;  // Very lenient - allow almost any triangulation
+    mapper->mapper.local_ba_min_tri_angle = 0.1;  // Relax local BA angle constraint
 }
 
 void OptionManager::ModifyForMediumQuality() {
-  sift_extraction->max_image_size = 1600;
-  sift_extraction->max_num_features = 4096;
-  sift_extraction->use_gpu = false; // Mobile
-  sift_extraction->num_threads = 3;
-  sift_matching->use_gpu = false; // Mobile
-  sift_matching->num_threads = 3;
-  mapper->ba_local_max_num_iterations /= 1.5;
-  mapper->ba_global_max_num_iterations /= 1.5;
-  mapper->ba_global_frames_ratio *= 1.1;
-  mapper->ba_global_points_ratio *= 1.1;
-  mapper->ba_global_max_refinements = 2;
-  mapper->num_threads = 3;
+    sift_extraction->max_image_size = 1600;
+    sift_extraction->max_num_features = 4096;
+    sift_extraction->use_gpu = false; // Mobile
+    sift_extraction->num_threads = 4;
+    sift_matching->use_gpu = false; // Mobile
+    sift_matching->num_threads = 4;
+    mapper->ba_local_max_num_iterations /= 1.5;
+    mapper->ba_global_max_num_iterations /= 1.5;
+    mapper->ba_global_frames_ratio *= 1.1;
+    mapper->ba_global_points_ratio *= 1.1;
+    mapper->ba_global_max_refinements = 2;
+    mapper->num_threads = 4;
+
+    // Relax initialization and filtering constraints for low quality data
+    // For mobile scanning with close range objects, we need much more lenient angle thresholds
+    mapper->mapper.init_min_tri_angle /= 2;  // Further reduce minimum triangulation angle
+    mapper->mapper.init_min_num_inliers = std::max(10, static_cast<int>(mapper->mapper.init_min_num_inliers / 3));
+    mapper->mapper.filter_max_reproj_error *= 1.5;  // More lenient point filtering
+    mapper->mapper.filter_min_tri_angle /= 2;  // Allow points with smaller triangulation angles
 }
 
 void OptionManager::ModifyForHighQuality() {
-  sift_extraction->estimate_affine_shape = true;
-  sift_extraction->max_image_size = 2400;
-  sift_extraction->max_num_features = 8192;
-  sift_extraction->use_gpu = false; // Mobile
-  sift_extraction->num_threads = 4;
-  sift_matching->guided_matching = true;
-  sift_matching->use_gpu = false; // Mobile
-  sift_matching->num_threads = 4;
-  mapper->ba_local_max_num_iterations = 30;
-  mapper->ba_local_max_refinements = 3;
-  mapper->ba_global_max_num_iterations = 75;
-  mapper->num_threads = 4;
+    sift_extraction->estimate_affine_shape = true;
+    sift_extraction->max_image_size = 2400;
+    sift_extraction->max_num_features = 8192;
+    sift_extraction->use_gpu = false; // Mobile
+    sift_extraction->num_threads = 5;
+    sift_matching->guided_matching = true;
+    sift_matching->use_gpu = false; // Mobile
+    sift_matching->num_threads = 5;
+    mapper->ba_local_max_num_iterations = 30;
+    mapper->ba_local_max_refinements = 3;
+    mapper->ba_global_max_num_iterations = 75;
+    mapper->num_threads = 5;
+
+    // Relax initialization and filtering constraints for low quality data
+    // For mobile scanning with close range objects, we need much more lenient angle thresholds
+    mapper->mapper.init_min_tri_angle /= 2;  // Further reduce minimum triangulation angle
+    mapper->mapper.init_min_num_inliers = std::max(10, static_cast<int>(mapper->mapper.init_min_num_inliers / 3));
+    mapper->mapper.filter_max_reproj_error *= 1.5;  // More lenient point filtering
+    mapper->mapper.filter_min_tri_angle /= 2;  // Allow points with smaller triangulation angles
 }
 
 void OptionManager::ModifyForExtremeQuality() {
-  // Most of the options are set to extreme quality by default.
-  sift_extraction->estimate_affine_shape = true;
-  sift_extraction->domain_size_pooling = true;
-  sift_extraction->use_gpu = false; // Mobile
-  sift_matching->guided_matching = true;
-  sift_matching->use_gpu = false; // Mobile
-  mapper->ba_local_max_num_iterations = 40;
-  mapper->ba_local_max_refinements = 3;
-  mapper->ba_global_max_num_iterations = 100;
+    // Most of the options are set to extreme quality by default.
+    sift_extraction->estimate_affine_shape = true;
+    sift_extraction->domain_size_pooling = true;
+    sift_extraction->use_gpu = false; // Mobile
+    sift_matching->guided_matching = true;
+    sift_matching->use_gpu = false; // Mobile
+    mapper->ba_local_max_num_iterations = 40;
+    mapper->ba_local_max_refinements = 3;
+    mapper->ba_global_max_num_iterations = 100;
+
+    // Relax initialization and filtering constraints for low quality data
+    // For mobile scanning with close range objects, we need much more lenient angle thresholds
+    mapper->mapper.init_min_tri_angle /= 2;  // Further reduce minimum triangulation angle
+    mapper->mapper.init_min_num_inliers = std::max(10, static_cast<int>(mapper->mapper.init_min_num_inliers / 3));
+    mapper->mapper.filter_max_reproj_error *= 1.5;  // More lenient point filtering
+    mapper->mapper.filter_min_tri_angle /= 2;  // Allow points with smaller triangulation angles
 }
 
 void OptionManager::AddAllOptions() {

@@ -351,7 +351,8 @@ bool IncrementalPipeline::CheckRunGlobalRefinement(
 IncrementalPipeline::Status IncrementalPipeline::ReconstructSubModel(
     IncrementalMapper& mapper,
     const IncrementalMapper::Options& mapper_options,
-    const std::shared_ptr<Reconstruction>& reconstruction) {
+    const std::shared_ptr<Reconstruction>& reconstruction
+) {
   mapper.BeginReconstruction(reconstruction);
 
   ////////////////////////////////////////////////////////////////////////////
@@ -359,8 +360,9 @@ IncrementalPipeline::Status IncrementalPipeline::ReconstructSubModel(
   ////////////////////////////////////////////////////////////////////////////
 
   if (reconstruction->NumRegFrames() == 0) {
-    const Status init_status = IncrementalPipeline::InitializeReconstruction(
-        mapper, mapper_options, *reconstruction);
+    const Status init_status =
+            IncrementalPipeline::InitializeReconstruction(mapper, mapper_options, *reconstruction);
+    LOG(MM_DEBUG) << "InitializeReconstruction status: " << static_cast<int>(init_status) << ", Num reg frames: " << reconstruction->NumRegFrames();
     if (init_status != Status::SUCCESS) {
       return init_status;
     }
@@ -399,6 +401,8 @@ IncrementalPipeline::Status IncrementalPipeline::ReconstructSubModel(
       LOG(MM_INFO) << StringPrintf("Registering image #%d (num_reg_frames=%d)",
                                 next_image_id,
                                 reconstruction->NumRegFrames());
+      LOG(MM_INFO) << "-------------------------------------------------------";
+
       LOG(MM_INFO) << StringPrintf(
           "=> Image sees %d / %d points",
           mapper.ObservationManager().NumVisiblePoints3D(next_image_id),
@@ -489,9 +493,13 @@ IncrementalPipeline::Status IncrementalPipeline::ReconstructSubModel(
 void IncrementalPipeline::Reconstruct(
     IncrementalMapper& mapper,
     const IncrementalMapper::Options& mapper_options,
-    bool continue_reconstruction) {
-  for (int num_trials = 0; num_trials < options_->init_num_trials;
-       ++num_trials) {
+    bool continue_reconstruction
+) {
+  LOG(MM_INFO) << "<= (Re)Starting reconstruction";
+  LOG(MM_INFO) << "------------------------------";
+
+  for (int num_trials = 0; num_trials < options_->init_num_trials; ++num_trials)
+  {
     if (CheckIfStopped()) {
       break;
     }

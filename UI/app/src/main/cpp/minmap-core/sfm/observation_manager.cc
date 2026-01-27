@@ -282,6 +282,7 @@ size_t ObservationManager::FilterAllPoints3D(const double max_reproj_error,
   // a point stable through a large triangulation angle.
   const std::unordered_set<point3D_t>& point3D_ids =
       reconstruction_.Point3DIds();
+  LOG(MM_DEBUG) << "Amount of points before filter: " << point3D_ids.size();
   size_t num_filtered_observations = 0;
   num_filtered_observations +=
       FilterPoints3DWithLargeReprojectionError(max_reproj_error, point3D_ids);

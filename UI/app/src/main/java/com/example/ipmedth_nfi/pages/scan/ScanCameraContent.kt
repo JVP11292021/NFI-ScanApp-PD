@@ -80,7 +80,7 @@ fun ScanCameraContent(
         )
 
         onDispose {
-            reconstructionEngine.destroy()
+//            reconstructionEngine.destroy()
         }
     }
 
