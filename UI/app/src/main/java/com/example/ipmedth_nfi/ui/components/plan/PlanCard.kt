@@ -84,9 +84,7 @@ fun PlanCard(
                         }
                     }
                     if (showActionButtons) {
-                        Column(modifier = Modifier.padding(start = 8.dp)) {
-                            Spacer(modifier = Modifier.height(8.dp))
-
+                        Column() {
                             IconButton(onClick = { /* marker action - could open map/marker */ }) {
                                 Icon(TablerCube3dSphere, contentDescription = "Marker")
                             }
@@ -96,7 +94,8 @@ fun PlanCard(
                 if (showActionButtons) {
                     Row(
                         modifier = Modifier
-                            .fillMaxWidth(),
+                            .fillMaxWidth()
+                            .padding(12.dp),
                         horizontalArrangement = Arrangement.Start
                     ) {
                         Button(
