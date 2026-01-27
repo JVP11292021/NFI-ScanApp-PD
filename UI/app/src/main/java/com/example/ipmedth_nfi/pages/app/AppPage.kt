@@ -38,7 +38,11 @@ fun AppPage(
         ) { pageIndex ->
             AssessmentContent(
                 page = AssessmentPage.pages[pageIndex],
-                viewModel = viewModel
+                viewModel = viewModel,
+                onNavigateToAnnotation = { actionId ->
+                    viewModel.selectedActionId = actionId
+                    navController.navigate("annotation")
+                }
             )
         }
     }
