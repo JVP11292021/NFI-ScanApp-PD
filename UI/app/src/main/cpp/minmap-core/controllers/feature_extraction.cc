@@ -309,7 +309,12 @@ class FeatureExtractorController : public Thread {
       }
     }
 
-    const int num_threads = GetEffectiveNumThreads(sift_options_.num_threads);
+#if MINMAP_SINGLE_THREADED
+      const int num_threads = 1;
+#else
+    ThreadLimiter<ThreadLimitMode::Max, 5> threadLimiter;
+    const int num_threads = threadLimiter(sift_options_.num_threads);
+#endif
     THROW_CHECK_GT(num_threads, 0);
 
     // Make sure that we only have limited number of objects in the queue to
@@ -361,7 +366,6 @@ class FeatureExtractorController : public Thread {
       }
 
       auto custom_sift_options = sift_options_;
-      custom_sift_options.use_gpu = false;
       LOG(MM_DEBUG) << "Using " << num_threads << " threads, to start feature extraction process";
       for (int i = 0; i < num_threads; ++i) {
         extractors_.emplace_back(

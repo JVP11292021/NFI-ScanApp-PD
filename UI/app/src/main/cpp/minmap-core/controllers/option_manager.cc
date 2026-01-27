@@ -53,38 +53,61 @@ void OptionManager::ModifyForVideoData() {
 void OptionManager::ModifyForLowQuality() {
   sift_extraction->max_image_size = 1000;
   sift_extraction->max_num_features = 2048;
+  sift_extraction->use_gpu = false; // Mobile
+  sift_extraction->num_threads = 2;
+  sift_matching->use_gpu = false; // Mobile
+  sift_matching->num_threads = 2;
   mapper->ba_local_max_num_iterations /= 2;
   mapper->ba_global_max_num_iterations /= 2;
   mapper->ba_global_frames_ratio *= 1.2;
   mapper->ba_global_points_ratio *= 1.2;
-  mapper->ba_global_max_refinements = 2;
+  mapper->ba_global_max_refinements = 3;  // Increased from 2 for more robust refinement
+  mapper->num_threads = 2;
+
+  // Relax initialization and filtering constraints for low quality data
+  mapper->mapper.init_min_tri_angle /= 2;  // Further reduce minimum triangulation angle
+  mapper->mapper.init_min_num_inliers = std::max(10, static_cast<int>(mapper->mapper.init_min_num_inliers / 3));
+  mapper->mapper.filter_max_reproj_error *= 1.5;  // More lenient point filtering
+  mapper->mapper.filter_min_tri_angle /= 2;  // Allow points with smaller triangulation angles
 }
 
 void OptionManager::ModifyForMediumQuality() {
   sift_extraction->max_image_size = 1600;
   sift_extraction->max_num_features = 4096;
+  sift_extraction->use_gpu = false; // Mobile
+  sift_extraction->num_threads = 3;
+  sift_matching->use_gpu = false; // Mobile
+  sift_matching->num_threads = 3;
   mapper->ba_local_max_num_iterations /= 1.5;
   mapper->ba_global_max_num_iterations /= 1.5;
   mapper->ba_global_frames_ratio *= 1.1;
   mapper->ba_global_points_ratio *= 1.1;
   mapper->ba_global_max_refinements = 2;
+  mapper->num_threads = 3;
 }
 
 void OptionManager::ModifyForHighQuality() {
   sift_extraction->estimate_affine_shape = true;
   sift_extraction->max_image_size = 2400;
   sift_extraction->max_num_features = 8192;
+  sift_extraction->use_gpu = false; // Mobile
+  sift_extraction->num_threads = 4;
   sift_matching->guided_matching = true;
+  sift_matching->use_gpu = false; // Mobile
+  sift_matching->num_threads = 4;
   mapper->ba_local_max_num_iterations = 30;
   mapper->ba_local_max_refinements = 3;
   mapper->ba_global_max_num_iterations = 75;
+  mapper->num_threads = 4;
 }
 
 void OptionManager::ModifyForExtremeQuality() {
   // Most of the options are set to extreme quality by default.
   sift_extraction->estimate_affine_shape = true;
   sift_extraction->domain_size_pooling = true;
+  sift_extraction->use_gpu = false; // Mobile
   sift_matching->guided_matching = true;
+  sift_matching->use_gpu = false; // Mobile
   mapper->ba_local_max_num_iterations = 40;
   mapper->ba_local_max_refinements = 3;
   mapper->ba_global_max_num_iterations = 100;

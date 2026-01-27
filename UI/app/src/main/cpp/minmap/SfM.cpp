@@ -54,6 +54,9 @@ int RunMapper(
     colmap::OptionManager options(false);
     *options.database_path = database_path.string();
     *options.image_path = image_path.string();
+    options.ModifyForLowQuality();
+    options.AddExtractionOptions();
+    options.AddExhaustiveMatchingOptions();
     options.AddDatabaseOptions();
     options.AddImageOptions();
     options.AddMapperOptions();
@@ -64,11 +67,6 @@ int RunMapper(
     }
 
     options.mapper->fix_existing_frames = fix_existing_frames;
-
-    // Android-specific optimizations for mobile devices
-    // Reduce computational load during pose estimation to prevent alignment issues
-    options.mapper->min_focal_length_ratio = 0.1;
-    options.mapper->max_focal_length_ratio = 10.0;
 
     // Ensure output directory exists
     if (!colmap::ExistsDir(output_path.string())) {

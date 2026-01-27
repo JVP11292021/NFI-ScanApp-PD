@@ -695,19 +695,23 @@ void Reconstruction::UpdatePoint3DErrors() {
 }
 
 void Reconstruction::Read(const std::string& path) {
-  if (ExistsFile(JoinPaths(path, "cameras.bin")) &&
+    if (ExistsFile(JoinPaths(path, "cameras.bin")) &&
       ExistsFile(JoinPaths(path, "images.bin")) &&
-      ExistsFile(JoinPaths(path, "points3D.bin"))) {
-    ReadBinary(path);
-  } else if (ExistsFile(JoinPaths(path, "cameras.txt")) &&
+      ExistsFile(JoinPaths(path, "points3D.bin")))
+    {
+        LOG(MM_DEBUG) << "Reading reconstruction from binary files from path: " << path;
+        ReadBinary(path);
+    } else if (ExistsFile(JoinPaths(path, "cameras.txt")) &&
              ExistsFile(JoinPaths(path, "images.txt")) &&
-             ExistsFile(JoinPaths(path, "points3D.txt"))) {
-    ReadText(path);
-  } else {
+             ExistsFile(JoinPaths(path, "points3D.txt")))
+    {
+        LOG(MM_DEBUG) << "Reading reconstruction from text files from path: " << path;
+        ReadText(path);
+    } else {
     LOG(MM_FATAL)
         << "rigs, cameras, frames, images, points3D files do not exist at "
         << path;
-  }
+    }
 }
 
 void Reconstruction::Write(const std::string& path) const { WriteBinary(path); }
@@ -737,17 +741,25 @@ void Reconstruction::ReadBinary(const std::string& path) {
   frames_.clear();
   images_.clear();
   points3D_.clear();
+  LOG(MM_DEBUG) << "Reading reconstruction from binary files from path: " << path << ". Starting camera reading";
   ReadCamerasBinary(*this, JoinPaths(path, "cameras.bin"));
+  LOG(MM_DEBUG) << "Amount of camera read: " << cameras_.size();
   const std::string rigs_path = JoinPaths(path, "rigs.bin");
   if (ExistsFile(rigs_path)) {
+      LOG(MM_DEBUG) << "Rigs path: " << rigs_path;
     ReadRigsBinary(*this, rigs_path);
+    LOG(MM_DEBUG) << "AMount of rigs read: " << rigs_.size();
   }
   const std::string frames_path = JoinPaths(path, "frames.bin");
   if (ExistsFile(frames_path)) {
+      LOG(MM_DEBUG) << "Reading frames from path: " << frames_path;
     ReadFramesBinary(*this, frames_path);
+    LOG(MM_DEBUG) << "Amount of frames read: " << frames_.size();
   }
   ReadImagesBinary(*this, JoinPaths(path, "images.bin"));
   ReadPoints3DBinary(*this, JoinPaths(path, "points3D.bin"));
+  LOG(MM_DEBUG) << "Amount of points3D read: " << points3D_.size();
+  LOG(MM_DEBUG) << "Amount of images read: " << images_.size();
 }
 
 void Reconstruction::WriteText(const std::string& path) const {
@@ -781,6 +793,7 @@ std::vector<PlyPoint> Reconstruction::ConvertToPLY() const {
     ply_point.g = point3D.second.color(1);
     ply_point.b = point3D.second.color(2);
     ply_points.push_back(ply_point);
+    LOG(MM_DEBUG) << "Adding point to ply: " << ply_point.x << ", " << ply_point.y << ", " << ply_point.z << ", " << ply_point.r << ", " << ply_point.g << ", " << ply_point.b;
   }
 
   return ply_points;

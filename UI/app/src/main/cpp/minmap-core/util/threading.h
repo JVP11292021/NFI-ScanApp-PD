@@ -288,6 +288,42 @@ class JobQueue {
 // otherwise return the input value of num_threads.
 int GetEffectiveNumThreads(int num_threads);
 
+enum class ThreadLimitMode {
+    None,        // No limiting
+    Max,         // Clamp to a maximum
+    Fixed        // Force a fixed value
+};
+
+template<ThreadLimitMode Mode, int Value = 0>
+struct ThreadLimiter;
+
+template<int Value>
+struct ThreadLimiter<ThreadLimitMode::None, Value> {
+    int operator()(int num_threads) const {
+        return GetEffectiveNumThreads(num_threads);
+    }
+};
+
+
+template<int MaxThreads>
+struct ThreadLimiter<ThreadLimitMode::Max, MaxThreads> {
+    static_assert(MaxThreads > 0, "MaxThreads must be > 0");
+
+    int operator()(int num_threads) const {
+        int effective = GetEffectiveNumThreads(num_threads);
+        return effective > MaxThreads ? MaxThreads : effective;
+    }
+};
+
+template<int FixedThreads>
+struct ThreadLimiter<ThreadLimitMode::Fixed, FixedThreads> {
+    static_assert(FixedThreads > 0, "FixedThreads must be > 0");
+
+    int operator()(int /*num_threads*/) const {
+        return FixedThreads;
+    }
+};
+
 ////////////////////////////////////////////////////////////////////////////////
 // Implementation
 ////////////////////////////////////////////////////////////////////////////////

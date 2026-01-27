@@ -546,6 +546,11 @@ void IncrementalPipeline::Reconstruct(
         // size.
         const size_t min_model_size = std::min<size_t>(
             0.8 * database_cache_->NumImages(), options_->min_model_size);
+
+        LOG(MM_INFO) << "Reconstruction summary: " << reconstruction->NumRegFrames()
+                     << " registered frames, " << reconstruction->NumPoints3D()
+                     << " 3D points";
+
         if ((options_->multiple_models && reconstruction_manager_->Size() > 1 &&
              reconstruction->NumRegFrames() < min_model_size) ||
             reconstruction->NumRegFrames() == 0) {

@@ -102,12 +102,13 @@ fun ScanCameraContent(
                 reconstructionEngine.extractMatchFeatures())
                 throwIfNotZero(
                 reconstructionEngine.reconstruct(
-                    File(projectPath, "/Reconstruction/sparse").absolutePath))
+                    File(projectPath, "/Reconstruction/sparse").absolutePath),
+                    "Reconstructing the image to a 3D environment failed")
                 throwIfNotZero(
                     reconstructionEngine.mapModel(
                         File(projectPath, "/Reconstruction/sparse/0").absolutePath,
                         File(projectPath, "/Reconstruction/sparse/sparse.ply").absolutePath,
-                        "PLY"))
+                        "PLY"), "Was not able to export sparse model to PLY.")
 
             }
         }
