@@ -1,5 +1,6 @@
 package com.example.ipmedth_nfi.pages.app
 
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
@@ -29,7 +30,8 @@ fun AppPage(
                 pagerState = pagerState,
                 pages = AssessmentPage.pages
             )
-        }
+        },
+        contentWindowInsets = WindowInsets(0,0,0,0)
     ) { padding ->
 
         HorizontalPager(
