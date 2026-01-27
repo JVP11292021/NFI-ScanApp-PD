@@ -47,6 +47,8 @@ public:
     void onDrag(float dx, float dy);
     void onZoom(float scaleFactor);
     void onStrafe(float dx, float dy);
+    void onRotate(float xAngle, float yAngle, float zAngle);
+    void setInitialRotation(float xOffset, float yOffset, float zOffset);
     void waitForDevice();
     void onTap(uint32_t x, uint32_t y);
     void onDoubleTap(uint32_t x, uint32_t y);
@@ -82,6 +84,7 @@ private:
     bool shouldPick = false;
     bool shouldPickForDelete = false;
     uint32_t pickX = 0, pickY = 0;
+    vle::id_t roomModelId = 0;
 };
 
 

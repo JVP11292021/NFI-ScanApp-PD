@@ -138,6 +138,18 @@ Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeOnStrafe(JNIEnv *
         engineApp->onStrafe(-delta_x, -delta_y);
     }
 }
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeOnRotate(JNIEnv *env, jobject thiz,
+                                                                        jfloat x_angle,
+                                                                        jfloat y_angle,
+                                                                        jfloat z_angle) {
+    if(engineApp) {
+        engineApp->onRotate(x_angle, y_angle, z_angle);
+    }
+}
+
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeOnTap(JNIEnv *env, jobject thiz,
