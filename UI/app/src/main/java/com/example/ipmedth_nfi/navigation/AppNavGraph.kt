@@ -47,6 +47,13 @@ fun AppNavGraph(
                     )
                 }
 
+                MainRoute.ANNOTATION.route -> {
+                    AppTopbar(
+                        title = "Annotatie",
+                        showMenu = false
+                    )
+                }
+
                 "export" -> {
                     AppTopbar(
                         title = "Finish & Export",

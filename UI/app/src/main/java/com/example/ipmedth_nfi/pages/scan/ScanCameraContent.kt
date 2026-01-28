@@ -180,18 +180,18 @@ fun ScanCameraContent(
                 Text("📸")
             }
 
-            FloatingActionButton(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(bottom = 64.dp, end = 24.dp),
-                onClick = {
-                    if (!isLoading) {
-                        runReconstruction = true
-                    }
-                }
-            ) {
-                Text("⚙️")
-            }
+//            FloatingActionButton(
+//                modifier = Modifier
+//                    .align(Alignment.BottomEnd)
+//                    .padding(bottom = 64.dp, end = 24.dp),
+//                onClick = {
+//                    if (!isLoading) {
+//                        runReconstruction = true
+//                    }
+//                }
+//            ) {
+//                Text("⚙️")
+//            }
 
             // 🔄 Loading overlay
             if (isLoading) {
