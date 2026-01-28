@@ -35,7 +35,10 @@ fun PlanCard(
     onScanSinForAction: (ActionItem) -> Unit = {},
     onNavigateToAnnotation: (String) -> Unit = {}
 ) {
-    Column(modifier = modifier.fillMaxWidth()) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
         item.primaryActions.forEach { action ->
             val matchingResults = item.otherActions.filter { other ->
                 val otherText = listOfNotNull(other.andersBeschrijving, other.beschrijvingEnLocatie).joinToString(" ")
@@ -46,8 +49,7 @@ fun PlanCard(
 
             Card(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                    .fillMaxWidth(),
                 shape = RoundedCornerShape(10.dp)
             ) {
                 Row(
@@ -95,7 +97,6 @@ fun PlanCard(
                 if (showActionButtons) {
                     Row(
                         modifier = Modifier
-                            .padding(12.dp)
                             .fillMaxWidth(),
                         horizontalArrangement = Arrangement.Start
                     ) {

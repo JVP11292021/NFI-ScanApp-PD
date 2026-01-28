@@ -16,7 +16,7 @@ import androidx.compose.ui.text.style.TextAlign
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppTopbar(title: String, onMenuClick:() -> Unit) {
+fun AppTopbar(title: String, onMenuClick:() -> Unit = {}, showMenu: Boolean = true) {
     TopAppBar(
         title = {
             Text(
@@ -27,8 +27,10 @@ fun AppTopbar(title: String, onMenuClick:() -> Unit) {
         },
         navigationIcon = { },
         actions = {
-            IconButton(onClick = onMenuClick) {
-                Icon(Icons.Default.Menu, contentDescription = "Menu")
+            if (showMenu) {
+                IconButton(onClick = onMenuClick) {
+                    Icon(Icons.Default.Menu, contentDescription = "Menu")
+                }
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(

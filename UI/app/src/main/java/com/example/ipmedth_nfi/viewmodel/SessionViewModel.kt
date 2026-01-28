@@ -241,6 +241,11 @@ class SessionViewModel(
         }
     }
 
+    // Public method to trigger auto-save from outside the ViewModel
+    fun autoSavePublic() {
+        autoSave()
+    }
+
     private fun buildSnapshot(onderzoek: Onderzoek): ProjectSnapshot {
         return ProjectSnapshot(
             onderzoek = onderzoek,
