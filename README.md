@@ -15,6 +15,7 @@ This project was build and tested with the following tools and versions:
 1. Android studio - 2025.2.2 Patch 1
 2. CMake - V3.22.1
 3. Gradle - V8.13
+4. Git LFS
 
 ### Compile Targets
 
