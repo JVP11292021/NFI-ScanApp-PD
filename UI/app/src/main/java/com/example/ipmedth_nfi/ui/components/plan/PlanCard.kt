@@ -41,11 +41,22 @@ fun PlanCard(
     ) {
         item.primaryActions.forEach { action ->
             val matchingResults = item.otherActions.filter { other ->
-                val otherText = listOfNotNull(other.andersBeschrijving, other.beschrijvingEnLocatie).joinToString(" ")
-                val actionText = listOfNotNull(action.beschrijvingEnLocatie, action.andersBeschrijving, action.subType?.name).joinToString(" ")
-                otherText.contains(actionText, ignoreCase = true) || actionText.contains(otherText, ignoreCase = true)
+                val otherText = listOfNotNull(
+                    other.andersBeschrijving,
+                    other.beschrijvingEnLocatie
+                ).joinToString(" ")
+                val actionText = listOfNotNull(
+                    action.beschrijvingEnLocatie,
+                    action.andersBeschrijving,
+                    action.subType?.name
+                ).joinToString(" ")
+                otherText.contains(actionText, ignoreCase = true) || actionText.contains(
+                    otherText,
+                    ignoreCase = true
+                )
             }
-            val showActionButtons = action.type == ActionType.Veiligstellen || action.type == ActionType.Bemonsteren
+            val showActionButtons =
+                action.type == ActionType.Veiligstellen || action.type == ActionType.Bemonsteren
 
             Card(
                 modifier = Modifier
@@ -87,28 +98,30 @@ fun PlanCard(
                     if (showActionButtons) {
                         Column() {
                             IconButton(onClick = { /* marker action - could open map/marker */ }) {
-                        Column(modifier = Modifier.padding(start = 8.dp)) {
-                            Spacer(modifier = Modifier.height(8.dp))
+                                Column(modifier = Modifier.padding(start = 8.dp)) {
+                                    Spacer(modifier = Modifier.height(8.dp))
 
-                            IconButton(onClick = { onNavigateToAnnotation(action.id) }) {
-                                Icon(TablerCube3dSphere, contentDescription = "Marker")
+                                    IconButton(onClick = { onNavigateToAnnotation(action.id) }) {
+                                        Icon(TablerCube3dSphere, contentDescription = "Marker")
+                                    }
+                                }
                             }
                         }
-                    }
-                }
-                if (showActionButtons) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(12.dp),
-                        horizontalArrangement = Arrangement.Start
-                    ) {
-                        Button(
-                            modifier = Modifier.fillMaxWidth(),
-                            onClick = { onScanSinForAction(action) }) {
-                            Icon(Icons.Filled.Add, contentDescription = "Scan SIN")
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(text = "Scan SIN")
+                        if (showActionButtons) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(12.dp),
+                                horizontalArrangement = Arrangement.Start
+                            ) {
+                                Button(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    onClick = { onScanSinForAction(action) }) {
+                                    Icon(Icons.Filled.Add, contentDescription = "Scan SIN")
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(text = "Scan SIN")
+                                }
+                            }
                         }
                     }
                 }
