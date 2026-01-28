@@ -67,8 +67,15 @@ class SessionViewModel(
     // --- 3. Lifecycle & Session Management ---
     fun startOnderzoek(onderzoek: Onderzoek) {
         _activeOnderzoek.value = onderzoek
-        loadExistingSnapshot(onderzoek)
+
+        val snapshot = storage.loadSnapshot(onderzoek)
+        if (snapshot != null) {
+            loadSnapshot(snapshot)
+        } else {
+            clearSessionState()
+        }
     }
+
 
     fun addBulletToAandachtspunt(id: String, bullet: String) {
         val index = aandachtspunten.indexOfFirst { it.id == id }
@@ -430,4 +437,27 @@ class SessionViewModel(
             autoSave()
         }
     }
+
+    private fun loadSnapshot(snapshot: ProjectSnapshot) {
+        infoVooraf.apply { clear(); addAll(snapshot.infoVooraf) }
+        infoTerPlaatse.apply { clear(); addAll(snapshot.infoTerPlaatse) }
+        observations.apply { clear(); addAll(snapshot.observations) }
+        hoofdthemas.apply { clear(); addAll(snapshot.hoofdthemas) }
+        aandachtspunten.apply { clear(); addAll(snapshot.aandachtspunten) }
+        markers.apply { clear(); addAll(snapshot.markers) }
+        appData.apply { clear(); putAll(snapshot.appData) }
+        roomModel = snapshot.roomModel
+    }
+
+    private fun clearSessionState() {
+        infoVooraf.clear()
+        infoTerPlaatse.clear()
+        observations.clear()
+        hoofdthemas.clear()
+        aandachtspunten.clear()
+        markers.clear()
+        appData.clear()
+        roomModel = null
+    }
+
 }
