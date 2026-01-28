@@ -8,6 +8,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import java.io.File
 import java.io.FileOutputStream
+import java.util.UUID
 import java.util.zip.ZipInputStream
 
 object ProjectImporter {
@@ -54,9 +55,14 @@ object ProjectImporter {
             val jsonText = jsonFile.readText()
             val json = Json { ignoreUnknownKeys = true }
             val snapshot = json.decodeFromString(ProjectSnapshot.serializer(), jsonText)
+            val fixedSnapshot = snapshot.copy(
+                onderzoek = snapshot.onderzoek.copy(
+                    internalId = UUID.randomUUID().toString()
+                )
+            )
 
             tmpDir.deleteRecursively()
-            return@withContext snapshot
+            return@withContext fixedSnapshot
         } catch (t: Throwable) {
             t.printStackTrace()
             return@withContext null

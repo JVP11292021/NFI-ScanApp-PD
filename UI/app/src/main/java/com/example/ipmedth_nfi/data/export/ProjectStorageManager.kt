@@ -15,7 +15,7 @@ class ProjectStorageManager(
         File(context.getExternalFilesDir(null), "NFI_Scanapp")
 
     override fun getProjectDir(onderzoek: Onderzoek): File =
-        File(rootDir, "${onderzoek.zaaknummer}/${onderzoek.onderzoeksnaam}")
+        File(rootDir, onderzoek.internalId)
 
     override fun getImageDir(onderzoek: Onderzoek): File =
         File(getProjectDir(onderzoek), "Reconstruction/images")
@@ -40,14 +40,15 @@ class ProjectStorageManager(
     override fun loadAllProjects(): List<Onderzoek> {
         if (!rootDir.exists()) return emptyList()
 
-        return rootDir.walkTopDown()
-            .filter { it.name == "project.json" }
-            .mapNotNull {
+        return rootDir.listFiles()
+            ?.mapNotNull { dir ->
+                val file = File(dir, "project.json")
+                if (!file.exists()) return@mapNotNull null
                 runCatching {
-                    Json.decodeFromString<Onderzoek>(it.readText())
+                    Json.decodeFromString<Onderzoek>(file.readText())
                 }.getOrNull()
             }
-            .toList()
+            ?: emptyList()
     }
 
     override fun deleteProject(onderzoek: Onderzoek): Boolean {
