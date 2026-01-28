@@ -1,4 +1,4 @@
-package com.example.ipmedth_nfi.ui.components
+package com.example.ipmedth_nfi.ui.components.vk
 
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
