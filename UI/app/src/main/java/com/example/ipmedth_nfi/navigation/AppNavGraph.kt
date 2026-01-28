@@ -75,7 +75,7 @@ fun AppNavGraph(
 
         NavHost(
             navController = navController,
-            startDestination = MainRoute.SCAN.route,
+            startDestination = MainRoute.APP.route,
             modifier = Modifier.padding(paddingValues)
         ) {
             composable(MainRoute.SCAN.route) {
