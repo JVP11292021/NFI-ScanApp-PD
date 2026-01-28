@@ -25,6 +25,10 @@ class ProjectStorageManager(
         val imageDir = getImageDir(onderzoek)
 
         imageDir.mkdirs()
+        File(projectDir, "markers.txt").createNewFile()
+
+        File(projectDir, "/Reconstruction/database.db").createNewFile()
+        File(projectDir, "/Reconstruction/sparse").mkdir();
 
         File(projectDir, "project.json").writeText(
             Json.encodeToString(onderzoek)
@@ -75,5 +79,6 @@ class ProjectStorageManager(
             Json.decodeFromString<ProjectSnapshot>(file.readText())
         }.getOrNull()
     }
+
 
 }

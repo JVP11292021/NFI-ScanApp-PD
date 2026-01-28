@@ -14,7 +14,7 @@ import com.example.ipmedth_nfi.ui.components.plan.PlanCard
 import com.example.ipmedth_nfi.viewmodel.SessionViewModel
 
 @Composable
-fun PlanTab(viewModel: SessionViewModel) {
+fun PlanTab(viewModel: SessionViewModel, onNavigateToAnnotation: (String) -> Unit = {}) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -23,7 +23,8 @@ fun PlanTab(viewModel: SessionViewModel) {
             PlanCard(
                 item = item,
                 onEditAction = { /* TODO: open edit */ },
-                onScanSinForAction = { /* TODO: scan SIN */ }
+                onScanSinForAction = { /* TODO: scan SIN */ },
+                onNavigateToAnnotation = onNavigateToAnnotation
             )
         }
     }

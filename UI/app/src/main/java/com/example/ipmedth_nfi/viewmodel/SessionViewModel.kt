@@ -47,6 +47,8 @@ class SessionViewModel(
     var currentAssessmentPage by mutableStateOf<AssessmentPage>(AssessmentPage.Info)
         private set
 
+    var selectedActionId by mutableStateOf<String?>(null)
+
     val pageCompletion = mutableStateMapOf<AssessmentPage, Boolean>().apply {
         AssessmentPage.entries.forEach { this[it] = false }
     }
@@ -246,6 +248,11 @@ class SessionViewModel(
         }
     }
 
+    // Public method to trigger auto-save from outside the ViewModel
+    fun autoSavePublic() {
+        autoSave()
+    }
+
     private fun buildSnapshot(onderzoek: Onderzoek): ProjectSnapshot {
         return ProjectSnapshot(
             onderzoek = onderzoek,
@@ -280,6 +287,15 @@ class SessionViewModel(
             aandachtspunten[index] = updated
             autoSave()
         }
+    }
+
+    fun updateRoomModelRotation(rotationOffsetX: Float, rotationOffsetY: Float, rotationOffsetZ: Float) {
+        roomModel = (roomModel ?: RoomModel()).copy(
+            rotationOffsetX = rotationOffsetX,
+            rotationOffsetY = rotationOffsetY,
+            rotationOffsetZ = rotationOffsetZ
+        )
+        autoSave()
     }
 
     // --- 9. Helpers: Detailed Aandachtspunt management ---

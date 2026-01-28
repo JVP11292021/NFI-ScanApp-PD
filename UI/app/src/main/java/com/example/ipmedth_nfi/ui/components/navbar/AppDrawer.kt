@@ -25,7 +25,9 @@ fun AppDrawer(
     ) {
         Column(Modifier.fillMaxHeight()) {
 
-            MainRoute.entries.forEach { route ->
+            MainRoute.entries
+                .filter { it != MainRoute.ANNOTATION }
+                .forEach { route ->
                 NavigationDrawerItem(
                     label = { Text(route.title) },
                     selected = false,

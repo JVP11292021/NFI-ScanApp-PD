@@ -16,15 +16,22 @@ AndroidEngine::AndroidEngine(
         AAssetManager* assetManager,
         ANativeWindow* nativeWindow,
         std::int32_t width,
-        std::int32_t height
+        std::int32_t height,
+        const char* projectDirPath,
+        const char* actionId
 )
   :
     IAndroidSurface(),
     _assetManager(assetManager),
+    _projectDirPath(projectDirPath ? projectDirPath : ""),
+    _actionId(actionId ? actionId : ""),
     _win(nativeWindow, width, height, "NFI Scan App"),
     _device(_win, _assetManager),
-    _renderer(_win, _device)
+    _renderer(_win, _device),
+    markerManager(_actionId)
 {
+    VLE_LOGD("AndroidEngine initialized with actionId: ", _actionId.empty() ? "<empty>" : _actionId.c_str());
+
     this->globalPool = vle::DescriptorPool::Builder(this->_device)
             .setMaxSets(MAX_FRAMES_IN_FLIGHT)
             .addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, MAX_FRAMES_IN_FLIGHT)
@@ -36,7 +43,17 @@ AndroidEngine::AndroidEngine(
 
 }
 
-AndroidEngine::~AndroidEngine() = default;
+AndroidEngine::~AndroidEngine() {
+    vkDeviceWaitIdle(_device.device());
+
+    uboBuffers.clear();
+    uboBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+    globalSetLayout.reset();
+    globalDescriptorSets.clear();
+    globalDescriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
+
+    VLE_LOGI("AndroidEngine destroyed and static resources cleared");
+}
 
 void AndroidEngine::resize(std::int32_t width, std::int32_t height) {
     this->_win.setSize(width, height);
@@ -44,14 +61,14 @@ void AndroidEngine::resize(std::int32_t width, std::int32_t height) {
 }
 
 void AndroidEngine::mapUniformBufferObjects() {
-    for (std::int32_t i = 0; i < uboBuffers.size(); i++) {
-        uboBuffers[i] = std::make_unique<UboBuffer>(
+    for (auto & uboBuffer : uboBuffers) {
+        uboBuffer = std::make_unique<UboBuffer>(
                 this->_device,
                 sizeof(vle::GlobalUbo),
                 1,
                 VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
-        uboBuffers[i]->map();
+        uboBuffer->map();
     }
 }
 
@@ -75,24 +92,85 @@ void AndroidEngine::makeSystems() {
                 _renderer.getSwapChainRenderPass(),
                 globalSetLayout->getDescriptorSetLayout(),
                 "shaders/point_cloud_shader.vert.spv",
-                "shaders/point_cloud_shader.frag.spv");
+                "shaders/point_cloud_shader.frag.spv"
+            );
+
+    pickingRenderSystem =
+            std::make_unique<PickingRenderSystem>(
+                _device,
+                _win.getWidth(),
+                _win.getHeight(),
+                globalSetLayout->getDescriptorSetLayout(),
+                _renderer.getSwapChainRenderPass(),
+                "shaders/index_shader.vert.spv",
+                "shaders/index_shader.frag.spv"
+            );
+
+    objectRenderSystem =
+            std::make_unique<vle::sys::ObjectRenderSystem>(
+                _device,
+                _renderer.getSwapChainRenderPass(),
+                globalSetLayout->getDescriptorSetLayout(),
+                "shaders/simple_shader.vert.spv",
+                "shaders/simple_shader.frag.spv"
+            );
 }
 
 void AndroidEngine::loadObjects() {
-    std::shared_ptr<vle::ShaderModel> roomModel =
-            vle::ShaderModel::createModelFromFile(_device, "simple_scene.ply");
+    std::string markersPath = _projectDirPath.empty()
+        ? ""
+        : _projectDirPath + "/markers.txt";
+
+    if (!markersPath.empty()) {
+        try {
+            this->markerManager.loadMarkersFromTxt(markersPath, _device, this->objects);
+        } catch (std::runtime_error& er) {
+            VLE_LOGW("No markers.txt found, starting with no markers: ", er.what());
+        }
+    } else {
+        VLE_LOGW("No project directory provided, starting with no markers.");
+    }
+
+    std::shared_ptr<vle::ShaderModel> roomModel;
+
+
+    // Attempt to load sparse.ply from external storage
+    try {
+        roomModel = vle::ShaderModel::createModelFromFile(
+                _device,
+                _projectDirPath + "/Reconstruction/sparse/sparse.ply",
+                vle::ModelLoadMode::DIRECT_PATH
+        );
+        VLE_LOGI("Loaded room model from external storage");
+    } catch (const std::exception& e) {
+        VLE_LOGW("Failed to load sparse.ply, falling back to assets: ", e.what());
+        // Fallback: Load simple_scene.ply from assets
+        try {
+            roomModel = vle::ShaderModel::createModelFromFile(
+                    _device,
+                    "simple_scene.ply",
+                    vle::ModelLoadMode::ASSET_MANAGER
+            );
+            VLE_LOGI("Loaded fallback room model from assets");
+        } catch (const std::exception& fallbackError) {
+            VLE_LOGE("Failed to load fallback model: ", fallbackError.what());
+            throw;
+        }
+    }
+
     auto room = vle::Object::create();
     room.model = roomModel;
     room.transform.translation = { 0.f, .5f, 8.f };
-    room.transform.rotation = {
-            glm::radians(9.0f),
-            glm::radians(180.f),
-            glm::radians(93.0f)
-    };
-    this->points.emplace(room.getId(), std::move(room));
+    roomModelId = room.getId();
+    this->points.emplace(roomModelId, std::move(room));
 }
 
 void AndroidEngine::drawFrame() {
+    if (uboBuffers.empty() || !uboBuffers[0] || !globalSetLayout) {
+        VLE_LOGW("DrawFrame called before engine initialization complete - skipping");
+        return;
+    }
+
     auto view = _cam.getViewMatrix();
     auto projection = _cam.getProjMatrix();
     auto inverseView = glm::inverse(view);
@@ -116,11 +194,6 @@ void AndroidEngine::drawFrame() {
             fov *= static_cast<float>(this->_win.getHeight()) / static_cast<float>(this->_win.getWidth());
         }
 
-        auto model = glm::mat4(1.0f);
-        // Vulkan clip space has inverted Y and half Z.
-//        auto clip = glm::mat4(1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 0.5f, 1.0f);
-
-
         vle::FrameInfo frameInfo{
                 frameIndex,
                 frameTimeElapsed,
@@ -139,17 +212,72 @@ void AndroidEngine::drawFrame() {
         ubo.ambientLightColor = glm::vec4(1.f, 1.f, 1.f, 1.f);
         ubo.numLights = 0;
 
+        pickingRenderSystem->update(frameInfo, ubo);
+        this->markerManager.updateMarkerRotations(_cam.getPosition(), objects);
+
         uboBuffers[frameIndex]->writeToBuffer(&ubo);
         uboBuffers[frameIndex]->flush();
 
+        pickingRenderSystem->render(frameInfo);
+
+        if (shouldPick) {
+            pickingRenderSystem->copyPixelToStaging(commandBuffer, pickX, pickY);
+            VLE_LOGI("Picking at: ", std::to_string(pickX).c_str(), ", ", std::to_string(pickY).c_str());
+        }
+
         // === RENDER ===
         _renderer.beginSwapChainRenderPass(commandBuffer);
+
+        objectRenderSystem->render(frameInfo);
         pointCloudRenderSystem->render(frameInfo);
-        // pointLightSystem.render(frameInfo);
-        // pointCloudRenderSystem.render(frameInfo);
 
         _renderer.endSwapChainRenderPass(commandBuffer);
         _renderer.endFrame();
+
+        if (shouldPick) {
+            vkDeviceWaitIdle(_device.device());
+
+            PickResult pick = pickingRenderSystem->readPickResult();
+
+            if (pick.id != 0xFFFFFFFF) {
+                if (shouldPickForDelete) {
+                    // Single-tap: Check if it's a marker to show info
+                    if (this->markerManager.isMarker(pick.objectID)) {
+                        // Get the action ID for this marker
+                        lastTappedMarkerActionId = this->markerManager.getMarkerEvidenceId(pick.objectID);
+                        lastTappedMarkerPosition = this->markerManager.getMarkerPosition(pick.objectID, this->objects);
+                        VLE_LOGI("Tapped marker with action ID: ", lastTappedMarkerActionId.c_str());
+                    } else {
+                        // Clear the action ID and position if tapping on non-marker
+                        lastTappedMarkerActionId = "";
+                        lastTappedMarkerPosition = glm::vec3(0.0f, 0.0f, 0.0f);
+                    }
+                } else {
+                    // Double-tap: Check if the picked object is a marker
+                    if (this->markerManager.isMarker(pick.objectID)) {
+                        // Delete the marker if double-tapping on an existing marker
+                        this->markerManager.destroyMarker(pick.objectID, this->objects);
+                        VLE_LOGI(
+                                "Deleted marker at: ",
+                                std::to_string(pick.worldPos.x).c_str(), ", ",
+                                std::to_string(pick.worldPos.y).c_str(), ", ",
+                                std::to_string(pick.worldPos.z).c_str()
+                        );
+                    } else {
+                        // Create a new marker if double-tapping on the point cloud
+                        this->markerManager.createMarker(pick.worldPos, _device, this->objects);
+                        VLE_LOGI(
+                                "Placed marker at: ",
+                                std::to_string(pick.worldPos.x).c_str(), ", ",
+                                std::to_string(pick.worldPos.y).c_str(), ", ",
+                                std::to_string(pick.worldPos.z).c_str()
+                        );
+                    }
+                }
+            }
+            shouldPick = false;
+            shouldPickForDelete = false;
+        }
     }
 }
 
@@ -177,3 +305,57 @@ void AndroidEngine::onZoom(float scaleFactor) {
     float zoomDelta = std::log(scaleFactor) * ZOOM_SENSITIVITY;
     _cam.processKeyboard(vle::sys::FORWARD, zoomDelta);
 }
+
+void AndroidEngine::onRotate(float xAngle, float yAngle, float zAngle) {
+    auto it = points.find(roomModelId);
+    if (it != points.end()) {
+        it->second.transform.rotation = glm::vec3(xAngle, yAngle, zAngle);
+    }
+}
+
+void AndroidEngine::setInitialRotation(float xOffset, float yOffset, float zOffset) {
+    // Apply the full rotation: base rotation + saved offsets
+    const float baseX = glm::radians(9.0f);
+    const float baseY = glm::radians(180.0f);
+    const float baseZ = glm::radians(93.0f);
+
+    auto it = points.find(roomModelId);
+    if (it != points.end()) {
+        it->second.transform.rotation = glm::vec3(
+            baseX + xOffset,
+            baseY + yOffset,
+            baseZ + zOffset
+        );
+    }
+}
+
+void AndroidEngine::clearMarkers() {
+    markerManager.clearMarkers(objects);
+}
+
+bool AndroidEngine::hasMarkers() {
+    return markerManager.hasMarkers();
+}
+
+void AndroidEngine::onTap(uint32_t x, uint32_t y) {
+    this->pickX = x;
+    this->pickY = y;
+    this->shouldPick = true;
+    this->shouldPickForDelete = true;  // Single tap for showing info
+}
+
+void AndroidEngine::onDoubleTap(uint32_t x, uint32_t y) {
+    this->pickX = x;
+    this->pickY = y;
+    this->shouldPick = true;
+    this->shouldPickForDelete = false;  // Double tap for create/delete
+}
+
+std::string AndroidEngine::getLastTappedMarkerActionId() const {
+    return lastTappedMarkerActionId;
+}
+
+glm::vec3 AndroidEngine::getLastTappedMarkerPosition() const {
+    return lastTappedMarkerPosition;
+}
+

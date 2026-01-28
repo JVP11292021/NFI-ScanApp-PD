@@ -26,6 +26,7 @@ layout(set = 0, binding = 0) uniform GlobalUbo {
 layout(push_constant) uniform Push {
 	mat4 modelMatrix;
 	mat4 normalMatrix;
+	vec3 color;
 } push;
 
 
@@ -35,5 +36,5 @@ void main() {
 
 	fragNormalWorld = normalize(mat3(push.normalMatrix) * normal);
 	fragPosWorld = positionWorld.xyz;
-	fragColor = color;
+	fragColor = push.color;
 }
