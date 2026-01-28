@@ -1,5 +1,6 @@
 package com.example.ipmedth_nfi.ui.components.navbar
 
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -21,12 +22,19 @@ fun BottomNavBar(
 ) {
     val scope = rememberCoroutineScope()
 
-    NavigationBar {
+    NavigationBar (
+        windowInsets = WindowInsets(0, 0, 0, 0)
+    ){
         pages.forEachIndexed { index, page ->
             NavigationBarItem(
                 icon = { Icon(page.icon, contentDescription = page.title) },
                 label = { Text(page.title) },
                 selected = pagerState.currentPage == index,
+                colors = NavigationBarItemDefaults.colors(
+                    selectedTextColor = SecondaryOrange,
+                    selectedIconColor = White,
+                    indicatorColor = SecondaryOrange
+                ),
                 onClick = {
                     scope.launch {
                         pagerState.animateScrollToPage(index)

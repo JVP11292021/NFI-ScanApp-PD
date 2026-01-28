@@ -17,7 +17,7 @@ import com.example.ipmedth_nfi.viewmodel.SessionViewModel
 fun PlanTab(viewModel: SessionViewModel, onNavigateToAnnotation: (String) -> Unit = {}) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         items(viewModel.aandachtspunten, key = { it.id }) { item ->
             PlanCard(

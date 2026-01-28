@@ -31,7 +31,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.ipmedth_nfi.model.Hoofdthema
-
 @Composable
 fun AttentionCard(
     title: String,
@@ -82,8 +81,8 @@ fun AttentionCard(
 
     Card(
         modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
+            .fillMaxWidth(),
+//            .padding(horizontal = 16.dp),
         shape = RoundedCornerShape(16.dp)
     ) {
         Row(
