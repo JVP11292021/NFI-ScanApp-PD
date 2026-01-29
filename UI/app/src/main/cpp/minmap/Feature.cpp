@@ -75,6 +75,7 @@ int RunFeatureExtractor(
     colmap::OptionManager options;
     *options.database_path = database_path.string();
     *options.image_path = image_path.string();
+    options.ModifyForLowQuality();
     options.AddDatabaseOptions();
     options.AddImageOptions();
     options.AddExtractionOptions();
@@ -105,15 +106,6 @@ int RunFeatureExtractor(
         LOG(MM_ERROR) << "Invalid `descriptor_normalization`";
         return EXIT_FAILURE;
     }
-
-    // Mobile-optimized SIFT extraction parameters
-    // For Android devices with limited RAM, reduce image size and adjust octave settings
-    options.sift_extraction->max_image_size = 1024;  // Reduce further to 1024px to prevent memory pressure
-    options.sift_extraction->first_octave = 0;       // Extract from all octaves
-    options.sift_extraction->num_octaves = 3;        // Reduce from 4 to 3 octaves for less computation
-    options.sift_extraction->octave_resolution = 3;  // Standard resolution per octave
-    options.sift_extraction->num_threads = 1;        // Use single thread on mobile to reduce memory spike
-    options.sift_extraction->use_gpu = false;        // Ensure GPU is disabled for mobile
 
     LOG(MM_DEBUG) << "SIFT extraction configured for mobile:"
                   << " max_image_size=" << options.sift_extraction->max_image_size
@@ -157,10 +149,10 @@ int RunFeatureExtractor(
 int RunExhaustiveMatcher(const std::filesystem::path& database_path) {
     colmap::OptionManager options(false);
     *options.database_path = database_path.string();
+    options.ModifyForLowQuality();
     options.AddDatabaseOptions();
     options.AddExhaustiveMatchingOptions();
 
-    options.sift_matching->use_gpu = false;
     if (!VerifySiftGPUParams(options.sift_matching->use_gpu)) {
         return EXIT_FAILURE;
     }

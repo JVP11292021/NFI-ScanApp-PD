@@ -450,7 +450,7 @@ target_link_libraries(minmap-core
 )
 
 target_compile_definitions(minmap-core PRIVATE
-        MINMAP_SINGLE_THREADED
+#        MINMAP_SINGLE_THREADED
         EIGEN_ALIGN_MALLOC=1
         EIGEN_DONT_ALIGN_STACK=1
         EIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT=1

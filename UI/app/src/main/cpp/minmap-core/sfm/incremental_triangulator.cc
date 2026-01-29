@@ -96,7 +96,8 @@ size_t IncrementalTriangulator::TriangulateImage(const Options& options,
 
   // Try to triangulate all image observations.
   for (point2D_t point2D_idx = 0; point2D_idx < image.NumPoints2D();
-       ++point2D_idx) {
+       ++point2D_idx)
+  {
     const size_t num_triangulated =
         Find(options,
              image_id,

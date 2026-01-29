@@ -48,6 +48,7 @@ int RunModelConverter(
     bool skip_distortion
 ) {
     colmap::Reconstruction reconstruction;
+    LOG(MM_DEBUG) << "Reading reconstruction from " << input_path.string();
     reconstruction.Read(input_path.string());
 
     std::string type = output_type;

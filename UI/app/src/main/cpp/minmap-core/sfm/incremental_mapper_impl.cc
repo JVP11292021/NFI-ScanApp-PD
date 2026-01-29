@@ -276,7 +276,8 @@ std::vector<image_t> IncrementalMapperImpl::FindNextImages(
     const IncrementalMapper::Options& options,
     const ObservationManager& obs_manager,
     const std::unordered_set<image_t>& filtered_images,
-    std::unordered_map<image_t, size_t>& num_reg_trials) {
+    std::unordered_map<image_t, size_t>& num_reg_trials
+) {
   THROW_CHECK(options.Check());
   const Reconstruction& reconstruction = obs_manager.Reconstruction();
 
