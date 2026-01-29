@@ -22,9 +22,9 @@
 #include <Systems/RenderSystem.hpp>
 #include <Systems/ObjectRenderSystem.hpp>
 #include <Systems/PointCloudRenderSystem.hpp>
-#include "RayTracing/MarkerManager.h"
-#include "RayTracing/PickingFramebuffer.hpp"
-#include "RayTracing/PickingRenderSystem.hpp"
+#include "MarkerManager.h"
+#include "PickingFramebuffer.hpp"
+#include "PickingRenderSystem.hpp"
 
 using UboBuffer = vle::Buffer;
 

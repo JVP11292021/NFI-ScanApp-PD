@@ -1,5 +1,5 @@
-#ifndef RT_PICKING_FRAMEBUFFER_HPP
-#define RT_PICKING_FRAMEBUFFER_HPP
+#ifndef PS_PICKING_FRAMEBUFFER_HPP
+#define PS_PICKING_FRAMEBUFFER_HPP
 
 #include <defs.hpp>
 #include <Device.hpp>
@@ -47,4 +47,4 @@ private:
     VkFramebuffer framebuffer = VK_NULL_HANDLE;
 };
 
-#endif // !RT_PICKING_FRAMEBUFFER_HPP
+#endif // !PS_PICKING_FRAMEBUFFER_HPP

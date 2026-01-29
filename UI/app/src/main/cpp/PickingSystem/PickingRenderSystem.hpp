@@ -1,5 +1,5 @@
-#ifndef RT_PICKING_RENDER_SYSTEM_HPP
-#define RT_PICKING_RENDER_SYSTEM_HPP
+#ifndef PS_PICKING_RENDER_SYSTEM_HPP
+#define PS_PICKING_RENDER_SYSTEM_HPP
 
 #include "engdefs.hpp"
 #include "RenderSystem.hpp"
@@ -73,4 +73,4 @@ private:
     std::array<VkPipelineColorBlendAttachmentState, 2> colorBlendAttachments{};
 };
 
-#endif // !RT_PICKING_RENDER_SYSTEM_HPP
+#endif // !PS_PICKING_RENDER_SYSTEM_HPP

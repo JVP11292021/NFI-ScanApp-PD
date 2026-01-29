@@ -1,5 +1,5 @@
-#ifndef MARKER_MANAGER_H
-#define MARKER_MANAGER_H
+#ifndef PS_MARKER_MANAGER_H
+#define PS_MARKER_MANAGER_H
 
 #include <vector>
 #include <string>
@@ -44,4 +44,4 @@ private:
     glm::vec3 selectedMarkerColor = { 1.f, .1f, .1f };
 };
 
-#endif
+#endif // !PS_MARKER_MANAGER_H
