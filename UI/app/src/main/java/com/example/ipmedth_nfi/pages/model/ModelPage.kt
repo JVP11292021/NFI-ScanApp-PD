@@ -22,10 +22,10 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import com.example.ipmedth_nfi.bridge.NativeAndroidEngine
-import com.example.ipmedth_nfi.ui.components.MarkerInfoDialog
-import com.example.ipmedth_nfi.ui.components.RotationControlMenu
-import com.example.ipmedth_nfi.ui.components.RotationWarningDialog
-import com.example.ipmedth_nfi.ui.components.ViewOnlyBanner
+import com.example.ipmedth_nfi.ui.components.vk.MarkerInfoDialog
+import com.example.ipmedth_nfi.ui.components.vk.RotationControlMenu
+import com.example.ipmedth_nfi.ui.components.vk.RotationWarningDialog
+import com.example.ipmedth_nfi.ui.components.vk.ViewOnlyBanner
 import com.example.ipmedth_nfi.ui.vk.VulkanRenderer
 import com.example.ipmedth_nfi.viewmodel.SessionViewModel
 import kotlin.math.abs

@@ -450,7 +450,7 @@ target_link_libraries(minmap-core
 )
 
 target_compile_definitions(minmap-core PRIVATE
-        MINMAP_SINGLE_THREADED
+#        MINMAP_SINGLE_THREADED
         EIGEN_ALIGN_MALLOC=1
         EIGEN_DONT_ALIGN_STACK=1
         EIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT=1
@@ -622,27 +622,27 @@ target_include_directories(engineSystem PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/VulkanLiteEngine/Engine/Systems
 )
 
-# ----------------------- RayTracing ------------------------
+# ----------------------- PickingSystem ------------------------
 
-add_library(rayTracing STATIC
-        RayTracing/MarkerManager.cpp
-        RayTracing/PickingFramebuffer.cpp
-        RayTracing/PickingRenderSystem.cpp
+add_library(pickingSystem STATIC
+        PickingSystem/MarkerManager.cpp
+        PickingSystem/PickingFramebuffer.cpp
+        PickingSystem/PickingRenderSystem.cpp
 )
 
-set_target_properties(rayTracing PROPERTIES
+set_target_properties(pickingSystem PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
-target_link_libraries(rayTracing PUBLIC
+target_link_libraries(pickingSystem PUBLIC
         glm
         engineBackend
         engineUtils
         engineSystem
 )
 
-target_include_directories(rayTracing PUBLIC
-        RayTracing
+target_include_directories(pickingSystem PUBLIC
+        PickingSystem
 )
 
 # -------------------- ENGINE BACKEND BRIDGE --------------------
@@ -672,7 +672,7 @@ target_include_directories(renderEngine PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty
         ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/VulkanLiteEngine/Engine
         ${CMAKE_CURRENT_SOURCE_DIR}
-        ${CMAKE_CURRENT_SOURCE_DIR}/RayTracing
+        ${CMAKE_CURRENT_SOURCE_DIR}/PickingSystem
 )
 
 # -------------------- LINK EVERYTHING --------------------
@@ -690,7 +690,7 @@ target_link_libraries(renderEngine PRIVATE
         engineUtils
         engineSystem
         minmap
-        rayTracing
+        pickingSystem
         android
         ${vulkan-lib}
         log

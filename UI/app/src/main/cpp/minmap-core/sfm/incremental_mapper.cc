@@ -855,6 +855,15 @@ void IncrementalMapper::IterativeGlobalRefinement(
   const size_t num_retriangulated_observations = Retriangulate(tri_options);
   VLOG(1) << "=> Retriangulated observations: "
           << num_retriangulated_observations;
+
+  // If we have very few 3D points, skip expensive global refinement to avoid
+  // gauge fixing failures that invalidate the reconstruction
+  if (reconstruction_->NumPoints3D() < 10) {
+    VLOG(1) << "=> Skipping global refinement due to insufficient 3D points ("
+            << reconstruction_->NumPoints3D() << ")";
+    return;
+  }
+
   for (int i = 0; i < max_num_refinements; ++i) {
     const size_t num_observations = reconstruction_->ComputeNumObservations();
     AdjustGlobalBundle(options, ba_options);
@@ -864,7 +873,11 @@ void IncrementalMapper::IterativeGlobalRefinement(
       reconstruction_->Normalize();
     }
     size_t num_changed_observations = CompleteAndMergeTracks(tri_options);
-    num_changed_observations += FilterPoints(options);
+    // Skip aggressive filtering during early stages with few 3D points to prevent
+    // all points from being removed when bundle adjustment has gauge issues
+    if (reconstruction_->NumPoints3D() >= 10) {
+      num_changed_observations += FilterPoints(options);
+    }
     const double changed =
         num_observations == 0
             ? 0

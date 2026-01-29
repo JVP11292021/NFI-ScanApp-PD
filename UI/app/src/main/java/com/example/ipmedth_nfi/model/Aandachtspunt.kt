@@ -9,8 +9,6 @@ data class Aandachtspunt(
     val title: String,
     val theme: Hoofdthema,
     val bulletPoints: List<String> = emptyList(),
-
-    // New fields for Details modal
     val relevanteScenes: List<String> = emptyList(),
     val sceneProbabilities: List<SceneProbability> = emptyList(),
     val verwachteSporen: Map<String, List<String>> = emptyMap(),

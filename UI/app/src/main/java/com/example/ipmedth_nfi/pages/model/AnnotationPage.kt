@@ -13,9 +13,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
 import com.example.ipmedth_nfi.bridge.NativeAndroidEngine
-import com.example.ipmedth_nfi.ui.components.ControlsOverlay
-import com.example.ipmedth_nfi.ui.components.HelpButton
-import com.example.ipmedth_nfi.ui.components.MarkerInfoDialog
+import com.example.ipmedth_nfi.ui.components.vk.ControlsOverlay
+import com.example.ipmedth_nfi.ui.components.vk.HelpButton
+import com.example.ipmedth_nfi.ui.components.vk.MarkerInfoDialog
 import com.example.ipmedth_nfi.ui.vk.VulkanRenderer
 import com.example.ipmedth_nfi.viewmodel.SessionViewModel
 import kotlin.math.abs

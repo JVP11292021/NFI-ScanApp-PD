@@ -167,14 +167,19 @@ FeatureMatcherController::FeatureMatcherController(
       is_setup_(false) {
   THROW_CHECK(matching_options_.Check());
   THROW_CHECK(geometry_options_.Check());
-
-  const int num_threads = GetEffectiveNumThreads(matching_options_.num_threads);
+#if MINMAP_SINGLE_THREADED
+    const int num_threads = 1;
+#else
+  ThreadLimiter<ThreadLimitMode::Max, 5> threadLimiter;
+  const int num_threads = threadLimiter(matching_options_.num_threads);
+#endif
+  LOG(MM_DEBUG) << "Number of specified threads: " << num_threads;
   THROW_CHECK_GT(num_threads, 0);
 
   std::vector<int> gpu_indices = CSVToVector<int>(matching_options_.gpu_index);
   THROW_CHECK_GT(gpu_indices.size(), 0);
 
-#if defined(COLMAP_CUDA_ENABLED)
+#if defined(MINMAP_CUDA_ENABLED)
   if (matching_options_.use_gpu && gpu_indices.size() == 1 &&
       gpu_indices[0] == -1) {
     const int num_cuda_devices = GetNumCudaDevices();
@@ -182,7 +187,7 @@ FeatureMatcherController::FeatureMatcherController(
     gpu_indices.resize(num_cuda_devices);
     std::iota(gpu_indices.begin(), gpu_indices.end(), 0);
   }
-#endif  // COLMAP_CUDA_ENABLED
+#endif  // MINMAP_CUDA_ENABLED
 
   if (matching_options_.use_gpu) {
     auto matching_options_copy = matching_options_;
@@ -203,6 +208,7 @@ FeatureMatcherController::FeatureMatcherController(
     // The first matching is always without guided matching.
     matching_options_copy.guided_matching = false;
     matchers_.reserve(num_threads);
+    LOG(MM_DEBUG) << "Added feature matcher worker";
     for (int i = 0; i < num_threads; ++i) {
       matchers_.emplace_back(
           std::make_unique<FeatureMatcherWorker>(matching_options_copy,
@@ -216,6 +222,7 @@ FeatureMatcherController::FeatureMatcherController(
   verifiers_.reserve(num_threads);
   if (matching_options_.guided_matching) {
     // Redirect the verification output to final round of guided matching.
+    LOG(MM_DEBUG) << "E,placing verifiers into guided matcher queue";
     for (int i = 0; i < num_threads; ++i) {
       verifiers_.emplace_back(std::make_unique<VerifierWorker>(
           geometry_options_, cache_, &verifier_queue_, &guided_matcher_queue_));
@@ -234,6 +241,7 @@ FeatureMatcherController::FeatureMatcherController(
                                                    &output_queue_));
       }
     } else {
+        LOG(MM_DEBUG) << "Added guided matcher worker";
       guided_matchers_.reserve(num_threads);
       for (int i = 0; i < num_threads; ++i) {
         guided_matchers_.emplace_back(
@@ -245,6 +253,7 @@ FeatureMatcherController::FeatureMatcherController(
       }
     }
   } else {
+      LOG(MM_DEBUG) << "Added verifier worker - without guided matching";
     for (int i = 0; i < num_threads; ++i) {
       verifiers_.emplace_back(std::make_unique<VerifierWorker>(
           geometry_options_, cache_, &verifier_queue_, &output_queue_));
@@ -327,10 +336,12 @@ bool FeatureMatcherController::Setup() {
 }
 
 void FeatureMatcherController::Match(
-    const std::vector<std::pair<image_t, image_t>>& image_pairs) {
+    const std::vector<std::pair<image_t, image_t>>& image_pairs
+) {
   THROW_CHECK_NOTNULL(cache_);
   THROW_CHECK(is_setup_);
 
+  LOG(MM_DEBUG) << "Starting matching";
   if (image_pairs.empty()) {
     return;
   }
@@ -342,6 +353,7 @@ void FeatureMatcherController::Match(
   std::unordered_set<image_pair_t> image_pair_ids;
   image_pair_ids.reserve(image_pairs.size());
 
+  LOG(MM_DEBUG) << "Matching " << image_pairs.size() << " image pairs";
   size_t num_outputs = 0;
   for (const auto& image_pair : image_pairs) {
     // Avoid self-matches.
@@ -395,7 +407,9 @@ void FeatureMatcherController::Match(
   // Write results to database
   //////////////////////////////////////////////////////////////////////////////
 
+  LOG(MM_DEBUG) << "Writing results to database";
   for (size_t i = 0; i < num_outputs; ++i) {
+      LOG(MM_DEBUG) << "Starting database write " << i;
     auto output_job = output_queue_.Pop();
     THROW_CHECK(output_job.IsValid());
     auto& output = output_job.Data();
@@ -416,6 +430,8 @@ void FeatureMatcherController::Match(
   }
 
   THROW_CHECK_EQ(output_queue_.Size(), 0);
+
+  LOG(MM_DEBUG) << "Match done!";
 }
 
 }  // namespace colmap

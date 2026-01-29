@@ -8,6 +8,8 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -23,6 +25,14 @@ fun AppPage(
     val pagerState = rememberPagerState(
         pageCount = { AssessmentPage.pages.size }
     )
+
+    // Sync pager state with viewModel's currentAssessmentPage
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.currentPage }.collect { page ->
+            viewModel.setAssessmentPage(AssessmentPage.pages[page])
+        }
+    }
+
     Scaffold(
         bottomBar = {
             BottomNavBar(
