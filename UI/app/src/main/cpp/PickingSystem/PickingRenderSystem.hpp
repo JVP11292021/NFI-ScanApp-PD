@@ -60,7 +60,7 @@ public:
     PickingFramebuffer& getFramebuffer() { return pickingFB; }
 
 private:
-    void createPipeline(VkRenderPass renderPass, const std::string& vertPath, const std::string& fragPath);
+    void createPipeline(VkRenderPass renderPass, const std::string& vertPath, const std::string& fragPath) override;
     void createTrianglePipeline(VkRenderPass renderPass, const std::string& vertPath, const std::string& fragPath);
 
 private:
