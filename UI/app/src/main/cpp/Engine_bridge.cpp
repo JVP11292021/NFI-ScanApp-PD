@@ -23,7 +23,8 @@ Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeCreate(
         jobject surface,
         jobject pAssetManager,
         jstring projectDirPath,
-        jstring actionId
+        jstring actionId,
+        jstring customModelPath
 ) {
     if (engineApp) {
         delete engineApp;
@@ -54,9 +55,14 @@ Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeCreate(
         action = env->GetStringUTFChars(actionId, nullptr);
     }
 
+    const char* customModel = nullptr;
+    if (customModelPath != nullptr) {
+        customModel = env->GetStringUTFChars(customModelPath, nullptr);
+    }
+
     try {
         engineApp = new AndroidEngine(
-                assetManager, window, ANativeWindow_getWidth(window), ANativeWindow_getHeight(window), projectPath, action);
+                assetManager, window, ANativeWindow_getWidth(window), ANativeWindow_getHeight(window), projectPath, action, customModel);
     } catch (std::runtime_error& er) {
         VLE_LOGF(er.what());
         if (projectPath) {
@@ -64,6 +70,9 @@ Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeCreate(
         }
         if (action) {
             env->ReleaseStringUTFChars(actionId, action);
+        }
+        if (customModel) {
+            env->ReleaseStringUTFChars(customModelPath, customModel);
         }
         return;
     }
@@ -74,6 +83,10 @@ Java_com_example_ipmedth_1nfi_bridge_NativeAndroidEngine_nativeCreate(
 
     if (action) {
         env->ReleaseStringUTFChars(actionId, action);
+    }
+
+    if (customModel) {
+        env->ReleaseStringUTFChars(customModelPath, customModel);
     }
 
     VLE_LOGD("AndroidEngine app instance created successfully!");

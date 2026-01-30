@@ -57,6 +57,16 @@ object ProjectExporter {
             }
         }
 
+        // copy custom model if specified
+        if (snapshot.roomModel?.customModelPath != null) {
+            val customModelFile = File(snapshot.roomModel.customModelPath)
+            if (customModelFile.exists() && customModelFile.isFile) {
+                val modelsOut = File(tmpDir, "models")
+                modelsOut.mkdirs()
+                customModelFile.copyTo(File(modelsOut, customModelFile.name), overwrite = true)
+            }
+        }
+
         // zip tmpDir
         ZipOutputStream(BufferedOutputStream(FileOutputStream(zipFile))).use { zos ->
             fun addFileToZip(file: File, basePath: String) {

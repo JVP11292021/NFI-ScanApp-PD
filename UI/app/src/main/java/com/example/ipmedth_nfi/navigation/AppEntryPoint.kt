@@ -49,6 +49,10 @@ fun AppEntryPoint(
                     scope.launch { drawerState.close() }
                     navController.navigate(route)
                 },
+                onImportModelClick = {
+                    scope.launch { drawerState.close() }
+                    navController.navigate("import_model")
+                },
                 onExportClick = {
                     scope.launch { drawerState.close() }
                     navController.navigate("export")

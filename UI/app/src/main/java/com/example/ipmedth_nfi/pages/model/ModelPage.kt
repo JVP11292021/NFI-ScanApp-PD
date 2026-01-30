@@ -99,6 +99,7 @@ fun ModelPage(
                 engine = engine,
                 projectDirPath = projectDirPath,
                 actionId = actionId,
+                customModelPath = viewModel.roomModel?.customModelPath,
                 onEngineReady = {
                     // Apply saved rotation immediately after engine is initialized
                 engine.setInitialRotation(rotationOffsetX, rotationOffsetY, rotationOffsetZ)

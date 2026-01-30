@@ -75,6 +75,7 @@ fun AnnotationPage(
         engine = engine,
         projectDirPath = projectDirPath,
         actionId = actionId,
+        customModelPath = viewModel.roomModel?.customModelPath,
         onEngineReady = {
             engine.setInitialRotation(rotationOffsetX, rotationOffsetY, rotationOffsetZ)
             engine.draw()

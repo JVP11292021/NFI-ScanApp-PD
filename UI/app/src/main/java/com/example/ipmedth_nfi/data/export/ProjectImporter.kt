@@ -55,9 +55,40 @@ object ProjectImporter {
             val jsonText = jsonFile.readText()
             val json = Json { ignoreUnknownKeys = true }
             val snapshot = json.decodeFromString(ProjectSnapshot.serializer(), jsonText)
+
+            // Generate new internal ID for imported project
+            val newInternalId = UUID.randomUUID().toString()
+
+            // Copy custom model to the new project directory if it exists
+            var newCustomModelPath: String? = snapshot.roomModel?.customModelPath
+            if (snapshot.roomModel?.customModelPath != null) {
+                val oldModelFile = File(snapshot.roomModel.customModelPath)
+                val modelsInZip = File(tmpDir, "models")
+                if (modelsInZip.exists()) {
+                    // Find the model file in the extracted ZIP
+                    val modelFile = modelsInZip.listFiles()?.find { it.name == oldModelFile.name }
+                    if (modelFile != null && modelFile.exists()) {
+                        // Create models directory in the new project location
+                        val storageManager = ProjectStorageManager(context)
+                        val newOnderzoek = snapshot.onderzoek.copy(internalId = newInternalId)
+                        val projectDir = storageManager.getProjectDir(newOnderzoek)
+                        val newModelsDir = File(projectDir, "models")
+                        newModelsDir.mkdirs()
+
+                        // Copy the model file to the new location
+                        val newModelFile = File(newModelsDir, modelFile.name)
+                        modelFile.copyTo(newModelFile, overwrite = true)
+                        newCustomModelPath = newModelFile.absolutePath
+                    }
+                }
+            }
+
             val fixedSnapshot = snapshot.copy(
                 onderzoek = snapshot.onderzoek.copy(
-                    internalId = UUID.randomUUID().toString()
+                    internalId = newInternalId
+                ),
+                roomModel = snapshot.roomModel?.copy(
+                    customModelPath = newCustomModelPath
                 )
             )
 

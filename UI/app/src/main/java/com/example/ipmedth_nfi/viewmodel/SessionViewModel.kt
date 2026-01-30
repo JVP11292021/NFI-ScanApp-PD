@@ -298,6 +298,13 @@ class SessionViewModel(
         autoSave()
     }
 
+    fun setCustomModelPath(path: String?) {
+        roomModel = (roomModel ?: RoomModel()).copy(
+            customModelPath = path
+        )
+        autoSave()
+    }
+
     // --- 9. Helpers: Detailed Aandachtspunt management ---
     // These helpers manage nested parts of Aandachtspunt (relevanteScenes, sceneProbabilities,
     // verwachteSporen, primaryActions, otherActions) and are defensive to avoid index errors.
