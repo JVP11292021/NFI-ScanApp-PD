@@ -16,6 +16,7 @@ import com.example.ipmedth_nfi.data.export.ProjectStorageManager
 import com.example.ipmedth_nfi.pages.app.AppPage
 import com.example.ipmedth_nfi.pages.model.AnnotationPage
 import com.example.ipmedth_nfi.pages.export.ExportProjectScreen
+import com.example.ipmedth_nfi.pages.model.ImportModelScreen
 import com.example.ipmedth_nfi.pages.model.ModelPage
 import com.example.ipmedth_nfi.pages.scan.ScanPage
 import com.example.ipmedth_nfi.ui.components.navbar.AppTopbar
@@ -57,6 +58,13 @@ fun AppNavGraph(
                 "export" -> {
                     AppTopbar(
                         title = "Finish & Export",
+                        onMenuClick = { scope.launch { drawerState.open() } }
+                    )
+                }
+
+                "import_model" -> {
+                    AppTopbar(
+                        title = "Importeer Model",
                         onMenuClick = { scope.launch { drawerState.open() } }
                     )
                 }
@@ -128,6 +136,15 @@ fun AppNavGraph(
                         navController.navigate(MainRoute.SCAN.route) {
                             popUpTo(0)
                         }
+                    }
+                )
+            }
+
+            composable("import_model") {
+                ImportModelScreen(
+                    viewModel = viewModel,
+                    onModelImported = {
+                        // Optionally navigate back or stay on the page
                     }
                 )
             }

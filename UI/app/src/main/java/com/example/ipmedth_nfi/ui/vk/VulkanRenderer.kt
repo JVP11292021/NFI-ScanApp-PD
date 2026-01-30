@@ -15,6 +15,7 @@ fun VulkanRenderer(
     engine: NativeAndroidEngine,
     projectDirPath: String? = null,
     actionId: String? = null,
+    customModelPath: String? = null,
     modifier: Modifier = Modifier,
     onEngineReady: (() -> Unit)? = null
 ) {
@@ -26,7 +27,7 @@ fun VulkanRenderer(
             holder.addCallback(object : SurfaceHolder.Callback2 {
                 override fun surfaceCreated(holder: SurfaceHolder) {
                     // Initialize the native Vulkan engine with the provided surface
-                    engine.create(holder.surface, assetManager, projectDirPath, actionId)
+                    engine.create(holder.surface, assetManager, projectDirPath, actionId, customModelPath)
                     // Notify that engine is ready
                     onEngineReady?.invoke()
                 }

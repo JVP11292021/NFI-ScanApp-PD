@@ -15,6 +15,7 @@ import com.example.ipmedth_nfi.navigation.MainRoute
 @Composable
 fun AppDrawer(
     onMainRouteClick: (String) -> Unit,
+    onImportModelClick: () -> Unit,
     onExportClick: () -> Unit,
     onSaveAndClose: () -> Unit
 ) {
@@ -36,6 +37,12 @@ fun AppDrawer(
             }
 
             Spacer(Modifier.weight(1f))
+
+            NavigationDrawerItem(
+                label = { Text("Importeer Model") },
+                selected = false,
+                onClick = onImportModelClick
+            )
 
             NavigationDrawerItem(
                 label = { Text("Finish & Export") },

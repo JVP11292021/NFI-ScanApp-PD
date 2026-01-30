@@ -10,7 +10,7 @@ class NativeAndroidEngine() {
         }
     }
 
-    private external fun nativeCreate(surface: Surface, assetManager: AssetManager, projectDirPath: String?, actionId: String?)
+    private external fun nativeCreate(surface: Surface, assetManager: AssetManager, projectDirPath: String?, actionId: String?, customModelPath: String?)
     private external fun nativeDestroy()
     private external fun nativeResize(width: Int, height: Int)
     private external fun nativeDraw()
@@ -26,8 +26,8 @@ class NativeAndroidEngine() {
     private external fun nativeGetLastTappedMarkerActionId(): String
     private external fun nativeGetLastTappedMarkerPosition(): FloatArray
 
-    fun create(surface: Surface, assetManager: AssetManager, projectDirPath: String? = null, actionId: String? = null) {
-        nativeCreate(surface, assetManager, projectDirPath, actionId)
+    fun create(surface: Surface, assetManager: AssetManager, projectDirPath: String? = null, actionId: String? = null, customModelPath: String? = null) {
+        nativeCreate(surface, assetManager, projectDirPath, actionId, customModelPath)
     }
 
     fun destroy() {

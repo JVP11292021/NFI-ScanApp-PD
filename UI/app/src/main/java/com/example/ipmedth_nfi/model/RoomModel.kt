@@ -8,5 +8,6 @@ data class RoomModel(
     val description: String = "",
     val rotationOffsetX: Float = 0f,
     val rotationOffsetY: Float = 0f,
-    val rotationOffsetZ: Float = 0f
+    val rotationOffsetZ: Float = 0f,
+    val customModelPath: String? = null
 )

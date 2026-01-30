@@ -36,7 +36,8 @@ public:
             std::int32_t width,
             std::int32_t height,
             const char* projectDirPath,
-            const char* actionId = nullptr);
+            const char* actionId = nullptr,
+            const char* customModelPath = nullptr);
     ~AndroidEngine() override;
 
     NON_COPYABLE(AndroidEngine)
@@ -69,6 +70,7 @@ private:
     AAssetManager* _assetManager = nullptr;
     std::string _projectDirPath;
     std::string _actionId;
+    std::string _customModelPath;
     vle::AndroidWindow _win;
     vle::EngineDevice _device;
     vle::sys::Renderer _renderer;

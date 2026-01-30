@@ -18,19 +18,24 @@ AndroidEngine::AndroidEngine(
         std::int32_t width,
         std::int32_t height,
         const char* projectDirPath,
-        const char* actionId
+        const char* actionId,
+        const char* customModelPath
 )
   :
     IAndroidSurface(),
     _assetManager(assetManager),
     _projectDirPath(projectDirPath ? projectDirPath : ""),
     _actionId(actionId ? actionId : ""),
+    _customModelPath(customModelPath ? customModelPath : ""),
     _win(nativeWindow, width, height, "NFI Scan App"),
     _device(_win, _assetManager),
     _renderer(_win, _device),
     markerManager(_actionId)
 {
     VLE_LOGD("AndroidEngine initialized with actionId: ", _actionId.empty() ? "<empty>" : _actionId.c_str());
+    if (!_customModelPath.empty()) {
+        VLE_LOGD("Custom model path: ", _customModelPath.c_str());
+    }
 
     this->globalPool = vle::DescriptorPool::Builder(this->_device)
             .setMaxSets(MAX_FRAMES_IN_FLIGHT)
@@ -133,18 +138,53 @@ void AndroidEngine::loadObjects() {
 
     std::shared_ptr<vle::ShaderModel> roomModel;
 
+    // 1. Try to load custom model if path is provided
+    if (!_customModelPath.empty()) {
+        // Check if it's an asset path (prefixed with "ASSET:")
+        if (_customModelPath.rfind("ASSET:", 0) == 0) {
+            // Extract the asset filename after "ASSET:"
+            std::string assetName = _customModelPath.substr(6);
+            try {
+                roomModel = vle::ShaderModel::createModelFromFile(
+                        _device,
+                        assetName,
+                        vle::ModelLoadMode::ASSET_MANAGER
+                );
+                VLE_LOGI("Loaded model from assets: ", assetName.c_str());
+            } catch (const std::exception& e) {
+                VLE_LOGW("Failed to load asset model, will try other options: ", e.what());
+            }
+        } else {
+            // It's a direct file path
+            try {
+                roomModel = vle::ShaderModel::createModelFromFile(
+                        _device,
+                        _customModelPath,
+                        vle::ModelLoadMode::DIRECT_PATH
+                );
+                VLE_LOGI("Loaded custom model from: ", _customModelPath.c_str());
+            } catch (const std::exception& e) {
+                VLE_LOGW("Failed to load custom model, falling back to default: ", e.what());
+            }
+        }
+    }
 
-    // Attempt to load sparse.ply from external storage
-    try {
-        roomModel = vle::ShaderModel::createModelFromFile(
-                _device,
-                _projectDirPath + "/Reconstruction/sparse/sparse.ply",
-                vle::ModelLoadMode::DIRECT_PATH
-        );
-        VLE_LOGI("Loaded room model from external storage");
-    } catch (const std::exception& e) {
-        VLE_LOGW("Failed to load sparse.ply, falling back to assets: ", e.what());
-        // Fallback: Load simple_scene.ply from assets
+    // 2. If no custom model or custom model failed, try to load sparse.ply from external storage
+    if (!roomModel && !_projectDirPath.empty()) {
+        try {
+            roomModel = vle::ShaderModel::createModelFromFile(
+                    _device,
+                    _projectDirPath + "/Reconstruction/sparse/fused1.ply",
+                    vle::ModelLoadMode::DIRECT_PATH
+            );
+            VLE_LOGI("Loaded room model from external storage");
+        } catch (const std::exception& e) {
+            VLE_LOGW("Failed to load sparse.ply, falling back to assets: ", e.what());
+        }
+    }
+
+    // 3. Final fallback: Load simple_scene.ply from assets
+    if (!roomModel) {
         try {
             roomModel = vle::ShaderModel::createModelFromFile(
                     _device,
@@ -161,6 +201,7 @@ void AndroidEngine::loadObjects() {
     auto room = vle::Object::create();
     room.model = roomModel;
     room.transform.translation = { 0.f, .5f, 8.f };
+    room.transform.scale = {5.f, 5.f, 5.f };
     roomModelId = room.getId();
     this->points.emplace(roomModelId, std::move(room));
 }
